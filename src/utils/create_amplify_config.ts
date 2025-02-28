@@ -1,8 +1,8 @@
 export const getAmplifyConfig = () => {
-	const identityPoolId = process.env.IDENTITY_POOL_ID;
-	const userPoolId = process.env.USER_POOL_ID;
-	const clientId = process.env.CLIENT_ID;
-	const domain = process.env.DOMAIN;
+	const identityPoolId = process.env.NEXT_PUBLIC_IDENTITY_POOL_ID;
+	const userPoolId = process.env.NEXT_PUBLIC_USER_POOL_ID;
+	const clientId = process.env.NEXT_PUBLIC_CLIENT_ID;
+	const domain = process.env.NEXT_PUBLIC_DOMAIN;
 
 	return {
 		aws_project_region: "ap-south-1",
