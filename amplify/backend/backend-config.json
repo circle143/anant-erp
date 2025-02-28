@@ -1,0 +1,109 @@
+{
+  "auth": {
+    "ananterpbackend53442911": {
+      "customAuth": false,
+      "dependsOn": [],
+      "providerPlugin": "awscloudformation",
+      "service": "Cognito",
+      "serviceType": "imported"
+    }
+  },
+  "parameters": {
+    "AMPLIFY_auth_ananterpbackend53442911_allowUnauthenticatedIdentities": {
+      "usedBy": [
+        {
+          "category": "auth",
+          "resourceName": "ananterpbackend53442911"
+        }
+      ]
+    },
+    "AMPLIFY_auth_ananterpbackend53442911_authRoleArn": {
+      "usedBy": [
+        {
+          "category": "auth",
+          "resourceName": "ananterpbackend53442911"
+        }
+      ]
+    },
+    "AMPLIFY_auth_ananterpbackend53442911_authRoleName": {
+      "usedBy": [
+        {
+          "category": "auth",
+          "resourceName": "ananterpbackend53442911"
+        }
+      ]
+    },
+    "AMPLIFY_auth_ananterpbackend53442911_identityPoolId": {
+      "usedBy": [
+        {
+          "category": "auth",
+          "resourceName": "ananterpbackend53442911"
+        }
+      ]
+    },
+    "AMPLIFY_auth_ananterpbackend53442911_identityPoolName": {
+      "usedBy": [
+        {
+          "category": "auth",
+          "resourceName": "ananterpbackend53442911"
+        }
+      ]
+    },
+    "AMPLIFY_auth_ananterpbackend53442911_nativeClientId": {
+      "usedBy": [
+        {
+          "category": "auth",
+          "resourceName": "ananterpbackend53442911"
+        }
+      ]
+    },
+    "AMPLIFY_auth_ananterpbackend53442911_unauthRoleArn": {
+      "usedBy": [
+        {
+          "category": "auth",
+          "resourceName": "ananterpbackend53442911"
+        }
+      ]
+    },
+    "AMPLIFY_auth_ananterpbackend53442911_unauthRoleName": {
+      "usedBy": [
+        {
+          "category": "auth",
+          "resourceName": "ananterpbackend53442911"
+        }
+      ]
+    },
+    "AMPLIFY_auth_ananterpbackend53442911_userPoolId": {
+      "usedBy": [
+        {
+          "category": "auth",
+          "resourceName": "ananterpbackend53442911"
+        }
+      ]
+    },
+    "AMPLIFY_auth_ananterpbackend53442911_userPoolName": {
+      "usedBy": [
+        {
+          "category": "auth",
+          "resourceName": "ananterpbackend53442911"
+        }
+      ]
+    },
+    "AMPLIFY_auth_ananterpbackend53442911_webClientId": {
+      "usedBy": [
+        {
+          "category": "auth",
+          "resourceName": "ananterpbackend53442911"
+        }
+      ]
+    }
+  },
+  "storage": {
+    "ananterpbackend37c6d676": {
+      "dependsOn": [],
+      "providerPlugin": "awscloudformation",
+      "service": "S3",
+      "serviceType": "imported"
+    }
+  }
+}
