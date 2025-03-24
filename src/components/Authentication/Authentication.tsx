@@ -60,7 +60,7 @@ const Authentication = ({ children }: AuthenticationProps) => {
 						<Nav />
 						{children}
 					</ApolloProvider>
-					,
+					
 				</>
 			)}
 		</Authenticator>
