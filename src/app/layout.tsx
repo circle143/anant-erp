@@ -4,6 +4,9 @@ import "../styles/main.scss";
 import Authentication from "@/components/Authentication/Authentication";
 import { SpeedInsights } from "@vercel/speed-insights/next";
 import Providers from "./providers";
+import "bootstrap/dist/css/bootstrap.min.css";
+import BootstrapClient from "@/components/BootstrapClient";
+
 const geistSans = Geist({
   variable: "--font-geist-sans",
   subsets: ["latin"],
@@ -20,13 +23,14 @@ export const metadata: Metadata = {
 };
 
 export default function RootLayout({
-  children
+  children,
 }: Readonly<{
   children: React.ReactNode;
 }>) {
   return (
     <html lang="en">
       <body className={`${geistSans.variable} ${geistMono.variable}`}>
+        <BootstrapClient />
         <SpeedInsights />
         <Providers>
           <Authentication>{children}</Authentication>

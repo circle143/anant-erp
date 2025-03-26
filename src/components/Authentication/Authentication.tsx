@@ -1,14 +1,12 @@
 "use client";
 
 import React from "react";
-
 import {
 	ApolloClient,
 	InMemoryCache,
 	ApolloProvider,
 	createHttpLink,
 } from "@apollo/client";
-
 import { setContext } from "@apollo/client/link/context";
 import { getAccessToken } from "@/utils/get_user_tokens";
 

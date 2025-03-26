@@ -1,9 +1,14 @@
-"use client";
-import Redux from "@/components/redux";
+import Society from "@/components/Forms/Society";
+import FlateType from "@/components/Forms/FlatType";
+import Tower from "@/components/Forms/Tower";
+import Flat from "@/components/Forms/Flat";
 export default function form() {
   return (
     <div>
-      <Redux />
+      {/* <Society/> */}
+      {/* <FlateType/> */}
+      {/* <Tower /> */}
+      <Flat/>
     </div>
   );
 }
