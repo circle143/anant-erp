@@ -14,7 +14,7 @@ import { Authenticator } from "@aws-amplify/ui-react";
 import { Amplify } from "aws-amplify";
 import "@aws-amplify/ui-react/styles.css";
 
-import Nav from "../Nav/Nav";
+
 
 Amplify.configure(getAmplifyConfig());
 
@@ -55,7 +55,7 @@ const Authentication = ({ children }: AuthenticationProps) => {
 			{({ signOut, user }) => (
 				<>
 					<ApolloProvider client={client}>
-						<Nav />
+						
 						{children}
 					</ApolloProvider>
 					

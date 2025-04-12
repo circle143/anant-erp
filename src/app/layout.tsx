@@ -4,9 +4,11 @@ import "../styles/main.scss";
 import Authentication from "@/components/Authentication/Authentication";
 import { SpeedInsights } from "@vercel/speed-insights/next";
 import Providers from "./providers";
-import "bootstrap/dist/css/bootstrap.min.css";
-import BootstrapClient from "@/components/BootstrapClient";
 
+import BootstrapClient from "@/components/BootstrapClient";
+import "bootstrap/dist/css/bootstrap.min.css";
+import "boxicons/css/boxicons.min.css";
+import RedirectByRole from "@/components/RedirectByRole/RedirectByRole";
 const geistSans = Geist({
   variable: "--font-geist-sans",
   subsets: ["latin"],
@@ -33,7 +35,9 @@ export default function RootLayout({
         <BootstrapClient />
         <SpeedInsights />
         <Providers>
-          <Authentication>{children}</Authentication>
+          <Authentication>
+            <RedirectByRole>{children}</RedirectByRole>
+          </Authentication>
         </Providers>
       </body>
     </html>

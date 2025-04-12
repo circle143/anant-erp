@@ -1,0 +1,81 @@
+@use "../../styles/abstract/media-queries" as ab;
+.sidebar {
+  width: 240px;
+  height: 100vh;
+  background-color: var(--color-primary);
+  padding: 1rem;
+  position: fixed;
+
+  // top: 0;
+  // left: 0;
+  overflow-y: auto;
+  color: var(--color-secondary);
+  svg {
+    position: absolute;
+    top: 0.5em;
+    right: 0.5em;
+    @include ab.screen-48 {
+      display: none;
+    }
+  }
+  .logo {
+    img {
+      padding-bottom: 1em;
+      width: clamp(7em, 10vi, 10em);
+    }
+  }
+}
+.sidebarWrapper {
+  position: fixed;
+  width: 240px;
+  height: 100vh;
+  z-index: 10;
+  transition: all 0.3s ease;
+  clip-path: polygon(0 0, 0 0, 0 100%, 0 100%);
+
+  @include ab.screen-48 {
+    clip-path: none;
+    position: relative;
+  }
+}
+.open {
+  clip-path: polygon(0 0, 100% 0, 100% 100%, 0 100%);
+}
+.menu {
+  list-style: none;
+  padding: 0;
+  margin: 0;
+}
+
+.menuItem {
+  margin-bottom: 0.75rem;
+
+  .menuLink {
+    display: flex;
+    align-items: center;
+    color: var(--white);
+    text-decoration: none;
+    padding: 0.75rem;
+    border-radius: 8px;
+    transition: all 0.3s ease;
+
+    i {
+      font-size: 1.25rem;
+      margin-right: 0.75rem;
+    }
+
+    span {
+      font-size: 1rem;
+    }
+
+    &:hover {
+      background-color: var(--color-hover);
+      color: var(--color-secondary);
+    }
+  }
+}
+
+.active .menuLink {
+  background-color: var(--color-hover);
+  color: var(--color-secondary);
+}
