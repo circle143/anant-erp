@@ -1,10 +1,9 @@
-import React from 'react'
+import React from "react";
 
 const page = () => {
-  return (
-    <div>page</div>
-  )
-}
+  const apiUrl = process.env.NEXT_PUBLIC_API_URL;
 
-export default page
- 
+  return <div>page - API URL: {apiUrl}</div>;
+};
+
+export default page;

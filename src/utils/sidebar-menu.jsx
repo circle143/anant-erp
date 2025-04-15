@@ -3,31 +3,13 @@ export const sidebarAdminItems = [
     eventKey: "dashboard",
     icon: "bx bx-home-circle",
     text: "Dashboard",
-    path: "/org-admin/flate",
+    path: "/admin",
   },
   {
-    eventKey: "fans",
+    eventKey: "Create_Organization",
     icon: "bx bxs-user-account",
-    text: "Fans",
-    path: "/app/fans",
-  },
-  {
-    eventKey: "influencers",
-    icon: "bx bxs-user-account",
-    text: "Influencers",
-    path: "/app/influencers",
-  },
-  {
-    eventKey: "requests",
-    icon: "bx bxs-user-account",
-    text: "Requests",
-    path: "/app/requests",
-  },
-  {
-    eventKey: "calls",
-    icon: "bx bxs-phone-call",
-    text: "Manage calls",
-    path: "/app/calls",
+    text: "Create Organization",
+    path: "/admin/create-organization",
   },
 ];
 export const sidebarOrgAdminItems = [

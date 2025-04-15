@@ -1,10 +1,9 @@
-// components/RedirectByRole.tsx
 "use client";
 
-import { useEffect } from "react";
+import { useEffect, useState } from "react";
 import { useRouter, usePathname } from "next/navigation";
 import { fetchAuthSession } from "aws-amplify/auth";
-
+import Loader from "../Loader/Loader";
 const roleRoutes: Record<string, string> = {
   "circle-admin": "/admin",
   "org-admin": "/org-admin",
@@ -18,6 +17,7 @@ export default function RedirectByRole({
 }) {
   const router = useRouter();
   const pathname = usePathname();
+  const [loading, setLoading] = useState(true); // loading state
 
   useEffect(() => {
     const redirectIfOnRoot = async () => {
@@ -28,7 +28,6 @@ export default function RedirectByRole({
 
         const payloadBase64 = token.split(".")[1];
         const decodedPayload = JSON.parse(atob(payloadBase64));
-
         const userGroups: string[] = decodedPayload["cognito:groups"] || [];
 
         const matchedGroup = userGroups.find((group) =>
@@ -39,12 +38,22 @@ export default function RedirectByRole({
           router.replace(roleRoutes[matchedGroup]);
         }
       } catch (error) {
-        // Do nothing if not authenticated — let normal auth/layout handle it
+        console.error("Redirect error:", error);
+      } finally {
+        setLoading(false); // Stop loading in any case
       }
     };
 
     redirectIfOnRoot();
   }, [router, pathname]);
+
+  if (loading) {
+    return (
+      <div>
+        <Loader />
+      </div>
+    );
+  }
 
   return <>{children}</>;
 }

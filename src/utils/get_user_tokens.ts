@@ -5,7 +5,7 @@ export const getAccessToken = async () => {
 };
 
 export const getIdToken = async () => {
-	return (await fetchAuthSession()).tokens?.idToken?.toString();
+	return (await fetchAuthSession()).tokens?.idToken?.toString(); 
 };
 export const decodeAccessToken = async () => {
   const token = (await fetchAuthSession()).tokens?.idToken?.toString();
