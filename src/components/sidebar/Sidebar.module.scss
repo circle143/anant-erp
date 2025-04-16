@@ -1,23 +1,25 @@
 @use "../../styles/abstract/media-queries" as ab;
+
 .sidebar {
   width: 240px;
   height: 100vh;
-  background-color: var(--color-primary);
+  background-color: var(--color-secondary); // Dark blue for navigation
   padding: 1rem;
   position: fixed;
-
-  // top: 0;
-  // left: 0;
   overflow-y: auto;
-  color: var(--color-secondary);
+  color: var(--color-background); // Light text for contrast
+
   svg {
     position: absolute;
     top: 0.5em;
     right: 0.5em;
+    cursor: pointer;
+    color: var(--color-background); // White icon
     @include ab.screen-48 {
       display: none;
     }
   }
+
   .logo {
     img {
       padding-bottom: 1em;
@@ -25,6 +27,7 @@
     }
   }
 }
+
 .sidebarWrapper {
   position: fixed;
   width: 240px;
@@ -38,9 +41,11 @@
     position: relative;
   }
 }
+
 .open {
   clip-path: polygon(0 0, 100% 0, 100% 100%, 0 100%);
 }
+
 .menu {
   list-style: none;
   padding: 0;
@@ -53,7 +58,7 @@
   .menuLink {
     display: flex;
     align-items: center;
-    color: var(--white);
+    color: var(--color-background); // Text in sidebar
     text-decoration: none;
     padding: 0.75rem;
     border-radius: 8px;
@@ -62,6 +67,7 @@
     i {
       font-size: 1.25rem;
       margin-right: 0.75rem;
+      // color: var(--color-accent); // Accent icon
     }
 
     span {
@@ -69,8 +75,8 @@
     }
 
     &:hover {
-      background-color: var(--color-hover);
-      color: var(--color-secondary);
+      background-color: var(--color-hover); // Light blue hover
+      color: var(--color-secondary); // Dark text on hover
     }
   }
 }
