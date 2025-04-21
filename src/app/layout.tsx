@@ -4,7 +4,7 @@ import "../styles/main.scss";
 import Authentication from "@/components/Authentication/Authentication";
 import { SpeedInsights } from "@vercel/speed-insights/next";
 import Providers from "./providers";
-
+import { Toaster } from "react-hot-toast";
 import BootstrapClient from "@/components/BootstrapClient";
 import "bootstrap/dist/css/bootstrap.min.css";
 import "boxicons/css/boxicons.min.css";
@@ -36,7 +36,10 @@ export default function RootLayout({
         <SpeedInsights />
         <Providers>
           <Authentication>
-            <RedirectByRole>{children}</RedirectByRole>
+            <RedirectByRole>
+              {children}
+              <Toaster />
+            </RedirectByRole>
           </Authentication>
         </Providers>
       </body>
