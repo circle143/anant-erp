@@ -14,7 +14,7 @@ const Page = () => {
 
   const [editingId, setEditingId] = useState<string | null>(null);
   const [selectedStatus, setSelectedStatus] = useState<string>("");
-
+  const [id, setId] = useState<string>("");
   const fetchData = async (cursor: string | null = null, isNext = true) => {
     setLoading(true);
     const response = await getOrg(cursor);
@@ -41,7 +41,10 @@ const Page = () => {
       fetchData(prevCursor, false);
     }
   };
-
+  const handleCancelEdit = () => {
+    setEditingId(null);
+    setSelectedStatus(""); // or reset to org.status if you want to keep current state
+  };
   const handleStatusClick = (orgId: string, currentStatus: string) => {
     setEditingId(orgId);
     setSelectedStatus(currentStatus);
@@ -49,9 +52,13 @@ const Page = () => {
 
   const handleStatusChange = async (orgId: string, status: string) => {
     setSelectedStatus(status);
-    const response = await updateStatus(orgId, status);
-    setEditingId(null);
-    fetchData(cursor, false); 
+    setId(orgId);
+   
+  };
+  const handleStatusDone = async () => {
+     const response = await updateStatus(id, selectedStatus);
+     setEditingId(null);
+     fetchData(cursor, false);
   };
 
   return (
@@ -110,7 +117,22 @@ const Page = () => {
                     </div>
                   </div>
 
-                  {editingId === org.id ? null : (
+                  {editingId === org.id ? (
+                    <>
+                      <button
+                        className={styles.updateButton}
+                        onClick={() => handleStatusDone()}
+                      >
+                        Done
+                      </button>
+                      <button
+                        className={styles.cancelButton}
+                        onClick={handleCancelEdit}
+                      >
+                        Cancel
+                      </button>
+                    </>
+                  ) : (
                     <button
                       className={styles.updateButton}
                       onClick={() => handleStatusClick(org.id, org.status)}

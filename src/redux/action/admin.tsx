@@ -7,7 +7,7 @@ export const addOrgAdminUser = async (Name: string, RootUserEmail: string) => {
 	try {
 		const token = await getIdToken();
 		const response = await axios.post(
-			`${apiUrl}/admin/organization`,
+			`${apiUrl}/organization`,
 			{
 				Name,
 				RootUserEmail,
@@ -33,7 +33,7 @@ export const getOrg = async (cursor: string | null = null) => {
   try {
     const token = await getIdToken(); // fetch token each time
     const response = await axios.get(
-      `${apiUrl}/admin/organizations${cursor ? `?cursor=${cursor}` : ""}`,
+      `${apiUrl}/organization${cursor ? `?cursor=${cursor}` : ""}`,
       {
         headers: {
           Authorization: `Bearer ${token}`,
@@ -54,11 +54,12 @@ export const updateStatus = async (orgId: string, status: string) => {
   try {
     const token = await getIdToken(); // fetch token each time
     const response = await axios.patch(
-      `${apiUrl}/admin/organization/${orgId}`, // corrected URL
+      `${apiUrl}/organization/${orgId}/status`,
       { status },
       {
         headers: {
           Authorization: `Bearer ${token}`,
+          "Content-Type": "application/json", 
         },
       }
     );
