@@ -4,14 +4,11 @@ const apiUrl = process.env.NEXT_PUBLIC_API_URL;
 export const getSelf = async () => {
   try {
     const token = await getIdToken(); // fetch token each time
-    const response = await axios.get(
-      `/organization/self`,
-      {
-        headers: {
-          Authorization: `Bearer ${token}`,
-        },
-      }
-    );
+    const response = await axios.get(`${apiUrl}/organization/self`, {
+      headers: {
+        Authorization: `Bearer ${token}`,
+      },
+    });
     return response.data;
   } catch (error: any) {
     console.error(

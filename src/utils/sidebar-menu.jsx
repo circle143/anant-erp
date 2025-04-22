@@ -14,12 +14,6 @@ export const sidebarAdminItems = [
 ];
 export const sidebarOrgAdminItems = [
   {
-    eventKey: "Organization",
-    icon: "bx bxs-user-account",
-    text: "Organization",
-    path: "/org-admin/organization",
-  },
-  {
     eventKey: "Create Socity",
     icon: "bx bxs-user-account",
     text: "Create Socity",
