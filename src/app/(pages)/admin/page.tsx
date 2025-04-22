@@ -1,9 +1,10 @@
 "use client";
 
-import React, { useEffect, useState } from "react";
-import { getOrg, updateStatus } from "@/redux/action/admin"; // make sure updateStatus is imported
+import React, { useEffect, useState, useCallback } from "react";
+import { getOrg, updateStatus } from "@/redux/action/admin";
 import styles from "./page.module.scss";
 import Loader from "@/components/Loader/Loader";
+import { debounce } from "lodash";
 
 const Page = () => {
   const [orgData, setOrgData] = useState<any[]>([]);
@@ -15,6 +16,7 @@ const Page = () => {
   const [editingId, setEditingId] = useState<string | null>(null);
   const [selectedStatus, setSelectedStatus] = useState<string>("");
   const [id, setId] = useState<string>("");
+
   const fetchData = async (cursor: string | null = null, isNext = true) => {
     setLoading(true);
     const response = await getOrg(cursor);
@@ -41,24 +43,34 @@ const Page = () => {
       fetchData(prevCursor, false);
     }
   };
+
   const handleCancelEdit = () => {
     setEditingId(null);
-    setSelectedStatus(""); // or reset to org.status if you want to keep current state
+    setSelectedStatus("");
   };
+
   const handleStatusClick = (orgId: string, currentStatus: string) => {
     setEditingId(orgId);
     setSelectedStatus(currentStatus);
   };
 
-  const handleStatusChange = async (orgId: string, status: string) => {
-    setSelectedStatus(status);
-    setId(orgId);
-   
+  // Debounced handler for status change
+  const debouncedStatusChange = useCallback(
+    debounce((orgId: string, status: string) => {
+      setSelectedStatus(status);
+      setId(orgId);
+    }, 300),
+    []
+  );
+
+  const handleStatusChange = (orgId: string, status: string) => {
+    debouncedStatusChange(orgId, status);
   };
+
   const handleStatusDone = async () => {
-     const response = await updateStatus(id, selectedStatus);
-     setEditingId(null);
-     fetchData(cursor, false);
+    const response = await updateStatus(id, selectedStatus);
+    setEditingId(null);
+    fetchData(cursor, false);
   };
 
   return (
@@ -118,10 +130,10 @@ const Page = () => {
                   </div>
 
                   {editingId === org.id ? (
-                    <>
+                    <div className={styles.editButtons}>
                       <button
                         className={styles.updateButton}
-                        onClick={() => handleStatusDone()}
+                        onClick={handleStatusDone}
                       >
                         Done
                       </button>
@@ -131,7 +143,7 @@ const Page = () => {
                       >
                         Cancel
                       </button>
-                    </>
+                    </div>
                   ) : (
                     <button
                       className={styles.updateButton}

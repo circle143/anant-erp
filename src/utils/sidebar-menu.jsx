@@ -14,28 +14,35 @@ export const sidebarAdminItems = [
 ];
 export const sidebarOrgAdminItems = [
   {
-    eventKey: "influencers",
+    eventKey: "Organization",
     icon: "bx bxs-user-account",
-    text: "Influencers",
-    path: "/org-admin/flate",
+    text: "Organization",
+    path: "/org-admin/organization",
   },
   {
-    eventKey: "requests",
+    eventKey: "Create Socity",
     icon: "bx bxs-user-account",
-    text: "Requests",
-    path: "/app/requests",
+    text: "Create Socity",
+    path: "/org-admin/new-socity",
   },
+
   {
-    eventKey: "calls",
+    eventKey: "Societies",
     icon: "bx bxs-phone-call",
-    text: "Manage calls",
-    path: "/app/calls",
+    text: "Societies",
+    path: "/org-admin/socity",
   },
   {
-    eventKey: "notifications",
+    eventKey: "new user",
     icon: "bx bxs-bell-ring",
-    text: "Notifications",
-    path: "/app/notifications",
+    text: "Create New User",
+    path: "/org-admin/new-user",
+  },
+  {
+    eventKey: "users",
+    icon: "bx bxs-bell-ring",
+    text: "Users",
+    path: "/org-admin/users",
   },
 ];
 export const sidebarUserItems = [
