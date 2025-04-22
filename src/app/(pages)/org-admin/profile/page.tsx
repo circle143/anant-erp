@@ -2,6 +2,7 @@
 
 import React, { useEffect, useState } from "react";
 import { decodeAccessToken } from "@/utils/get_user_tokens";
+import { uploadData } from "aws-amplify/storage";
 import styles from "./page.module.scss";
 
 const Page = () => {
@@ -11,14 +12,15 @@ const Page = () => {
   const [img, setImg] = useState("/dp.jpg");
   const [originalName, setOriginalName] = useState("");
   const [originalImg, setOriginalImg] = useState("/dp.jpg");
+  const [file, setFile] = useState<File | null>(null);
 
   useEffect(() => {
     const fetchUser = async () => {
       const data = await decodeAccessToken();
-      setUser(data);
       const userName = data?.name || "No name provided";
       const userImg = data?.img || "/dp.jpg";
 
+      setUser(data);
       setName(userName);
       setImg(userImg);
       setOriginalName(userName);
@@ -29,26 +31,55 @@ const Page = () => {
   }, []);
 
   const handleImageChange = (e: React.ChangeEvent<HTMLInputElement>) => {
-    const file = e.target.files?.[0];
-    if (file) {
+    const selected = e.target.files?.[0];
+    if (selected) {
+      setFile(selected);
       const reader = new FileReader();
       reader.onloadend = () => {
         setImg(reader.result as string);
       };
-      reader.readAsDataURL(file);
+      reader.readAsDataURL(selected);
     }
   };
 
-  const handleSave = () => {
-    setUser({ ...user, name, img });
+  const handleSave = async () => {
+    let newImg = img;
+
+    if (file) {
+      try {
+        const arrayBuffer = await file.arrayBuffer();
+        const result = await uploadData({
+          path: `profile-images/${file.name}`,
+          data: arrayBuffer,
+          options: {
+            contentType: file.type,
+          },
+        }).result;
+        // Manually construct the S3 URL (assuming your files are public)
+        const bucket = "erp-bucket";
+        const region = "ap-south-1"; // e.g., ap-south-1
+        const key = result.path;
+        const email=user?.email;
+        const orgId = user?.["custom:org_id"];
+        newImg = `https://${bucket}.s3.${region}.amazonaws.com/profile-images/${orgId}/${email}/${key}`;
+      } catch (err) {
+        console.error("Upload failed:", err);
+      }
+    }
+
+    // Update state (mocking backend update)
+    setUser({ ...user, name, img: newImg });
     setOriginalName(name);
-    setOriginalImg(img);
+    setOriginalImg(newImg);
+    setImg(newImg);
+    setFile(null);
     setIsEditing(false);
   };
 
   const handleCancel = () => {
     setName(originalName);
     setImg(originalImg);
+    setFile(null);
     setIsEditing(false);
   };
 
@@ -66,7 +97,14 @@ const Page = () => {
               className={styles.input}
               placeholder="Enter your name"
             />
-            <input type="file" accept="image/*" onChange={handleImageChange} />
+
+            <input
+              type="file"
+              accept="image/*"
+              onChange={handleImageChange}
+              className={styles.fileInput}
+            />
+
             <div className={styles.buttonGroup}>
               <button className={styles.saveButton} onClick={handleSave}>
                 Save
