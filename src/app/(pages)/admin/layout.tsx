@@ -8,7 +8,7 @@ import styles from "./layout.module.scss";
 import Nav from "../../../components/Nav/Nav";
 import { sidebarAdminItems} from "../../../utils/sidebar-menu";
 import Loader from "@/components/Loader/Loader";
-const authorizedRoles = ["circle-admin", "org-admin", "org-user"];
+const authorizedRoles = ["circle-admin"];
 export default function ProtectedLayout({
   children,
 }: {

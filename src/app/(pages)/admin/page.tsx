@@ -5,7 +5,7 @@ import { getOrg, updateStatus } from "@/redux/action/admin";
 import styles from "./page.module.scss";
 import Loader from "@/components/Loader/Loader";
 import { debounce } from "lodash";
-
+import { OrganizationStatus } from "../../../utils/routes/organization/types";
 const Page = () => {
   const [orgData, setOrgData] = useState<any[]>([]);
   const [cursor, setCursor] = useState<string | null>(null);
@@ -67,11 +67,25 @@ const Page = () => {
     debouncedStatusChange(orgId, status);
   };
 
-  const handleStatusDone = async () => {
-    const response = await updateStatus(id, selectedStatus);
+const handleStatusDone = async () => {
+
+  // Validate that the selected status is a valid OrganizationStatus
+  if (
+    Object.values(OrganizationStatus).includes(
+      selectedStatus as OrganizationStatus
+    )
+  ) {
+    const response = await updateStatus(
+      id,
+      selectedStatus as OrganizationStatus
+    );
     setEditingId(null);
     fetchData(cursor, false);
-  };
+  } else {
+    console.error("Invalid status selected:", selectedStatus);
+  }
+};
+
 
   return (
     <div className={`container ${styles.container}`}>
@@ -119,9 +133,15 @@ const Page = () => {
                           }
                           className={styles.statusDropdown}
                         >
-                          <option value="active">Active</option>
-                          <option value="inactive">Inactive</option>
-                          <option value="archive">Archive</option>
+                          <option value={OrganizationStatus.ACTIVE}>
+                            Active
+                          </option>
+                          <option value={OrganizationStatus.INACTIVE}>
+                            Inactive
+                          </option>
+                          <option value={OrganizationStatus.ARCHIVE}>
+                            Archive
+                          </option>
                         </select>
                       ) : (
                         org.status
