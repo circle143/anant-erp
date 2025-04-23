@@ -27,8 +27,8 @@ export default function App() {
 		const getUrlResult = await getUrl({
 			path: bucketpath,
 			options: {
-				validateObjectExistence: true, // Check if object exists before creating a URL
-				expiresIn: 3600, // validity of the URL, in seconds. defaults to 900 (15 minutes) and maxes at 3600 (1 hour)
+				validateObjectExistence: true,
+				expiresIn: 3600,
 			},
 		});
 
