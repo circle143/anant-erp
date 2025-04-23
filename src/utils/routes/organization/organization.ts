@@ -23,7 +23,7 @@ export const organization = {
 		},
 		getReqBody: (input: CreateOrganizationRequestBodyInput) => {
 			validateEmail(input.email);
-			return JSON.stringify(input);
+			return input;
 		},
 		requestMethod: "POST",
 	},
@@ -32,7 +32,7 @@ export const organization = {
 			return getBasePath() + `/${input.organizationID}/status`;
 		},
 		getReqBody: (input: UpdateOrganizationStatusRequestBodyInput) => {
-			return JSON.stringify(input.status);
+			return input;
 		},
 		requestMethod: "PATCH",
 	},
@@ -52,7 +52,7 @@ export const organization = {
 		},
 		getReqBody: (input: AddUserToOrganizationRequestBodyInput) => {
 			validateEmail(input.email);
-			return JSON.stringify(input);
+			return input;
 		},
 		requestMethod: "POST",
 	},
@@ -68,7 +68,7 @@ export const organization = {
 				);
 			}
 
-			return JSON.stringify(input);
+			return input;
 		},
 		reqestMethod: "PATCH",
 	},
@@ -78,7 +78,7 @@ export const organization = {
 			return getBasePath() + `/user/${input.email}`;
 		},
 		getReqBody: (input: UpdateOrganizationUserRoleRequestBodyInput) => {
-			return JSON.stringify(input);
+			return input;
 		},
 		requestMethod: "PATCH",
 	},

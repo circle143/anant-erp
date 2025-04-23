@@ -16,7 +16,7 @@ export const society = {
 			return getBasePath();
 		},
 		getRequestBody: (input: CreateSocietyRequestBodyInput) => {
-			return JSON.stringify(input);
+			return input;
 		},
 		requestMethod: "POST",
 	},
@@ -29,7 +29,7 @@ export const society = {
 			if (!reraNumber && !name && !address && !coverPhoto) {
 				throw new Error("Required at least one field to update");
 			}
-			return JSON.stringify(input);
+			return input;
 		},
 		requestMethod: "PATCH",
 	},

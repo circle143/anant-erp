@@ -15,7 +15,7 @@ export const customer = {
 			return getBasePath(input.societyReraNumber, input.flatID);
 		},
 		getReqBody: (input: AddCustomerToFlatRequestBodyInput) => {
-			return JSON.stringify(input);
+			return input;
 		},
 		requestMethod: "POST",
 	},
@@ -24,7 +24,7 @@ export const customer = {
 			return getBasePath(input.societyReraNumber, input.flatID);
 		},
 		getReqBody: (input: UpdateCustomerRequestBodyInput) => {
-			return JSON.stringify(input);
+			return input;
 		},
 		requestMethod: "POST",
 	},

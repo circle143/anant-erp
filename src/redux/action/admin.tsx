@@ -1,23 +1,29 @@
 import axios from "axios";
 import { getIdToken } from "@/utils/get_user_tokens";
+import { organization } from "@/utils/routes/organization/organization";
+import { CreateOrganizationRequestBodyInput } from "@/utils/routes/organization/types";
 const apiUrl = process.env.NEXT_PUBLIC_API_URL;
 
+function createURL(url: string) {
+	return apiUrl + url;
+}
 // Function to add an organization admin user
-export const addOrgAdminUser = async (Name: string, Email: string) => {
+export const addOrgAdminUser = async (name: string, email: string) => {
 	try {
+		const url = organization.createOrganization.getEndpoint();
+		const reqBodyInput: CreateOrganizationRequestBodyInput = {
+			name,
+			email,
+		};
+		const reqBody =
+			organization.createOrganization.getReqBody(reqBodyInput);
+
 		const token = await getIdToken();
-		const response = await axios.post(
-			`${apiUrl}/organization`,
-			{
-				Name,
-				Email,
+		const response = await axios.post(createURL(url), reqBody, {
+			headers: {
+				Authorization: `Bearer ${token}`,
 			},
-			{
-				headers: {
-					Authorization: `Bearer ${token}`,
-				},
-			}
-		);
+		});
 
 		return response.data;
 	} catch (error: any) {

@@ -17,7 +17,7 @@ export const flatType = {
 			return getBasePath(input.societyReraNumber);
 		},
 		getReqBody: (input: CreateFlatTyperRequestBodyInput) => {
-			return JSON.stringify(input);
+			return input;
 		},
 		requestMethod: "POST",
 	},
@@ -32,7 +32,7 @@ export const flatType = {
 			if (!name && !type && !price && !area) {
 				throw new Error("No details provided to update");
 			}
-			return JSON.stringify(input);
+			return input;
 		},
 		requestMethod: "PATCH",
 	},

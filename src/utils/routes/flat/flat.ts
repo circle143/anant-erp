@@ -16,7 +16,7 @@ export const flat = {
 			return getBasePath(input.societyReraNumber);
 		},
 		getReqBody: (input: CreateFlatRequestBodyInput) => {
-			return JSON.stringify(input);
+			return input;
 		},
 		requestMethod: "POST",
 	},

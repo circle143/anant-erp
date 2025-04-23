@@ -20,7 +20,7 @@ export const tower = {
 			if (input.floorCount <= 0) {
 				throw new Error("Invalid floor count");
 			}
-			return JSON.stringify(input);
+			return input;
 		},
 		requestMethod: "POST",
 	},
@@ -32,7 +32,7 @@ export const tower = {
 			if (input.floorCount <= 0) {
 				throw new Error("Invalid floor count");
 			}
-			return JSON.stringify(input);
+			return input;
 		},
 		requestMethod: "PATCH",
 	},
