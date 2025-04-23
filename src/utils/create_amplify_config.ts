@@ -28,7 +28,7 @@ export const getAmplifyConfig = () => {
 			],
 		},
 		aws_cognito_verification_mechanisms: ["EMAIL"],
-		aws_user_files_s3_bucket: "real-estate-erp",
+		aws_user_files_s3_bucket: "real-estate-erp-data",
 		aws_user_files_s3_bucket_region: "ap-south-1",
 	};
 };

@@ -1,14 +1,6 @@
 "use client";
 
 import React, { useState } from "react";
-import {
-  ApolloClient,
-  InMemoryCache,
-  ApolloProvider,
-  createHttpLink,
-} from "@apollo/client";
-import { setContext } from "@apollo/client/link/context";
-import { getAccessToken } from "@/utils/get_user_tokens";
 
 import { Authenticator } from "@aws-amplify/ui-react";
 import { Amplify } from "aws-amplify";
@@ -22,48 +14,29 @@ Amplify.configure(getAmplifyConfig());
 cognitoUserPoolsTokenProvider.setKeyValueStorage(sessionStorage);
 
 interface AuthenticationProps {
-  children: React.ReactNode;
+	children: React.ReactNode;
 }
 
 const Authentication = ({ children }: AuthenticationProps) => {
-  const [loading, setLoading] = useState(true);
+	const [loading, setLoading] = useState(true);
 
-  const httpLink = createHttpLink({
-    uri: "https://byepbna5h1.execute-api.ap-south-1.amazonaws.com/",
-  });
+	return (
+		<Authenticator hideSignUp={true}>
+			{({ signOut, user }) => {
+				if (loading) {
+					// simulate loading (you can remove setTimeout if not needed)
+					setTimeout(() => setLoading(false), 1000);
+					return (
+						<div>
+							<Loader />
+						</div>
+					);
+				}
 
-  const authLink = setContext(async (_, { headers }) => {
-    const token = (await getAccessToken()) ?? "";
-    return {
-      headers: {
-        ...headers,
-        authorization: token ? `Bearer ${token}` : "",
-      },
-    };
-  });
-
-  const client = new ApolloClient({
-    link: authLink.concat(httpLink),
-    cache: new InMemoryCache(),
-  });
-
-  return (
-    <Authenticator hideSignUp={true}>
-      {({ signOut, user }) => {
-        if (loading) {
-          // simulate loading (you can remove setTimeout if not needed)
-          setTimeout(() => setLoading(false), 1000);
-          return (
-            <div>
-              <Loader />
-            </div>
-          );
-        }
-
-        return <ApolloProvider client={client}>{children}</ApolloProvider>;
-      }}
-    </Authenticator>
-  );
+				return <>{children}</>;
+			}}
+		</Authenticator>
+	);
 };
 
 export default Authentication;
