@@ -1,12 +1,29 @@
 "use client";
 
 import React, { useState } from "react";
-import { Formik, Form, Field, ErrorMessage } from "formik";
+import { decodeAccessToken } from "@/utils/get_user_tokens";
+import { Formik, Form, Field, ErrorMessage, useFormikContext } from "formik";
 import * as Yup from "yup";
 import styles from "./society.module.scss";
 import toast from "react-hot-toast";
+import { createSociety } from "../../redux/action/org-admin";
+import { getUrl, uploadData } from "aws-amplify/storage";
+const SUPPORTED_FORMATS = [
+  "image/jpg",
+  "image/jpeg",
+  "image/png",
+  "image/webp",
+];
 
-// Validation Schema
+// Formik form values type
+interface SocietyFormValues {
+  name: string;
+  Rera: string;
+  address: string;
+  image: File | null;
+}
+
+// Validation schema
 const validationSchema = Yup.object({
   name: Yup.string()
     .min(3, "Society name must be at least 3 characters")
@@ -14,60 +31,145 @@ const validationSchema = Yup.object({
   Rera: Yup.string()
     .min(5, "RERA must be at least 5 characters")
     .required("RERA number is required"),
+  address: Yup.string()
+    .min(10, "Address must be at least 10 characters")
+    .required("Address is required"),
+  image: Yup.mixed()
+    .nullable()
+    .test(
+      "fileType",
+      "Only JPG, JPEG, PNG, and WEBP files are allowed",
+      (value) => {
+        if (!value) return true;
+        return value instanceof File && SUPPORTED_FORMATS.includes(value.type);
+      }
+    ),
 });
 
-const Society = () => {
-  const handleSubmit = (
-    values: { name: string; Rera: string },
-    { resetForm }: { resetForm: () => void }
-  ) => {
-    console.log("Form Submitted:", values);
-    toast.success("Society submitted successfully!");
-    resetForm();
-  };
-  const [preview, setPreview] = useState<string | null>(null);
+// Image upload field component
+const ImageUploadField: React.FC<{
+  preview: string | null;
+  setPreview: (url: string) => void;
+}> = ({ preview, setPreview }) => {
+  const { setFieldValue, setFieldTouched } =
+    useFormikContext<SocietyFormValues>();
 
   const handleImageChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0];
-    if (file) {
-      const reader = new FileReader();
-      reader.onloadend = () => {
-        setPreview(reader.result as string);
-      };
-      reader.readAsDataURL(file);
+    setFieldTouched("image", true);
+
+    if (!file) return;
+
+    if (!SUPPORTED_FORMATS.includes(file.type)) {
+      toast.error("Only JPG, JPEG, PNG, and WEBP files are allowed");
+      return;
     }
+
+    setFieldValue("image", file);
+
+    const reader = new FileReader();
+    reader.onloadend = () => {
+      setPreview(reader.result as string);
+    };
+    reader.readAsDataURL(file);
   };
+
+  return (
+    <div className={styles.image_upload}>
+      <label htmlFor="imageUpload" className={styles.image_label}>
+        {preview ? (
+          <img src={preview} alt="Preview" className={styles.preview_img} />
+        ) : (
+          <span>+</span>
+        )}
+        <input
+          type="file"
+          id="imageUpload"
+          // accept="image/*"
+          onChange={handleImageChange}
+          className={styles.file_input}
+        />
+      </label>
+      <ErrorMessage
+        name="image"
+        component="p"
+        className={styles["text-danger"]}
+      />
+      <h3>Society Logo</h3>
+    </div>
+  );
+};
+
+// Main Society component
+const Society: React.FC = () => {
+  const [preview, setPreview] = useState<string | null>(null);
+
+const handleSubmit = async (
+  values: SocietyFormValues,
+  { resetForm }: { resetForm: () => void }
+) => {
+  try {
+    const data = await decodeAccessToken();
+    let coverPhoto = "";
+
+    // Step 1: Upload image if it exists
+    if (values.image) {
+      const fileExt = values.image.name.split(".").pop();
+      const s3Key = `${data?.["custom:org_id"]}/society/profile.${fileExt}`;
+
+      const result = await uploadData({
+        path: s3Key,
+        data: values.image,
+        options: {
+          contentType: values.image.type,
+        },
+      }).result;
+
+      coverPhoto = result.path;
+    }
+
+    // Step 2: Create society with image path or empty string
+    const response = await createSociety(
+      values.Rera,
+      values.name,
+      values.address,
+      coverPhoto
+    );
+
+    if (response.error) {
+      toast.error(response.message || "Society creation failed");
+      return;
+    }
+
+    toast.success("Society created successfully!");
+    resetForm();
+    setPreview(null);
+  } catch (err: any) {
+    console.error(err);
+    toast.error("Something went wrong!");
+  }
+};
+
+
+  const initialValues: SocietyFormValues = {
+    name: "",
+    Rera: "",
+    address: "",
+    image: null,
+  };
+
   return (
     <div className={`container ${styles.container}`}>
       <h1>Society</h1>
 
       <Formik
-        initialValues={{ name: "", Rera: "" }}
+        initialValues={initialValues}
         validationSchema={validationSchema}
         onSubmit={handleSubmit}
       >
         {() => (
           <Form className={styles.formsection}>
-            <div className={styles.image_upload}>
-              <label htmlFor="imageUpload" className={styles.image_label}>
-                {preview ? (
-                  <img
-                    src={preview}
-                    alt="Preview"
-                    className={styles.preview_img}
-                  />
-                ) : (
-                  <span>+</span>
-                )}
-                <input
-                  type="file"
-                  id="imageUpload"
-                  accept="image/*"
-                  onChange={handleImageChange}
-                  className={styles.file_input}
-                />
-              </label>
-            </div>
+            <ImageUploadField preview={preview} setPreview={setPreview} />
 
             <div className={styles.form_group}>
               <label htmlFor="name">Society Name</label>
@@ -85,7 +187,7 @@ const Society = () => {
             </div>
 
             <div className={styles.form_group}>
-              <label htmlFor="Rera">Rera Number</label>
+              <label htmlFor="Rera">RERA Number</label>
               <Field
                 type="text"
                 id="Rera"
@@ -94,6 +196,21 @@ const Society = () => {
               />
               <ErrorMessage
                 name="Rera"
+                component="p"
+                className={styles["text-danger"]}
+              />
+            </div>
+
+            <div className={styles.form_group}>
+              <label htmlFor="address">Address</label>
+              <Field
+                as="textarea"
+                id="address"
+                name="address"
+                className={styles.form_control}
+              />
+              <ErrorMessage
+                name="address"
                 component="p"
                 className={styles["text-danger"]}
               />

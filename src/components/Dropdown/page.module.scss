@@ -1,0 +1,33 @@
+.dropdownWrapper {
+  position: relative;
+  display: inline-block;
+}
+
+.menuButton {
+  background: transparent;
+  border: none;
+  cursor: pointer;
+  padding: 4px;
+  color: black;
+}
+
+.dropdownMenu {
+  position: absolute;
+//   bottom: 100%;
+  right: 0;
+  background-color: white;
+  border: 1px solid #ddd;
+  box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
+  border-radius: 6px;
+  z-index: 10;
+  min-width: 120px;
+  padding: 4px 0;
+
+  div {
+    padding: 8px 16px;
+    cursor: pointer;
+    &:hover {
+      background-color: #f1f1f1;
+    }
+  }
+}

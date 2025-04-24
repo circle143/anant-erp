@@ -1,73 +1,36 @@
 "use client";
 
 import React, { useEffect, useState, useCallback } from "react";
-import { getSocieties } from "@/redux/action/org-admin";
+import { getflats } from "@/redux/action/org-admin";
 import styles from "./page.module.scss";
 import Loader from "@/components/Loader/Loader";
 import { debounce } from "lodash";
-import { getUrl, uploadData } from "aws-amplify/storage";
 import DropdownMenu from "@/components/Dropdown/DropdownMenu";
+import { useSearchParams } from "next/navigation";
 const Page = () => {
   const [orgData, setOrgData] = useState<any[]>([]);
   const [cursor, setCursor] = useState<string | null>(null);
   const [hasNextPage, setHasNextPage] = useState(false);
   const [cursorStack, setCursorStack] = useState<string[]>([]);
   const [loading, setLoading] = useState<boolean>(true);
-
-  const [editingId, setEditingId] = useState<string | null>(null);
   const [selectedStatus, setSelectedStatus] = useState<string>("");
   const [id, setId] = useState<string>("");
-  interface SocietyItem {
-    name: string;
-    reraNumber: string;
-    address: string;
-    orgId: string;
-    coverPhoto: string;
-    createdAt: string;
-    updatedAt: string;
-  }
+  const searchParams = useSearchParams();
+  const rera = searchParams.get("rera");
   const fetchData = async (cursor: string | null = null, isNext = true) => {
     setLoading(true);
-    const response = await getSocieties(cursor);
+     if (!rera) return;
+    const response = await getflats(cursor, rera);
 
     console.log("Response:", response);
 
-    if (!response.error && response.data?.items?.length) {
-      // Replace coverPhoto with signed URL
-      const updatedItems = await Promise.all(
-        response.data.items.map(async (item: SocietyItem) => {
-          if (item.coverPhoto) {
-            try {
-              const getUrlResult = await getUrl({
-                path: item.coverPhoto,
-                options: {
-                  validateObjectExistence: true,
-                  expiresIn: 3600,
-                },
-              });
+    // Set the updated state
+    setOrgData(response.data.items);
+    setHasNextPage(response.data.pageInfo.nextPage);
+    setCursor(response.data.pageInfo.cursor);
 
-              return {
-                ...item,
-                coverPhoto: getUrlResult.url.toString(),
-              };
-            } catch (error) {
-              console.error("Failed to fetch image URL for:", item.coverPhoto);
-              return item; // Fallback to original item
-            }
-          } else {
-            return item; // No coverPhoto to replace
-          }
-        })
-      );
-      console.log("Updated Items:", updatedItems);
-      // Set the updated state
-      setOrgData(updatedItems);
-      setHasNextPage(response.data.pageInfo.nextPage);
-      setCursor(response.data.pageInfo.cursor);
-
-      if (isNext && cursor !== null) {
-        setCursorStack((prev) => [...prev, cursor]);
-      }
+    if (isNext && cursor !== null) {
+      setCursorStack((prev) => [...prev, cursor]);
     }
 
     setLoading(false);
@@ -75,7 +38,7 @@ const Page = () => {
 
   useEffect(() => {
     fetchData(null, false);
-  }, []);
+  }, [rera]);
 
   const handleNext = () => fetchData(cursor);
   const handlePrevious = () => {
@@ -86,8 +49,6 @@ const Page = () => {
     }
   };
 
-
-
   // Debounced handler for status change
   const debouncedStatusChange = useCallback(
     debounce((orgId: string, status: string) => {
@@ -97,10 +58,9 @@ const Page = () => {
     []
   );
 
-
   return (
     <div className={`container ${styles.container}`}>
-      <h2>Societies List</h2>
+      <h2>Organization List</h2>
 
       {loading ? (
         <div className={styles.loading}>
@@ -111,7 +71,7 @@ const Page = () => {
           <ul className={styles.orgList}>
             {orgData.map((org) => (
               <li key={org.id} className={styles.orgItem}>
-                <div className={styles.logoContainer}>
+                {/* <div className={styles.logoContainer}>
                   {org.coverPhoto ? (
                     <img
                       src={org.coverPhoto}
@@ -121,7 +81,7 @@ const Page = () => {
                   ) : (
                     <div className={styles.noLogo}>No Logo</div>
                   )}
-                </div>
+                </div> */}
                 <div className={styles.rightSection}>
                   <div className={styles.details}>
                     <div>

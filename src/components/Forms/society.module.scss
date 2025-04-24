@@ -42,17 +42,14 @@
         outline: none;
         transition: border 0.3s;
         width: 100%;
+        color: black;
         &:focus {
           border-color: var(--color-primary);
           box-shadow: 0 0 0 3px rgba(10, 102, 194, 0.1);
         }
       }
 
-      .text-danger {
-        color: var(--color-accent);
-        font-size: 0.875rem;
-        margin-top: 0.25rem;
-      }
+     
     }
 
     .button {
@@ -107,4 +104,14 @@
       display: none;
     }
   }
+}
+.image_upload {
+  display: flex;
+  align-items: center;
+  flex-direction: column;
+}
+.text-danger {
+  color: var(--color-accent);
+  font-size: 0.875rem;
+  margin-top: 0.25rem;
 }
