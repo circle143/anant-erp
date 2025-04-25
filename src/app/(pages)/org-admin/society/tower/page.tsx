@@ -5,7 +5,7 @@ import { getTower } from "@/redux/action/org-admin";
 import styles from "./page.module.scss";
 import Loader from "@/components/Loader/Loader";
 import { debounce } from "lodash";
-import DropdownMenu from "@/components/Dropdown/DropdownMenu";
+import DropdownTower from "@/components/Dropdown/DropdownTower";
 import { useRouter, useSearchParams } from "next/navigation";
 
 const Page = () => {
@@ -24,7 +24,7 @@ const Page = () => {
     setLoading(true);
     if (!rera) return;
     const response = await getTower(cursor, rera);
-
+// console.log("response", response);
     // Set the updated state
     setOrgData(response.data.items);
     setHasNextPage(response.data.pageInfo.nextPage);
@@ -62,7 +62,7 @@ const Page = () => {
   return (
     <div className={`container ${styles.container}`}>
       <div className={styles.header}>
-        <h2>Flat List</h2>
+        <h2>Tower List</h2>
         <button
           onClick={() =>
             router.push(`/org-admin/society/tower/new-tower?rera=${rera}`)
@@ -105,11 +105,11 @@ const Page = () => {
             </div> */}
                         <div>
                           {" "}
-                          <strong>Address:</strong> {org.address}
+                          <strong>Floor Count:</strong> {org.floorCount}
                         </div>
                         <div>
                           {" "}
-                          <strong>Rera Number:</strong> {org.reraNumber}
+                          <strong>Rera Number:</strong> {org.societyId}
                         </div>
                         <div>
                           <strong>Created At:</strong>{" "}
@@ -117,7 +117,10 @@ const Page = () => {
                         </div>
                       </div>
                       <div className={styles.dropdown}>
-                        <DropdownMenu reraNumber={org.reraNumber} />
+                        <DropdownTower
+                          reraNumber={org.societyId}
+                          towerId={org.id}
+                        />
                       </div>
                       {/* {editingId === org.id ? (
               <div className={styles.editButtons}>

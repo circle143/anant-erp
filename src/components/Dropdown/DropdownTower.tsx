@@ -1,14 +1,21 @@
 import { useState } from "react";
 import { useRouter } from "next/navigation";
-import { MoreVertical } from "lucide-react"; // optional icon lib like lucide or FontAwesome
+import { MoreVertical } from "lucide-react";
 import styles from "./page.module.scss";
 
-const DropdownMenu = ({ reraNumber }: { reraNumber: string }) => {
+interface DropdownTowerProps {
+  reraNumber: string;
+  towerId: string;
+}
+
+const DropdownTower = ({ reraNumber, towerId }: DropdownTowerProps) => {
   const [isOpen, setIsOpen] = useState(false);
   const router = useRouter();
 
-  const handleRedirect = (reraNumber: string, type: string) => {
-    router.push(`/org-admin/society/${type.toLowerCase()}?rera=${reraNumber}`);
+  const handleRedirect = (type: string) => {
+    router.push(
+      `/org-admin/society/tower/${type.toLowerCase()}?rera=${reraNumber}&towerId=${towerId}`
+    );
     setIsOpen(false); // close menu after click
   };
 
@@ -20,14 +27,11 @@ const DropdownMenu = ({ reraNumber }: { reraNumber: string }) => {
 
       {isOpen && (
         <div className={styles.dropdownMenu}>
-          <div onClick={() => handleRedirect(reraNumber, "tower")}>Tower</div>
-          <div onClick={() => handleRedirect(reraNumber, "flat-type")}>
-            Flat Type
-          </div>
+          <div onClick={() => handleRedirect("flat")}>Flats</div>
         </div>
       )}
     </div>
   );
 };
 
-export default DropdownMenu;
+export default DropdownTower;

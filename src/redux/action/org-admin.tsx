@@ -12,11 +12,17 @@ import {
   CreateTowerInput,
   CreateTowerRequestBodyInput,
 } from "@/utils/routes/tower/types";
+import {
+  GetAllFlatTypesInput,
+  CreateFlatTyperInput,
+  CreateFlatTyperRequestBodyInput,
+} from "@/utils/routes/flat-type/types";
 import { society } from "@/utils/routes/society/society";
 import { flat } from "@/utils/routes/flat/flat";
 import { tower } from "@/utils/routes/tower/tower";
 import { organization } from "@/utils/routes/organization/organization";
 import { getIdToken } from "@/utils/get_user_tokens";
+import { flatType } from "@/utils/routes/flat-type/flat_type";
 const apiUrl = process.env.NEXT_PUBLIC_API_URL;
 function createURL(url: string) {
   return apiUrl + url;
@@ -120,7 +126,11 @@ export const createFlat = async (
 ) => {
   try {
     const token = await getIdToken();
-
+    console.log("societyReraNumber", societyReraNumber);
+    console.log("tower", tower);
+    console.log("flatType", flatType);
+    console.log("name", name);
+    console.log("floorNumber", floorNumber);
     const input: CreateFlatInput = {
       societyReraNumber,
     };
@@ -175,9 +185,6 @@ export const createTower = async (
   name: string
 ) => {
   try {
-    console.log("societyReraNumber", societyReraNumber);
-    console.log("floorCount", floorCount);
-    console.log("name", name);
     const token = await getIdToken();
 
     const input: CreateTowerInput = {
@@ -188,6 +195,64 @@ export const createTower = async (
       name,
     };
     const url = tower.createTower.getEndpoint(input);
+    const response = await axios.post(createURL(url), reqBody, {
+      headers: {
+        Authorization: `Bearer ${token}`,
+      },
+    });
+    return response.data;
+  } catch (error: any) {
+    console.error(
+      "Error creating tower:",
+      error.response?.data || error.message
+    );
+    return { error: true, message: error.message };
+  }
+};
+
+export const getFlatType = async (
+  cursor: string | null = null,
+  societyReraNumber: string
+) => {
+  try {
+    const token = await getIdToken();
+    const input: GetAllFlatTypesInput = {
+      cursor: cursor ?? "",
+      societyReraNumber,
+    };
+    const url = flatType.getAllFlatTypes.getEndpoint(input);
+    const response = await axios.get(createURL(url), {
+      headers: {
+        Authorization: `Bearer ${token}`,
+      },
+    });
+    return response.data;
+  } catch (error: any) {
+    console.error("Error getting flat:", error.response?.data || error.message);
+    return { error: true, message: error.message };
+  }
+};
+
+export const createFlatType = async (
+  societyReraNumber: string,
+  name: string,
+  type: string,
+  price: number,
+  area: number
+) => {
+  try {
+    const token = await getIdToken();
+
+    const input: CreateFlatTyperInput = {
+      societyReraNumber,
+    };
+    const reqBody: CreateFlatTyperRequestBodyInput = {
+      name,
+      type,
+      price,
+      area,
+    };
+    const url = flatType.createFlatType.getEndpoint(input);
     const response = await axios.post(createURL(url), reqBody, {
       headers: {
         Authorization: `Bearer ${token}`,

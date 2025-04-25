@@ -1,4 +1,4 @@
-@use "../../../../../../styles/abstract/media-queries" as ab;
+@use "../../../../../../../styles/abstract/media-queries" as ab;
 
 .container {
   max-width: 50em;
@@ -39,6 +39,7 @@
       outline: none;
       transition: border 0.3s;
       width: 100%;
+      color: black;
       &:focus {
         border-color: var(--color-primary);
         box-shadow: 0 0 0 3px rgba(10, 102, 194, 0.1);

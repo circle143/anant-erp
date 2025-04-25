@@ -18,6 +18,7 @@ const Page = () => {
   const [id, setId] = useState<string>("");
   const searchParams = useSearchParams();
   const rera = searchParams.get("rera");
+    const towerId = searchParams.get("towerId");
   const router = useRouter();
 
   const fetchData = async (cursor: string | null = null, isNext = true) => {
@@ -65,7 +66,7 @@ const Page = () => {
         <h2>Flat List</h2>
         <button
           onClick={() =>
-            router.push(`/org-admin/society/flat/new-flat?rera=${rera}`)
+            router.push(`/org-admin/society/tower/flat/new-flat?rera=${rera}&towerId=${towerId}`)
           }
         >
           New Flat

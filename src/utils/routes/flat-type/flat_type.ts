@@ -47,7 +47,7 @@ export const flatType = {
 		},
 		requestMethod: "DELETE",
 	},
-	getAllTowers: {
+	getAllFlatTypes: {
 		getEndpoint: (input: GetAllFlatTypesInput) => {
 			if (!input.cursor || input.cursor.trim().length == 0)
 				return getBasePath(input.societyReraNumber);
