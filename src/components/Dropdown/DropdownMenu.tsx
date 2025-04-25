@@ -8,7 +8,7 @@ const DropdownMenu = ({ reraNumber }: { reraNumber: string }) => {
   const router = useRouter();
 
   const handleRedirect = (reraNumber: string, type: string) => {
-    router.push(`/org-admin/socity/${type.toLowerCase()}?rera=${reraNumber}`);
+    router.push(`/org-admin/society/${type.toLowerCase()}?rera=${reraNumber}`);
     setIsOpen(false); // close menu after click
   };
 

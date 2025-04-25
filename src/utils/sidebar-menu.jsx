@@ -3,40 +3,40 @@ export const sidebarAdminItems = [
     eventKey: "dashboard",
     icon: "bx bx-home-circle",
     text: "Dashboard",
-    path: "/admin",
+    paths: ["/admin"],
   },
   {
     eventKey: "Create_Organization",
     icon: "bx bxs-user-account",
     text: "Create Organization",
-    path: "/admin/create-organization",
+    paths: ["/admin/create-organization"],
   },
 ];
 export const sidebarOrgAdminItems = [
   {
     eventKey: "Create Socity",
     icon: "bx bxs-user-account",
-    text: "Create Socity",
-    path: "/org-admin/new-socity",
+    text: "Create Society",
+    paths: ["/org-admin/new-society"],
   },
 
   {
     eventKey: "Societies",
     icon: "bx bxs-phone-call",
     text: "Societies",
-    path: "/org-admin/socity",
+    paths: ["/org-admin/society", "/org-admin/society/flat"],
   },
   {
     eventKey: "new user",
     icon: "bx bxs-bell-ring",
     text: "Create New User",
-    path: "/org-admin/new-user",
+    paths: ["/org-admin/new-user"],
   },
   {
     eventKey: "users",
     icon: "bx bxs-bell-ring",
     text: "Users",
-    path: "/org-admin/users",
+    paths: ["/org-admin/users"],
   },
 ];
 export const sidebarUserItems = [
@@ -44,31 +44,31 @@ export const sidebarUserItems = [
     eventKey: "dashboard",
     icon: "bx bx-home-circle",
     text: "Dashboard",
-    path: "/org-admin/flate",
+    paths: ["/org-admin/flate"],
   },
   {
     eventKey: "fans",
     icon: "bx bxs-user-account",
     text: "Fans",
-    path: "/app/fans",
+    paths: ["/app/fans"],
   },
   {
     eventKey: "influencers",
     icon: "bx bxs-user-account",
     text: "Influencers",
-    path: "/app/influencers",
+    paths: ["/app/influencers"],
   },
   {
     eventKey: "requests",
     icon: "bx bxs-user-account",
     text: "Requests",
-    path: "/app/requests",
+    paths: ["/app/requests"],
   },
 
   {
     eventKey: "notifications",
     icon: "bx bxs-bell-ring",
     text: "Notifications",
-    path: "/app/notifications",
+    paths: ["/app/notifications"],
   },
 ];

@@ -5,6 +5,7 @@ export interface CreateTowerInput {
 
 export interface CreateTowerRequestBodyInput {
 	floorCount: number;
+	name: string;
 }
 
 // update tower

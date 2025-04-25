@@ -11,7 +11,7 @@ import { closeSidebar } from "../../redux/slice/sidebarSlice";
 
 type MenuItem = {
   eventKey: string;
-  path: string;
+  paths: string[];
   icon: string;
   text: string;
 };
@@ -39,11 +39,13 @@ const index = ({ menuItems }: SidebarProps) => {
             <li
               key={item.eventKey}
               className={`${styles.menuItem} ${
-                pathname === item.path ? styles.active : ""
+                item.paths.some((path) => pathname.startsWith(path))
+                  ? styles.active
+                  : ""
               }`}
             >
               <Link
-                href={item.path}
+                href={item.paths[0]}
                 className={styles.menuLink}
                 onClick={() => dispatch(closeSidebar())}
               >

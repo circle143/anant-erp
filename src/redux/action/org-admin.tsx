@@ -3,9 +3,18 @@ import {
   CreateSocietyRequestBodyInput,
   GetAllSocitiesInput,
 } from "@/utils/routes/society/types";
-import { GetSocietyFlats } from "@/utils/routes/flat/types";
+import {
+  GetSocietyFlats,
+  CreateFlatInput,
+  CreateFlatRequestBodyInput,
+} from "@/utils/routes/flat/types";
+import {
+  CreateTowerInput,
+  CreateTowerRequestBodyInput,
+} from "@/utils/routes/tower/types";
 import { society } from "@/utils/routes/society/society";
 import { flat } from "@/utils/routes/flat/flat";
+import { tower } from "@/utils/routes/tower/tower";
 import { organization } from "@/utils/routes/organization/organization";
 import { getIdToken } from "@/utils/get_user_tokens";
 const apiUrl = process.env.NEXT_PUBLIC_API_URL;
@@ -85,8 +94,7 @@ export const getflats = async (
 ) => {
   try {
     const token = await getIdToken();
-    console.log("cursor", cursor);
-    console.log("societyReraNumber", societyReraNumber);
+
     const input: GetSocietyFlats = {
       cursor: cursor ?? "",
       societyReraNumber,
@@ -100,6 +108,97 @@ export const getflats = async (
     return response.data;
   } catch (error: any) {
     console.error("Error getting flat:", error.response?.data || error.message);
+    return { error: true, message: error.message };
+  }
+};
+export const createFlat = async (
+  societyReraNumber: string,
+  tower: string,
+  flatType: string,
+  name: string,
+  floorNumber: number
+) => {
+  try {
+    const token = await getIdToken();
+
+    const input: CreateFlatInput = {
+      societyReraNumber,
+    };
+    const reqBody: CreateFlatRequestBodyInput = {
+      tower,
+      flatType,
+      name,
+      floorNumber,
+    };
+    const url = flat.createFlat.getEndpoint(input);
+    const response = await axios.post(createURL(url), reqBody, {
+      headers: {
+        Authorization: `Bearer ${token}`,
+      },
+    });
+    return response.data;
+  } catch (error: any) {
+    console.error(
+      "Error creating flat:",
+      error.response?.data || error.message
+    );
+    return { error: true, message: error.message };
+  }
+};
+export const getTower = async (
+  cursor: string | null = null,
+  societyReraNumber: string
+) => {
+  try {
+    const token = await getIdToken();
+
+    const input: GetSocietyFlats = {
+      cursor: cursor ?? "",
+      societyReraNumber,
+    };
+    const url = tower.getAllTowers.getEndpoint(input);
+    const response = await axios.get(createURL(url), {
+      headers: {
+        Authorization: `Bearer ${token}`,
+      },
+    });
+    return response.data;
+  } catch (error: any) {
+    console.error("Error getting flat:", error.response?.data || error.message);
+    return { error: true, message: error.message };
+  }
+};
+
+export const createTower = async (
+  societyReraNumber: string,
+  floorCount: number,
+  name: string
+) => {
+  try {
+    console.log("societyReraNumber", societyReraNumber);
+    console.log("floorCount", floorCount);
+    console.log("name", name);
+    const token = await getIdToken();
+
+    const input: CreateTowerInput = {
+      societyReraNumber,
+    };
+    const reqBody: CreateTowerRequestBodyInput = {
+      floorCount,
+      name,
+    };
+    const url = tower.createTower.getEndpoint(input);
+    const response = await axios.post(createURL(url), reqBody, {
+      headers: {
+        Authorization: `Bearer ${token}`,
+      },
+    });
+    return response.data;
+  } catch (error: any) {
+    console.error(
+      "Error creating tower:",
+      error.response?.data || error.message
+    );
     return { error: true, message: error.message };
   }
 };
