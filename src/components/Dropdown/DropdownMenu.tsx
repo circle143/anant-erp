@@ -24,6 +24,9 @@ const DropdownMenu = ({ reraNumber }: { reraNumber: string }) => {
           <div onClick={() => handleRedirect(reraNumber, "flat-type")}>
             Flat Type
           </div>
+          <div onClick={() => handleRedirect(reraNumber, "flat-type")}>
+            Flat
+          </div>
         </div>
       )}
     </div>

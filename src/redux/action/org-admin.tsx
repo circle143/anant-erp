@@ -126,11 +126,6 @@ export const createFlat = async (
 ) => {
   try {
     const token = await getIdToken();
-    console.log("societyReraNumber", societyReraNumber);
-    console.log("tower", tower);
-    console.log("flatType", flatType);
-    console.log("name", name);
-    console.log("floorNumber", floorNumber);
     const input: CreateFlatInput = {
       societyReraNumber,
     };

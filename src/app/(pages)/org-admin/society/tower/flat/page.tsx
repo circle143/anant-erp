@@ -18,7 +18,7 @@ const Page = () => {
   const [id, setId] = useState<string>("");
   const searchParams = useSearchParams();
   const rera = searchParams.get("rera");
-    const towerId = searchParams.get("towerId");
+  const towerId = searchParams.get("towerId");
   const router = useRouter();
 
   const fetchData = async (cursor: string | null = null, isNext = true) => {
@@ -66,7 +66,9 @@ const Page = () => {
         <h2>Flat List</h2>
         <button
           onClick={() =>
-            router.push(`/org-admin/society/tower/flat/new-flat?rera=${rera}&towerId=${towerId}`)
+            router.push(
+              `/org-admin/society/tower/flat/new-flat?rera=${rera}&towerId=${towerId}`
+            )
           }
         >
           New Flat
@@ -106,20 +108,20 @@ const Page = () => {
             </div> */}
                         <div>
                           {" "}
-                          <strong>Address:</strong> {org.address}
+                          <strong>Floor:</strong> {org.floorNumber}
                         </div>
                         <div>
                           {" "}
-                          <strong>Rera Number:</strong> {org.reraNumber}
+                          <strong>Flat Status:</strong> {org.soldBy}
                         </div>
                         <div>
                           <strong>Created At:</strong>{" "}
                           {new Date(org.createdAt).toLocaleString()}
                         </div>
                       </div>
-                      <div className={styles.dropdown}>
+                      {/* <div className={styles.dropdown}>
                         <DropdownMenu reraNumber={org.reraNumber} />
-                      </div>
+                      </div> */}
                       {/* {editingId === org.id ? (
               <div className={styles.editButtons}>
                 <button
