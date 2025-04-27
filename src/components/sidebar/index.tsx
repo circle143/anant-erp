@@ -20,7 +20,7 @@ type SidebarProps = {
   menuItems: MenuItem[];
 };
 
-const index = ({ menuItems }: SidebarProps) => {
+const Index = ({ menuItems }: SidebarProps) => {
   const pathname = usePathname();
   const dispatch = useDispatch();
   const isOpen = useSelector((state: RootState) => state.sidebar.isOpen);
@@ -60,4 +60,4 @@ const index = ({ menuItems }: SidebarProps) => {
   );
 };
 
-export default index;
+export default Index;

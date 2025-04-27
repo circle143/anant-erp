@@ -1,7 +1,7 @@
 "use client";
 
 import React, { useEffect, useState, useCallback } from "react";
-import { getTowerflats } from "@/redux/action/org-admin";
+import { getAllSocietyFlats } from "@/redux/action/org-admin";
 import styles from "./page.module.scss";
 import Loader from "@/components/Loader/Loader";
 import { debounce } from "lodash";
@@ -18,14 +18,13 @@ const Page = () => {
     const [id, setId] = useState<string>("");
     const searchParams = useSearchParams();
     const rera = searchParams.get("rera");
-    const towerId = searchParams.get("towerId");
     const router = useRouter();
 
     const fetchData = async (cursor: string | null = null, isNext = true) => {
         setLoading(true);
         if (!rera) return;
-        const response = await getTowerflats(cursor || "", rera, towerId || "");
-
+        const response = await getAllSocietyFlats(cursor || "", rera);
+        console.log("resonse", response);
         // Set the updated state
         setOrgData(response.data.items);
         setHasNextPage(response.data.pageInfo.nextPage);
@@ -64,15 +63,6 @@ const Page = () => {
         <div className={`container ${styles.container}`}>
             <div className={styles.header}>
                 <h2>Flat List</h2>
-                <button
-                    onClick={() =>
-                        router.push(
-                            `/org-admin/society/tower/flat/new-flat?rera=${rera}&towerId=${towerId}`
-                        )
-                    }
-                >
-                    New Flat
-                </button>
             </div>
             {loading ? (
                 <div className={styles.loading}>
