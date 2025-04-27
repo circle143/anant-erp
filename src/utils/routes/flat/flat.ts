@@ -73,9 +73,13 @@ export const flat = {
 	getAllTowerFlats: {
 		getEndpoint: (input: GetTowerFlats) => {
 			if (!input.cursor || input.cursor.trim().length == 0)
-				return getBasePath(input.societyReraNumber);
+				return (
+					getBasePath(input.societyReraNumber) +
+					`/tower/${input.towerID}`
+				);
 			return (
-				getBasePath(input.societyReraNumber) + `?cursor=${input.cursor}`
+				getBasePath(input.societyReraNumber) +
+				`/tower/${input.towerID}?cursor=${input.cursor}`
 			);
 		},
 		getReqBody: () => {
