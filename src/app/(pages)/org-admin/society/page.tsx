@@ -108,6 +108,10 @@ const Page = () => {
                 </div>
             ) : (
                 <>
+                {orgData.length === 0 ? (
+                    <div className={styles.noData}>No data available</div>
+                ) : (
+                <>
                     <ul className={styles.orgList}>
                         {orgData.map((org, index) => (
                             <li
@@ -201,6 +205,8 @@ const Page = () => {
                             Next
                         </button>
                     </div>
+                    </>
+                    )}
                 </>
             )}
         </div>

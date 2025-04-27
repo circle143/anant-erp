@@ -1,7 +1,7 @@
 "use client";
 
 import React, { useEffect, useState, useCallback } from "react";
-import { getAllSocietyFlats } from "@/redux/action/org-admin";
+import { getFlats } from "@/redux/action/org-admin";
 import styles from "./page.module.scss";
 import Loader from "@/components/Loader/Loader";
 import { debounce } from "lodash";
@@ -23,7 +23,7 @@ const Page = () => {
     const fetchData = async (cursor: string | null = null, isNext = true) => {
         setLoading(true);
         if (!rera) return;
-        const response = await getAllSocietyFlats(cursor || "", rera);
+        const response = await getFlats(cursor || "", rera);
         console.log("resonse", response);
         // Set the updated state
         setOrgData(response.data.items);
