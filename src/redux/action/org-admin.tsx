@@ -124,6 +124,54 @@ export const getFlats = async (
     }
 };
 
+export const getAllSocietyUnsoldFlats = async (
+    cursor: string | null = null,
+    societyReraNumber: string
+) => {
+    try {
+        const token = await getIdToken();
+        const input: GetSocietyFlats = {
+            cursor: cursor ?? "",
+            societyReraNumber,
+        };
+        const url = flat.getAllSocietyUnsoldFlats.getEndpoint(input);
+        const response = await axios.get(createURL(url), {
+            headers: { Authorization: `Bearer ${token}` },
+        });
+        return response.data;
+    } catch (error: any) {
+        console.error(
+            "Error fetching flats:",
+            error.response?.data || error.message
+        );
+        return { error: true, message: error.message };
+    }
+};
+
+export const getAllSocietySoldFlats = async (
+    cursor: string | null = null,
+    societyReraNumber: string
+) => {
+    try {
+        const token = await getIdToken();
+        const input: GetSocietyFlats = {
+            cursor: cursor ?? "",
+            societyReraNumber,
+        };
+        const url = flat.getAllSocietySoldFlats.getEndpoint(input);
+        const response = await axios.get(createURL(url), {
+            headers: { Authorization: `Bearer ${token}` },
+        });
+        return response.data;
+    } catch (error: any) {
+        console.error(
+            "Error fetching flats:",
+            error.response?.data || error.message
+        );
+        return { error: true, message: error.message };
+    }
+};
+
 export const getTowerFlats = async (
     cursor: string | null = null,
     societyReraNumber: string,
@@ -137,6 +185,58 @@ export const getTowerFlats = async (
             towerID,
         };
         const url = flat.getAllTowerFlats.getEndpoint(input);
+        const response = await axios.get(createURL(url), {
+            headers: { Authorization: `Bearer ${token}` },
+        });
+        return response.data;
+    } catch (error: any) {
+        console.error(
+            "Error fetching flats:",
+            error.response?.data || error.message
+        );
+        return { error: true, message: error.message };
+    }
+};
+
+export const getAllTowerUnsoldFlats = async (
+    cursor: string | null = null,
+    societyReraNumber: string,
+    towerID: string
+) => {
+    try {
+        const token = await getIdToken();
+        const input: GetTowerFlats = {
+            cursor: cursor ?? "",
+            societyReraNumber,
+            towerID,
+        };
+        const url = flat.getAllTowerUnsoldFlats.getEndpoint(input);
+        const response = await axios.get(createURL(url), {
+            headers: { Authorization: `Bearer ${token}` },
+        });
+        return response.data;
+    } catch (error: any) {
+        console.error(
+            "Error fetching flats:",
+            error.response?.data || error.message
+        );
+        return { error: true, message: error.message };
+    }
+};
+
+export const getAllTowerSoldFlats = async (
+    cursor: string | null = null,
+    societyReraNumber: string,
+    towerID: string
+) => {
+    try {
+        const token = await getIdToken();
+        const input: GetTowerFlats = {
+            cursor: cursor ?? "",
+            societyReraNumber,
+            towerID,
+        };
+        const url = flat.getAllTowerSoldFlats.getEndpoint(input);
         const response = await axios.get(createURL(url), {
             headers: { Authorization: `Bearer ${token}` },
         });

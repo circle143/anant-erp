@@ -1,11 +1,14 @@
 "use client";
 
 import React, { useEffect, useState, useCallback } from "react";
-import { getTowerFlats } from "@/redux/action/org-admin"; // I assume you meant 'getTowerflats' not 'getflats'
+import {
+    getTowerFlats,
+    getAllTowerSoldFlats,
+    getAllTowerUnsoldFlats,
+} from "@/redux/action/org-admin";
 import styles from "./page.module.scss";
 import Loader from "@/components/Loader/Loader";
 import { debounce } from "lodash";
-import DropdownMenu from "@/components/Dropdown/DropdownMenu";
 import { useRouter, useSearchParams } from "next/navigation";
 
 const Page = () => {
@@ -14,19 +17,37 @@ const Page = () => {
     const [hasNextPage, setHasNextPage] = useState(false);
     const [cursorStack, setCursorStack] = useState<string[]>([]);
     const [loading, setLoading] = useState<boolean>(true);
-    const [selectedStatus, setSelectedStatus] = useState<string>("");
-    const [id, setId] = useState<string>("");
+    const [selectedFilter, setSelectedFilter] = useState<string>("all");
 
     const searchParams = useSearchParams();
     const rera = searchParams.get("rera");
     const towerID = searchParams.get("towerId");
     const router = useRouter();
 
-    const fetchData = async (cursor: string | null = null, isNext = true) => {
+    const fetchData = async (
+        cursor: string | null = null,
+        isNext = true,
+        filter: string = "all"
+    ) => {
         setLoading(true);
-        if (!rera) return;
+        if (!rera || !towerID) return;
 
-        const response = await getTowerFlats(cursor || "", rera, towerID || "");
+        let response;
+        if (filter === "all") {
+            response = await getTowerFlats(cursor || "", rera, towerID);
+        } else if (filter === "sold") {
+            response = await getAllTowerSoldFlats(cursor || "", rera, towerID);
+        } else if (filter === "unsold") {
+            response = await getAllTowerUnsoldFlats(
+                cursor || "",
+                rera,
+                towerID
+            );
+        } else {
+            console.error("Invalid filter:", filter);
+            setLoading(false);
+            return;
+        }
 
         setOrgData(response.data.items);
         setHasNextPage(response.data.pageInfo.nextPage);
@@ -40,40 +61,58 @@ const Page = () => {
     };
 
     useEffect(() => {
-        fetchData(null, false);
-    }, [rera]);
+        fetchData(null, false, selectedFilter);
+    }, [rera, towerID, selectedFilter]);
 
-    const handleNext = () => fetchData(cursor);
+    const handleNext = () => fetchData(cursor, true, selectedFilter);
 
     const handlePrevious = () => {
         if (cursorStack.length > 1) {
             const prevCursor = cursorStack[cursorStack.length - 2];
             setCursorStack((prev) => prev.slice(0, -1));
-            fetchData(prevCursor, false);
+            fetchData(prevCursor, false, selectedFilter);
         }
     };
 
-    const debouncedStatusChange = useCallback(
-        debounce((orgId: string, status: string) => {
-            setSelectedStatus(status);
-            setId(orgId);
+    const debouncedFilterChange = useCallback(
+        debounce((value: string) => {
+            setCursor(null);
+            setCursorStack([]);
+            setSelectedFilter(value);
         }, 300),
         []
     );
+
+    const handleFilterChange = (e: React.ChangeEvent<HTMLSelectElement>) => {
+        const value = e.target.value;
+        debouncedFilterChange(value);
+    };
 
     return (
         <div className={`container ${styles.container}`}>
             <div className={styles.header}>
                 <h2>Flat List</h2>
-                <button
-                    onClick={() =>
-                        router.push(
-                            `/org-admin/society/tower/flat/new-flat?rera=${rera}&towerId=${towerID}`
-                        )
-                    }
-                >
-                    New Flat
-                </button>
+                <div className={styles.actions}>
+                    <select
+                        className={styles.selectFilter}
+                        onChange={handleFilterChange}
+                        defaultValue="all"
+                    >
+                        <option value="all">All</option>
+                        <option value="sold">Sold</option>
+                        <option value="unsold">Unsold</option>
+                    </select>
+                    <button
+                        className={styles.newFlatButton}
+                        onClick={() =>
+                            router.push(
+                                `/org-admin/society/tower/flat/new-flat?rera=${rera}&towerId=${towerID}`
+                            )
+                        }
+                    >
+                        New Flat
+                    </button>
+                </div>
             </div>
 
             {loading ? (
@@ -112,10 +151,6 @@ const Page = () => {
                                                     ).toLocaleString()}
                                                 </div>
                                             </div>
-                                            {/* If you want a dropdown for each flat, uncomment the next part */}
-                                            {/* <div className={styles.dropdown}>
-                        <DropdownMenu reraNumber={org.reraNumber} />
-                      </div> */}
                                         </div>
                                     </li>
                                 ))}
