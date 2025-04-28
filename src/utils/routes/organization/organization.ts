@@ -84,7 +84,8 @@ export const organization = {
 	},
 	getAllOrganizationUsers: {
 		getEndpoint: (input: GetAllOrganizationUsersInput | null = null) => {
-			if (!input || input.cursor.trim().length == 0) return getBasePath();
+			if (!input || input.cursor.trim().length == 0)
+				return getBasePath() + "/users";
 			return getBasePath() + `/users?cursor=${input.cursor}`;
 		},
 		getReqBody: () => {
