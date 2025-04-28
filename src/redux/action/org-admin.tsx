@@ -21,6 +21,7 @@ import {
 import {
   AddUserToOrganizationRequestBodyInput,
   GetAllOrganizationUsersInput,
+  UpdateOrganizationDetailsRequestBodyInput,
 } from "@/utils/routes/organization/types";
 import { society } from "@/utils/routes/society/society";
 import { flat } from "@/utils/routes/flat/flat";
@@ -214,10 +215,12 @@ export const getAllTowerUnsoldFlats = async (
       societyReraNumber,
       towerID,
     };
+ 
     const url = flat.getAllTowerUnsoldFlats.getEndpoint(input);
     const response = await axios.get(createURL(url), {
       headers: { Authorization: `Bearer ${token}` },
     });
+    console.log("response", response);
     return response.data;
   } catch (error: any) {
     console.error(
@@ -428,3 +431,20 @@ export const getUsers = async (cursor: string | null = null) => {
     return { error: true, message: error.message };
   }
 };
+export const updateOrganizationDetails = async (
+  input: UpdateOrganizationDetailsRequestBodyInput
+) => {
+  try {
+    const token = await getIdToken();
+    const url = organization.updateOrganizationDetails.getEndpoint();
+    const reqBody = input;
+    const response = await axios.patch(createURL(url), reqBody, {
+      headers: { Authorization: `Bearer ${token}` },
+    });
+    return response.data;
+  } catch (error: any) {
+    console.error("Error updating org:", error.response?.data );
+    return { error: true, message: error.response?.data };
+  }
+};
+

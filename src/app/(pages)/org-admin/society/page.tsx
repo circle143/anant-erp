@@ -30,8 +30,6 @@ const Page = () => {
         setLoading(true);
         const response = await getSocieties(cursor);
 
-        console.log("Response:", response);
-
         if (!response.error && response.data?.items?.length) {
             // Replace coverPhoto with signed URL
             const updatedItems = await Promise.all(

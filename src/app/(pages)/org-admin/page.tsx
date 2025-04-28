@@ -1,40 +1,192 @@
 "use client";
-
+import { decodeAccessToken } from "@/utils/get_user_tokens";
 import React, { useEffect, useState } from "react";
-import { getSelf } from "../../../redux/action/org-admin";
+import {
+  getSelf,
+  updateOrganizationDetails,
+} from "../../../redux/action/org-admin";
+import toast from "react-hot-toast";
 import styles from "./page.module.scss";
 import Loader from "@/components/Loader/Loader";
+import { getUrl, uploadData } from "aws-amplify/storage";
+
 const Page = () => {
   const [data, setData] = useState<any>(null);
   const [loading, setLoading] = useState(true);
+  const [editMode, setEditMode] = useState(false);
+  const [formData, setFormData] = useState({
+    name: "",
+    gst: "",
+    logo: "",
+    file: null as File | null,
+  });
 
   useEffect(() => {
     const fetchSelf = async () => {
       const res = await getSelf();
-      setData(res);
+      if (!res?.error && res?.data) {
+        const item = res.data;
+        if (item.logo) {
+          try {
+            const getUrlResult = await getUrl({
+              path: item.logo,
+              options: {
+                validateObjectExistence: true,
+                expiresIn: 3600,
+              },
+            });
+            item.logo = getUrlResult.url.toString();
+          } catch (error) {
+            console.error("Error fetching logo URL", error);
+          }
+        }
+        setData(item);
+        setFormData({
+          name: item.name || "",
+          gst: item.gst || "",
+          logo: item.logo || "",
+          file: null,
+        });
+      }
       setLoading(false);
     };
-
     fetchSelf();
   }, []);
 
   if (loading) return <Loader />;
   if (data?.error) return <div>Error: {data.message}</div>;
 
-  const org = data?.data;
+  const org = data || {};
+
+  const handleSave = async () => {
+    try {
+      const userData = await decodeAccessToken();
+      let coverPhoto = "";
+      if (formData.file) {
+        const fileExt = formData.file?.name.split(".").pop();
+        const s3Key = `${userData?.["custom:org_id"]}/org/profile.${fileExt}`;
+        const result = await uploadData({
+          path: s3Key,
+          data: formData.file,
+          options: {
+            contentType: formData.file.type,
+          },
+        }).result;
+        coverPhoto = result.path;
+      }
+      const response = await updateOrganizationDetails({
+        name: formData.name,
+        gst: formData.gst,
+        logo: coverPhoto,
+      });
+      if (response.error) {
+        toast.error(response.message.message || "Update failed");
+        return;
+      }
+      toast.success("Update successfully!");
+      setData({
+        ...data,
+        name: formData.name,
+        gst: formData.gst,
+        logo: coverPhoto,
+      });
+      setEditMode(false);
+    } catch (error) {
+      console.error("Failed to save", error);
+    }
+  };
+
+  const handleCancel = () => {
+    setFormData({
+      name: org.name || "",
+      gst: org.gst || "",
+      logo: org.logo || "",
+      file: null,
+    });
+    setEditMode(false);
+  };
+
+  const handleInputChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    setFormData({ ...formData, [e.target.name]: e.target.value });
+  };
+
+  const handleFileChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0];
+    if (file) {
+      setFormData({
+        ...formData,
+        file,
+        logo: URL.createObjectURL(file),
+      });
+    }
+  };
 
   return (
     <div className={styles.organizationProfile}>
       <div className={styles.card}>
-        {org.logo ? (
-          <img src={org.logo} alt="Organization Logo" className={styles.logo} />
+        {formData.logo ? (
+          <img
+            src={formData.logo}
+            alt="Organization Logo"
+            className={styles.logo}
+          />
         ) : (
           <div className={styles.placeholderLogo}>No Logo</div>
         )}
-        <h2 className={styles.name}>{org.name}</h2>
-        <p className={styles.gst}>
-          <strong>GST:</strong> {org.gst || "Not Provided"}
-        </p>
+
+        {editMode ? (
+          <>
+            <input
+              type="text"
+              name="name"
+              value={formData.name}
+              onChange={handleInputChange}
+              className={styles.input}
+              placeholder="Organization Name"
+            />
+            <input
+              type="text"
+              name="gst"
+              value={formData.gst}
+              onChange={handleInputChange}
+              className={styles.input}
+              placeholder="GST Number"
+            />
+            <input
+              type="file"
+              accept="image/*"
+              onChange={handleFileChange}
+              className={styles.inputFile}
+            />
+          </>
+        ) : (
+          <>
+            <h2 className={styles.name}>{org.name}</h2>
+            <p className={styles.gst}>
+              <strong>GST:</strong> {org.gst || "Not Provided"}
+            </p>
+          </>
+        )}
+
+        <div className={styles.buttonGroup}>
+          {editMode ? (
+            <>
+              <button className={styles.saveButton} onClick={handleSave}>
+                Save
+              </button>
+              <button className={styles.cancelButton} onClick={handleCancel}>
+                Cancel
+              </button>
+            </>
+          ) : (
+            <button
+              className={styles.editButton}
+              onClick={() => setEditMode(true)}
+            >
+              Edit
+            </button>
+          )}
+        </div>
       </div>
     </div>
   );

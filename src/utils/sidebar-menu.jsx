@@ -38,6 +38,12 @@ export const sidebarOrgAdminItems = [
     text: "Users",
     paths: ["/org-admin/users"],
   },
+  {
+    eventKey: "Sale",
+    icon: "bx bxs-user-account",
+    text: "Sale",
+    paths: ["/org-admin/sale"],
+  },
 ];
 export const sidebarUserItems = [
   {

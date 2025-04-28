@@ -8,6 +8,7 @@ import styles from "./society.module.scss";
 import toast from "react-hot-toast";
 import { createSociety } from "../../redux/action/org-admin";
 import { getUrl, uploadData } from "aws-amplify/storage";
+
 const SUPPORTED_FORMATS = [
   "image/jpg",
   "image/jpeg",
@@ -104,52 +105,50 @@ const ImageUploadField: React.FC<{
 const Society: React.FC = () => {
   const [preview, setPreview] = useState<string | null>(null);
 
-const handleSubmit = async (
-  values: SocietyFormValues,
-  { resetForm }: { resetForm: () => void }
-) => {
-  try {
-    const data = await decodeAccessToken();
-    let coverPhoto = "";
+  const handleSubmit = async (
+    values: SocietyFormValues,
+    { resetForm }: { resetForm: () => void }
+  ) => {
+    try {
+      const data = await decodeAccessToken();
+      let coverPhoto = "";
 
-    // Step 1: Upload image if it exists
-    if (values.image) {
-      const fileExt = values.image.name.split(".").pop();
-      const s3Key = `${data?.["custom:org_id"]}/society/profile.${fileExt}`;
+      // Step 1: Upload image if it exists
+      if (values.image) {
+        const fileExt = values.image.name.split(".").pop();
+        const s3Key = `${data?.["custom:org_id"]}/${values.Rera}/society/profile.${fileExt}`;
+        const result = await uploadData({
+          path: s3Key,
+          data: values.image,
+          options: {
+            contentType: values.image.type,
+          },
+        }).result;
 
-      const result = await uploadData({
-        path: s3Key,
-        data: values.image,
-        options: {
-          contentType: values.image.type,
-        },
-      }).result;
+        coverPhoto = result.path;
+      }
 
-      coverPhoto = result.path;
+      // Step 2: Create society with image path or empty string
+      const response = await createSociety(
+        values.Rera,
+        values.name,
+        values.address,
+        coverPhoto
+      );
+
+      if (response.error) {
+        toast.error(response.message || "Society creation failed");
+        return;
+      }
+
+      toast.success("Society created successfully!");
+      resetForm();
+      setPreview(null);
+    } catch (err: any) {
+      console.error(err);
+      toast.error("Something went wrong!");
     }
-
-    // Step 2: Create society with image path or empty string
-    const response = await createSociety(
-      values.Rera,
-      values.name,
-      values.address,
-      coverPhoto
-    );
-
-    if (response.error) {
-      toast.error(response.message || "Society creation failed");
-      return;
-    }
-
-    toast.success("Society created successfully!");
-    resetForm();
-    setPreview(null);
-  } catch (err: any) {
-    console.error(err);
-    toast.error("Something went wrong!");
-  }
-};
-
+  };
 
   const initialValues: SocietyFormValues = {
     name: "",
