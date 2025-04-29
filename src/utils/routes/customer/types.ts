@@ -30,6 +30,7 @@ export interface AddCustomerToFlatInput {
 
 export interface AddCustomerToFlatRequestBodyInput {
 	details: CustomerDetails[];
+	seller: string;
 }
 
 // update customer
