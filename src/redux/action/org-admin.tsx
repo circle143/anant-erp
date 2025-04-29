@@ -457,7 +457,8 @@ export const updateOrganizationDetails = async (
 export const addCustomer = async (
   societyReraNumber: string,
   flatID: string,
-  customers: CustomerDetails[]
+  customers: CustomerDetails[],
+  seller: string,
 ) => {
   try {
     const token = await getIdToken();
@@ -467,10 +468,12 @@ export const addCustomer = async (
     const input: AddCustomerToFlatInput = {
       societyReraNumber,
       flatID,
+
     };
 
     const reqBody: AddCustomerToFlatRequestBodyInput = {
       details: customers,
+      seller
     };
 
     const url = customer.addCustomerToFlat.getEndpoint(input);

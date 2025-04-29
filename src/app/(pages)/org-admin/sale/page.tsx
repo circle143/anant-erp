@@ -12,6 +12,7 @@ import Loader from "@/components/Loader/Loader";
 import styles from "./page.module.scss";
 import { addCustomer } from "@/redux/action/org-admin";
 import { getUrl, uploadData } from "aws-amplify/storage";
+import { parsePhoneNumber } from "libphonenumber-js/min";
 const StepOneSchema = Yup.object().shape({
   society: Yup.string().required("Society is required"),
   tower: Yup.string().required("Tower is required"),
@@ -56,16 +57,23 @@ const CustomerSchema = Yup.object().shape({
   maritalStatus: Yup.string().required("Marital Status is required"),
   nationality: Yup.string().required("Nationality is required"),
   email: Yup.string().email("Invalid email").required("Email is required"),
-  phoneNumber: Yup.string().required("Phone Number is required"),
+  phoneNumber: Yup.string()
+    .required("Phone Number is required")
+    .matches(/^[0-9]{10}$/, "Phone Number must be exactly 10 digits"),
   middleName: Yup.string(),
   numberOfChildren: Yup.number(),
-  anniversaryDate: Yup.date(),
+  anniversaryDate: Yup.date()
+    .nullable()
+    .notRequired()
+    .max(new Date(), "Anniversary date cannot be in the future"),
+
   aadharNumber: Yup.string(),
   panNumber: Yup.string(),
   passportNumber: Yup.string(),
   profession: Yup.string(),
   designation: Yup.string(),
   companyName: Yup.string(),
+  seller: Yup.string().required("Seller is required"),
 });
 
 const StepTwoSchema = Yup.object().shape({
@@ -79,6 +87,7 @@ const initialValues = {
   society: "",
   tower: "",
   flat: "",
+  seller: "",
   customers: [
     {
       salutation: "",
@@ -269,7 +278,7 @@ const MultiStepForm = () => {
 
   const handleSubmit = async (values: any, { resetForm }: any) => {
     try {
-      const { society, flat, customers } = values;
+      const { society, flat, customers, seller } = values;
 
       const updatedCustomers = await Promise.all(
         customers.map(async (customer: any, index: number) => {
@@ -291,21 +300,52 @@ const MultiStepForm = () => {
             photoPath = result.path;
             delete customer.photoPreview; // Use the uploaded file's path
           }
+          const formattedDOB = customer.dateOfBirth
+            ? new Date(customer.dateOfBirth).toISOString()
+            : "";
+          let formattedanniversaryDate = "";
+          if (customer.anniversaryDate) {
+            const date = new Date(customer.anniversaryDate);
+            formattedanniversaryDate = date.toISOString();
+          }
+          let formattedPhone = customer.phoneNumber;
+          try {
+            const phoneNumber = parsePhoneNumber(customer.phoneNumber, {
+              defaultCountry: "IN",
+            });
 
+            if (phoneNumber?.isValid()) {
+              formattedPhone = phoneNumber.number; // E.164 format
+            }
+          } catch (error) {
+            console.warn("Invalid phone number:", customer.phoneNumber);
+          }
           return {
             ...customer,
             level: index, // add level
-            photo: photoPath, // store the photo path (S3 or empty string)
+            photo: photoPath,
+            dateOfBirth: formattedDOB,
+            anniversaryDate: formattedanniversaryDate,
+            phoneNumber: formattedPhone,
           };
         })
       );
 
       // Call your API to submit the updated customer data
-      const response = await addCustomer(society, flat, updatedCustomers);
-      if (response.error) {
-        toast.error(response.message || "Customer add failed");
-        return;
-      }
+
+      // const response = await addCustomer(
+      //   society,
+      //   flat,
+      //   updatedCustomers,
+      //   seller
+      // );
+
+      console.log(" updatedCustomers", updatedCustomers);
+      console.log("seller", seller);
+      // if (response.error) {
+      //   toast.error(response.message || "Customer add failed");
+      //   return;
+      // }
       // console.log("Form values:", updatedCustomers, society, flat);
       toast.success("Form submitted successfully!");
       resetForm();
@@ -436,7 +476,26 @@ const MultiStepForm = () => {
                           className="error"
                         />
                       </div>
-
+                      <div>
+                        <label>
+                          Seller:
+                          <span style={{ color: "red" }}>*</span>
+                        </label>
+                        <Field
+                          as="select"
+                          className={styles.select}
+                          name={`seller`}
+                        >
+                          <option value="">Select Seller</option>
+                          <option value="Direct">Direct</option>
+                          <option value="Broker">Broker</option>
+                        </Field>
+                        <ErrorMessage
+                          name={`seller`}
+                          component="div"
+                          className="error"
+                        />
+                      </div>
                       <button
                         type="button"
                         onClick={() => handleNext(validateForm, setTouched)}
@@ -575,7 +634,7 @@ const MultiStepForm = () => {
                                 <option value="">Select Gender</option>
                                 <option value="Male">Male</option>
                                 <option value="Female">Female</option>
-                                <option value="Other">Other</option>
+                                <option value="Transgender">Transgender</option>
                               </Field>
                               <ErrorMessage
                                 name={`customers[${index}].gender`}
@@ -632,8 +691,6 @@ const MultiStepForm = () => {
                                 <option value="">Select Marital Status</option>
                                 <option value="Single">Single</option>
                                 <option value="Married">Married</option>
-                                <option value="Divorced">Divorced</option>
-                                <option value="Widowed">Widowed</option>
                               </Field>
                               <ErrorMessage
                                 name={`customers[${index}].maritalStatus`}
@@ -649,9 +706,16 @@ const MultiStepForm = () => {
                                 <span style={{ color: "red" }}>*</span>
                               </label>
                               <Field
+                                as="select"
                                 className={styles.select}
                                 name={`customers[${index}].nationality`}
-                              />
+                              >
+                                <option value="">Select Nationality</option>
+                                <option value="RESIDENT">RESIDENT</option>
+                                <option value="PIO">PIO</option>
+                                <option value="NRI">NRI</option>
+                                <option value="OCI">OCI</option>
+                              </Field>
                               <ErrorMessage
                                 name={`customers[${index}].nationality`}
                                 component="div"
@@ -713,6 +777,7 @@ const MultiStepForm = () => {
                                 type="date"
                                 className={styles.select}
                                 name={`customers[${index}].anniversaryDate`}
+                                max={new Date().toISOString().split("T")[0]} // disable future dates
                               />
                               <ErrorMessage
                                 name={`customers[${index}].anniversaryDate`}
@@ -828,7 +893,7 @@ const MultiStepForm = () => {
                                 nationality: "",
                                 email: "",
                                 phoneNumber: "",
-                                numberOfChildren: undefined,
+                                numberOfChildren: 0,
                                 anniversaryDate: "",
                                 aadharNumber: "",
                                 panNumber: "",
