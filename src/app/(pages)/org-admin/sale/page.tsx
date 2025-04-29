@@ -7,20 +7,52 @@ import {
   getTowers,
   getAllTowerUnsoldFlats,
 } from "@/redux/action/org-admin";
+import toast from "react-hot-toast";
+import Loader from "@/components/Loader/Loader";
 import styles from "./page.module.scss";
+import { addCustomer } from "@/redux/action/org-admin";
+import { getUrl, uploadData } from "aws-amplify/storage";
 const StepOneSchema = Yup.object().shape({
   society: Yup.string().required("Society is required"),
   tower: Yup.string().required("Tower is required"),
   flat: Yup.string().required("Flat is required"),
 });
-
+const today = new Date();
+const minDOB = new Date(
+  today.getFullYear() - 18,
+  today.getMonth(),
+  today.getDate()
+);
+const SUPPORTED_FORMATS = [
+  "image/jpg",
+  "image/jpeg",
+  "image/png",
+  "image/webp",
+];
 const CustomerSchema = Yup.object().shape({
   salutation: Yup.string().required("Salutation is required"),
   firstName: Yup.string().required("First Name is required"),
   lastName: Yup.string().required("Last Name is required"),
-  dateOfBirth: Yup.date().required("Date of Birth is required"),
+  dateOfBirth: Yup.date()
+    .max(minDOB, "Customer must be at least 18 years old")
+    .required("Date of Birth is required"),
   gender: Yup.string().required("Gender is required"),
-  photo: Yup.string().required("Photo is required"),
+  photo: Yup.string()
+    .required("Photo is required")
+    .test(
+      "fileType",
+      "Only JPG, JPEG, PNG, and WEBP files are allowed",
+      (value) => {
+        if (!value) return false;
+
+        // Allow base64 string if already read by FileReader
+        if (typeof value === "string") return true;
+
+        // Cast value as File and check type
+        return SUPPORTED_FORMATS.includes((value as File).type);
+      }
+    ),
+
   maritalStatus: Yup.string().required("Marital Status is required"),
   nationality: Yup.string().required("Nationality is required"),
   email: Yup.string().email("Invalid email").required("Email is required"),
@@ -55,12 +87,13 @@ const initialValues = {
       dateOfBirth: "",
       gender: "",
       photo: "",
+      photoPreview: "",
       maritalStatus: "",
       nationality: "",
       email: "",
       phoneNumber: "",
       middleName: "",
-      numberOfChildren: undefined,
+      numberOfChildren: 0,
       anniversaryDate: "",
       aadharNumber: "",
       panNumber: "",
@@ -100,6 +133,7 @@ const MultiStepForm = () => {
   const [towers, setTowers] = useState<
     { id: string; name: string; societyId: string }[]
   >([]);
+  const [loading, setLoading] = useState(false);
   const [selectedSocietyRera, setSelectedSocietyRera] = useState<string>("");
   const [flats, setFlats] = useState<{ id: string; name: string }[]>([]);
   useEffect(() => {
@@ -107,8 +141,12 @@ const MultiStepForm = () => {
       cursor: string | null = null,
       accumulated: any[] = []
     ): Promise<any[]> => {
+      setLoading(true);
       const response = await getSocieties(cursor);
-      if (response?.error) return accumulated;
+      if (response?.error) {
+        setLoading(false);
+        return accumulated;
+      }
 
       const items = response?.data?.items || [];
 
@@ -119,7 +157,7 @@ const MultiStepForm = () => {
       if (hasNext && nextCursor) {
         return await fetchAllSocieties(nextCursor, newData);
       }
-
+      setLoading(false);
       return newData;
     };
 
@@ -131,6 +169,7 @@ const MultiStepForm = () => {
     e: React.ChangeEvent<HTMLSelectElement>,
     setFieldValue: any
   ) => {
+    setLoading(true);
     const reraNumber = e.target.value;
     setFieldValue("society", reraNumber);
     setFieldValue("tower", ""); // Reset dependent fields
@@ -138,7 +177,10 @@ const MultiStepForm = () => {
     setTowers([]);
     setFlats([]);
 
-    if (!reraNumber) return;
+    if (!reraNumber) {
+      setLoading(false);
+      return;
+    }
 
     const fetchAllTowers = async (
       cursor: string | null = null,
@@ -148,7 +190,7 @@ const MultiStepForm = () => {
       if (response?.error) return accumulated;
 
       const items = response?.data?.items || [];
-      console.log("Items:", items);
+      // console.log("Items:", items);
       const newData = [...accumulated, ...items];
       const hasNext = response?.data?.pageInfo?.nextPage;
       const nextCursor = response?.data?.pageInfo?.cursor;
@@ -162,17 +204,22 @@ const MultiStepForm = () => {
 
     const towerData = await fetchAllTowers();
     setTowers(towerData);
+    setLoading(false);
   };
   const handleTowerChange = async (
     e: React.ChangeEvent<HTMLSelectElement>,
     setFieldValue: any
   ) => {
+    setLoading(true);
     const towerId = e.target.value;
     setFieldValue("tower", towerId);
     setFieldValue("flat", "");
     setFlats([]);
 
-    if (!towerId) return;
+    if (!towerId) {
+      setLoading(false);
+      return;
+    }
 
     const selectedTower = towers.find((tower) => tower.id === towerId);
     if (!selectedTower) return;
@@ -203,6 +250,7 @@ const MultiStepForm = () => {
 
     const flatData = await fetchAllUnsoldFlats();
     setFlats(flatData);
+    setLoading(false);
   };
 
   const handleNext = (validateForm: any, setTouched: any) => {
@@ -214,27 +262,58 @@ const MultiStepForm = () => {
       }
     });
   };
-  const handleFileChange =
-    (index: number) => async (e: React.ChangeEvent<HTMLInputElement>) => {
-      const file = e.target.files?.[0];
-      if (file) {
-        // Create a file reader to show the image preview
-        const reader = new FileReader();
-        reader.onloadend = () => {
-          // Set the base64 string as the photo field for the customer
-          setFieldValue(`customers[${index}].photo`, reader.result as string);
-        };
-        reader.readAsDataURL(file); // Read the file as base64
-      }
-    };
 
   const handlePrevious = () => {
     setStep(step - 1);
   };
 
-  const handleSubmit = (values: any) => {
-    console.log("Final Form Values:", values);
-    alert("Form submitted successfully!");
+  const handleSubmit = async (values: any, { resetForm }: any) => {
+    try {
+      const { society, flat, customers } = values;
+
+      const updatedCustomers = await Promise.all(
+        customers.map(async (customer: any, index: number) => {
+          let photoPath = customer.photo;
+
+          // If photo is a File object, upload it to S3
+          if (customer.photo instanceof File) {
+            const fileExt = customer.photo.name.split(".").pop();
+            const s3Key = `${society}/${flat}/customer${index}/profile.${fileExt}`;
+
+            const result = await uploadData({
+              path: s3Key,
+              data: customer.photo,
+              options: {
+                contentType: customer.photo.type,
+              },
+            }).result;
+
+            photoPath = result.path;
+            delete customer.photoPreview; // Use the uploaded file's path
+          }
+
+          return {
+            ...customer,
+            level: index, // add level
+            photo: photoPath, // store the photo path (S3 or empty string)
+          };
+        })
+      );
+
+      // Call your API to submit the updated customer data
+      const response = await addCustomer(society, flat, updatedCustomers);
+      if (response.error) {
+        toast.error(response.message || "Customer add failed");
+        return;
+      }
+      // console.log("Form values:", updatedCustomers, society, flat);
+      toast.success("Form submitted successfully!");
+      resetForm();
+      setStep(step - 1);
+    } catch (error) {
+      console.error("Form submission failed:", error);
+      toast.error("Something went wrong while submitting the form.");
+    }
   };
 
   return (
@@ -245,314 +324,538 @@ const MultiStepForm = () => {
         validationSchema={step === 1 ? StepOneSchema : StepTwoSchema}
         onSubmit={handleSubmit}
       >
-        {({ values, validateForm, setTouched, setFieldValue }) => (
-          <Form>
-            {step === 1 && (
-              <>
-                <div>
-                  <label>Society:</label>
-                  <Field
-                    as="select"
-                    name="society"
-                    className={styles.select}
-                    onChange={(e: any) => handleSocietyChange(e, setFieldValue)}
-                  >
-                    <option value="">Select Society</option>
-                    {societies.map((society) => (
-                      <option
-                        key={society.reraNumber}
-                        value={society.reraNumber}
-                      >
-                        {society.name}
-                      </option>
-                    ))}
-                  </Field>
-                  <ErrorMessage
-                    name="society"
-                    component="div"
-                    className="error"
-                  />
-                </div>
+        {({ values, validateForm, setTouched, setFieldValue, resetForm }) => {
+          const handleFileChange =
+            (index: number) =>
+            async (e: React.ChangeEvent<HTMLInputElement>) => {
+              const file = e.target.files?.[0];
+              if (!file) return;
 
-                <div>
-                  <label>Tower:</label>
-                  <Field
-                    as="select"
-                    name="tower"
-                    className={styles.select}
-                    onChange={(e: any) => handleTowerChange(e, setFieldValue)}
-                  >
-                    <option value="">Select Tower</option>
-                    {towers.map((tower) => (
-                      <option key={tower.id} value={tower.id}>
-                        {tower.name}
-                      </option>
-                    ))}
-                  </Field>
-                  <ErrorMessage
-                    name="tower"
-                    component="div"
-                    className="error"
-                  />
-                </div>
+              const SUPPORTED_FORMATS = [
+                "image/jpg",
+                "image/jpeg",
+                "image/png",
+                "image/webp",
+              ];
 
-                <div>
-                  <label>Flat:</label>
-                  <Field as="select" name="flat" className={styles.select}>
-                    <option value="">Select Flat</option>
-                    {flats.map((flat) => (
-                      <option key={flat.id} value={flat.id}>
-                        {flat.name}
-                      </option>
-                    ))}
-                  </Field>
-                  <ErrorMessage name="flat" component="div" className="error" />
-                </div>
+              if (!SUPPORTED_FORMATS.includes(file.type)) {
+                alert("Only JPG, JPEG, PNG, and WEBP files are allowed");
+                return;
+              }
+              // console.log("Customer photo:", file);
+              // Set file (used for upload)
+              setFieldValue(`customers[${index}].photo`, file);
 
-                <button
-                  type="button"
-                  onClick={() => handleNext(validateForm, setTouched)}
-                >
-                  Next
-                </button>
-              </>
-            )}
+              // Set preview image (used for display only)
+              const reader = new FileReader();
+              reader.onloadend = () => {
+                setFieldValue(
+                  `customers[${index}].photoPreview`,
+                  reader.result
+                ); // just for showing image
+              };
+              reader.readAsDataURL(file);
+            };
 
-            {step === 2 && (
-              <>
-                <FieldArray name="customers">
-                  {({ push, remove }) => (
+          return (
+            <Form>
+              {step === 1 && (
+                <>
+                  {loading ? (
+                    <Loader />
+                  ) : (
                     <>
-                      {values.customers.map((customer, index) => (
-                        <div
-                          key={index}
-                          style={{
-                            marginBottom: 20,
-                            padding: 10,
-                            border: "1px solid gray",
-                          }}
-                        >
-                          <h4>Customer {index + 1}</h4>
-                          <div>
-                            <label>Salutation:</label>
-                            <Field
-                              as="select"
-                              className={styles.select}
-                              name={`customers[${index}].salutation`}
-                            >
-                              <option value="">Select Salutation</option>
-                              <option value="Mr.">Mr.</option>
-                              <option value="Mrs.">Mrs.</option>
-                              <option value="Ms.">Ms.</option>
-                              <option value="Dr.">Dr.</option>
-                              <option value="Prof.">Prof.</option>
-                            </Field>
-                            <ErrorMessage
-                              name={`customers[${index}].salutation`}
-                              component="div"
-                              className="error"
-                            />
-                          </div>
-
-                          <div>
-                            <label>First Name:</label>
-                            <Field
-                              className={styles.select}
-                              name={`customers[${index}].firstName`}
-                            />
-                            <ErrorMessage
-                              name={`customers[${index}].firstName`}
-                              component="div"
-                              className="error"
-                            />
-                          </div>
-
-                          <div>
-                            <label>Last Name:</label>
-                            <Field
-                              className={styles.select}
-                              name={`customers[${index}].lastName`}
-                            />
-                            <ErrorMessage
-                              name={`customers[${index}].lastName`}
-                              component="div"
-                              className="error"
-                            />
-                          </div>
-
-                          <div>
-                            <label>Date of Birth:</label>
-                            <Field
-                              className={styles.select}
-                              name={`customers[${index}].dateOfBirth`}
-                              type="date"
-                            />
-                            <ErrorMessage
-                              name={`customers[${index}].dateOfBirth`}
-                              component="div"
-                              className="error"
-                            />
-                          </div>
-
-                          <div>
-                            <label>Gender:</label>
-                            <Field
-                              as="select"
-                              className={styles.select}
-                              name={`customers[${index}].gender`}
-                            >
-                              <option value="">Select Gender</option>
-                              <option value="Male">Male</option>
-                              <option value="Female">Female</option>
-                              <option value="Other">Other</option>
-                            </Field>
-                            <ErrorMessage
-                              name={`customers[${index}].gender`}
-                              component="div"
-                              className="error"
-                            />
-                          </div>
-
-                          <div>
-                            <label>Photo:</label>
-                            <input
-                              type="file"
-                              className={styles.fileInput}
-                              name={`customers[${index}].photo`}
-                              onChange={handleFileChange(index)}
-                            />
-                            {values.customers[index].photo && (
-                              <div>
-                                <h5>Preview:</h5>
-                                <img
-                                  src={values.customers[index].photo}
-                                  alt="Preview"
-                                  className={styles.previewImage}
-                                  style={{
-                                    maxWidth: "200px",
-                                    maxHeight: "200px",
-                                  }}
-                                />
-                              </div>
-                            )}
-                            <ErrorMessage
-                              name={`customers[${index}].photo`}
-                              component="div"
-                              className="error"
-                            />
-                          </div>
-
-                          <div>
-                            <label>Marital Status:</label>
-                            <Field
-                              as="select"
-                              className={styles.select}
-                              name={`customers[${index}].maritalStatus`}
-                            >
-                              <option value="">Select Marital Status</option>
-                              <option value="Single">Single</option>
-                              <option value="Married">Married</option>
-                              <option value="Divorced">Divorced</option>
-                              <option value="Widowed">Widowed</option>
-                            </Field>
-                            <ErrorMessage
-                              name={`customers[${index}].maritalStatus`}
-                              component="div"
-                              className="error"
-                            />
-                          </div>
-
-                          <div>
-                            <label>Nationality:</label>
-                            <Field
-                              className={styles.select}
-                              name={`customers[${index}].nationality`}
-                            />
-                            <ErrorMessage
-                              name={`customers[${index}].nationality`}
-                              component="div"
-                              className="error"
-                            />
-                          </div>
-
-                          <div>
-                            <label>Email:</label>
-                            <Field
-                              className={styles.select}
-                              name={`customers[${index}].email`}
-                              type="email"
-                            />
-                            <ErrorMessage
-                              name={`customers[${index}].email`}
-                              component="div"
-                              className="error"
-                            />
-                          </div>
-
-                          <div>
-                            <label>Phone Number:</label>
-                            <Field
-                              className={styles.select}
-                              name={`customers[${index}].phoneNumber`}
-                            />
-                            <ErrorMessage
-                              name={`customers[${index}].phoneNumber`}
-                              component="div"
-                              className="error"
-                            />
-                          </div>
-
-                          {values.customers.length > 1 && (
-                            <button type="button" onClick={() => remove(index)}>
-                              Remove Customer
-                            </button>
-                          )}
-                        </div>
-                      ))}
-
-                      {values.customers.length < 3 && (
-                        <button
-                          type="button"
-                          onClick={() =>
-                            push({
-                              salutation: "",
-                              firstName: "",
-                              lastName: "",
-                              dateOfBirth: "",
-                              gender: "",
-                              photo: "",
-                              maritalStatus: "",
-                              nationality: "",
-                              email: "",
-                              phoneNumber: "",
-                              middleName: "",
-                              numberOfChildren: undefined,
-                              anniversaryDate: "",
-                              aadharNumber: "",
-                              panNumber: "",
-                              passportNumber: "",
-                              profession: "",
-                              designation: "",
-                              companyName: "",
-                            })
+                      <div>
+                        <label>Society:</label>
+                        <Field
+                          as="select"
+                          name="society"
+                          className={styles.select}
+                          onChange={(e: any) =>
+                            handleSocietyChange(e, setFieldValue)
                           }
                         >
-                          Add Customer
-                        </button>
-                      )}
+                          <option value="">Select Society</option>
+                          {societies.map((society) => (
+                            <option
+                              key={society.reraNumber}
+                              value={society.reraNumber}
+                            >
+                              {society.name}
+                            </option>
+                          ))}
+                        </Field>
+                        <ErrorMessage
+                          name="society"
+                          component="div"
+                          className="error"
+                        />
+                      </div>
+
+                      <div>
+                        <label>Tower:</label>
+                        <Field
+                          as="select"
+                          name="tower"
+                          className={styles.select}
+                          onChange={(e: any) =>
+                            handleTowerChange(e, setFieldValue)
+                          }
+                        >
+                          <option value="">Select Tower</option>
+                          {towers.map((tower) => (
+                            <option key={tower.id} value={tower.id}>
+                              {tower.name}
+                            </option>
+                          ))}
+                        </Field>
+                        <ErrorMessage
+                          name="tower"
+                          component="div"
+                          className="error"
+                        />
+                      </div>
+
+                      <div>
+                        <label>Flat:</label>
+                        <Field
+                          as="select"
+                          name="flat"
+                          className={styles.select}
+                        >
+                          <option value="">Select Flat</option>
+                          {flats.map((flat) => (
+                            <option key={flat.id} value={flat.id}>
+                              {flat.name}
+                            </option>
+                          ))}
+                        </Field>
+                        <ErrorMessage
+                          name="flat"
+                          component="div"
+                          className="error"
+                        />
+                      </div>
+
+                      <button
+                        type="button"
+                        onClick={() => handleNext(validateForm, setTouched)}
+                      >
+                        Next
+                      </button>
                     </>
                   )}
-                </FieldArray>
+                </>
+              )}
 
-                <button type="button" onClick={handlePrevious}>
-                  Previous
-                </button>
+              {step === 2 && (
+                <>
+                  <FieldArray name="customers">
+                    {({ push, remove }) => (
+                      <>
+                        {values.customers.map((customer, index) => (
+                          <div
+                            key={index}
+                            style={{
+                              marginBottom: 20,
+                              padding: 10,
+                              border: "1px solid gray",
+                            }}
+                          >
+                            <h4>Customer {index + 1}</h4>
 
-                <button type="submit">Submit</button>
-              </>
-            )}
-          </Form>
-        )}
+                            {/* Salutation */}
+                            <div>
+                              <label>
+                                Salutation:
+                                <span style={{ color: "red" }}>*</span>
+                              </label>
+                              <Field
+                                as="select"
+                                className={styles.select}
+                                name={`customers[${index}].salutation`}
+                              >
+                                <option value="">Select Salutation</option>
+                                <option value="Mr.">Mr.</option>
+                                <option value="Mrs.">Mrs.</option>
+                                <option value="Ms.">Ms.</option>
+                                <option value="Dr.">Dr.</option>
+                                <option value="Prof.">Prof.</option>
+                              </Field>
+                              <ErrorMessage
+                                name={`customers[${index}].salutation`}
+                                component="div"
+                                className="error"
+                              />
+                            </div>
+
+                            {/* Name Fields */}
+                            <div>
+                              <label>
+                                First Name:
+                                <span style={{ color: "red" }}>*</span>
+                              </label>
+                              <Field
+                                className={styles.select}
+                                name={`customers[${index}].firstName`}
+                              />
+                              <ErrorMessage
+                                name={`customers[${index}].firstName`}
+                                component="div"
+                                className="error"
+                              />
+                            </div>
+
+                            <div>
+                              <label>Middle Name:</label>
+                              <Field
+                                className={styles.select}
+                                name={`customers[${index}].middleName`}
+                              />
+                              <ErrorMessage
+                                name={`customers[${index}].middleName`}
+                                component="div"
+                                className="error"
+                              />
+                            </div>
+
+                            <div>
+                              <label>
+                                Last Name:
+                                <span style={{ color: "red" }}>*</span>
+                              </label>
+                              <Field
+                                className={styles.select}
+                                name={`customers[${index}].lastName`}
+                              />
+                              <ErrorMessage
+                                name={`customers[${index}].lastName`}
+                                component="div"
+                                className="error"
+                              />
+                            </div>
+
+                            {/* Date of Birth */}
+                            <div>
+                              <label>
+                                Date of Birth:{" "}
+                                <span style={{ color: "red" }}>*</span>
+                              </label>
+                              <Field
+                                className={styles.select}
+                                name={`customers[${index}].dateOfBirth`}
+                                type="date"
+                                max={
+                                  new Date(
+                                    new Date().setFullYear(
+                                      new Date().getFullYear() - 18
+                                    )
+                                  )
+                                    .toISOString()
+                                    .split("T")[0]
+                                } // ensures it's in yyyy-mm-dd format
+                              />
+                              <ErrorMessage
+                                name={`customers[${index}].dateOfBirth`}
+                                component="div"
+                                className="error"
+                              />
+                            </div>
+
+                            {/* Gender */}
+                            <div>
+                              <label>
+                                Gender:<span style={{ color: "red" }}>*</span>
+                              </label>
+                              <Field
+                                as="select"
+                                className={styles.select}
+                                name={`customers[${index}].gender`}
+                              >
+                                <option value="">Select Gender</option>
+                                <option value="Male">Male</option>
+                                <option value="Female">Female</option>
+                                <option value="Other">Other</option>
+                              </Field>
+                              <ErrorMessage
+                                name={`customers[${index}].gender`}
+                                component="div"
+                                className="error"
+                              />
+                            </div>
+
+                            {/* Photo Upload */}
+                            <div>
+                              <label>
+                                Photo:<span style={{ color: "red" }}>*</span>
+                              </label>
+                              <input
+                                type="file"
+                                className={styles.fileInput}
+                                name={`customers[${index}].photo`}
+                                accept="image/*"
+                                onChange={handleFileChange(index)}
+                              />
+                              {values.customers[index].photoPreview && (
+                                <div>
+                                  <h5>Preview:</h5>
+                                  <img
+                                    src={values.customers[index].photoPreview}
+                                    alt="Preview"
+                                    className={styles.previewImage}
+                                    style={{
+                                      maxWidth: "200px",
+                                      maxHeight: "200px",
+                                    }}
+                                  />
+                                </div>
+                              )}
+
+                              <ErrorMessage
+                                name={`customers[${index}].photo`}
+                                component="div"
+                                className="error"
+                              />
+                            </div>
+
+                            {/* Marital Status */}
+                            <div>
+                              <label>
+                                Marital Status:
+                                <span style={{ color: "red" }}>*</span>
+                              </label>
+                              <Field
+                                as="select"
+                                className={styles.select}
+                                name={`customers[${index}].maritalStatus`}
+                              >
+                                <option value="">Select Marital Status</option>
+                                <option value="Single">Single</option>
+                                <option value="Married">Married</option>
+                                <option value="Divorced">Divorced</option>
+                                <option value="Widowed">Widowed</option>
+                              </Field>
+                              <ErrorMessage
+                                name={`customers[${index}].maritalStatus`}
+                                component="div"
+                                className="error"
+                              />
+                            </div>
+
+                            {/* Nationality */}
+                            <div>
+                              <label>
+                                Nationality:
+                                <span style={{ color: "red" }}>*</span>
+                              </label>
+                              <Field
+                                className={styles.select}
+                                name={`customers[${index}].nationality`}
+                              />
+                              <ErrorMessage
+                                name={`customers[${index}].nationality`}
+                                component="div"
+                                className="error"
+                              />
+                            </div>
+
+                            {/* Email & Phone */}
+                            <div>
+                              <label>
+                                Email:<span style={{ color: "red" }}>*</span>
+                              </label>
+                              <Field
+                                className={styles.select}
+                                name={`customers[${index}].email`}
+                                type="email"
+                              />
+                              <ErrorMessage
+                                name={`customers[${index}].email`}
+                                component="div"
+                                className="error"
+                              />
+                            </div>
+
+                            <div>
+                              <label>
+                                Phone Number:
+                                <span style={{ color: "red" }}>*</span>
+                              </label>
+                              <Field
+                                className={styles.select}
+                                name={`customers[${index}].phoneNumber`}
+                              />
+                              <ErrorMessage
+                                name={`customers[${index}].phoneNumber`}
+                                component="div"
+                                className="error"
+                              />
+                            </div>
+
+                            {/* Additional Fields */}
+                            <div>
+                              <label>Number of Children:</label>
+                              <Field
+                                type="number"
+                                className={styles.select}
+                                name={`customers[${index}].numberOfChildren`}
+                              />
+                              <ErrorMessage
+                                name={`customers[${index}].numberOfChildren`}
+                                component="div"
+                                className="error"
+                              />
+                            </div>
+
+                            <div>
+                              <label>Anniversary Date:</label>
+                              <Field
+                                type="date"
+                                className={styles.select}
+                                name={`customers[${index}].anniversaryDate`}
+                              />
+                              <ErrorMessage
+                                name={`customers[${index}].anniversaryDate`}
+                                component="div"
+                                className="error"
+                              />
+                            </div>
+
+                            <div>
+                              <label>Aadhar Number:</label>
+                              <Field
+                                className={styles.select}
+                                name={`customers[${index}].aadharNumber`}
+                              />
+                              <ErrorMessage
+                                name={`customers[${index}].aadharNumber`}
+                                component="div"
+                                className="error"
+                              />
+                            </div>
+
+                            <div>
+                              <label>PAN Number:</label>
+                              <Field
+                                className={styles.select}
+                                name={`customers[${index}].panNumber`}
+                              />
+                              <ErrorMessage
+                                name={`customers[${index}].panNumber`}
+                                component="div"
+                                className="error"
+                              />
+                            </div>
+
+                            <div>
+                              <label>Passport Number:</label>
+                              <Field
+                                className={styles.select}
+                                name={`customers[${index}].passportNumber`}
+                              />
+                              <ErrorMessage
+                                name={`customers[${index}].passportNumber`}
+                                component="div"
+                                className="error"
+                              />
+                            </div>
+
+                            <div>
+                              <label>Profession:</label>
+                              <Field
+                                className={styles.select}
+                                name={`customers[${index}].profession`}
+                              />
+                              <ErrorMessage
+                                name={`customers[${index}].profession`}
+                                component="div"
+                                className="error"
+                              />
+                            </div>
+
+                            <div>
+                              <label>Designation:</label>
+                              <Field
+                                className={styles.select}
+                                name={`customers[${index}].designation`}
+                              />
+                              <ErrorMessage
+                                name={`customers[${index}].designation`}
+                                component="div"
+                                className="error"
+                              />
+                            </div>
+
+                            <div>
+                              <label>Company Name:</label>
+                              <Field
+                                className={styles.select}
+                                name={`customers[${index}].companyName`}
+                              />
+                              <ErrorMessage
+                                name={`customers[${index}].companyName`}
+                                component="div"
+                                className="error"
+                              />
+                            </div>
+
+                            {/* Remove Button */}
+                            {values.customers.length > 1 && (
+                              <button
+                                type="button"
+                                onClick={() => remove(index)}
+                              >
+                                Remove Customer
+                              </button>
+                            )}
+                          </div>
+                        ))}
+
+                        {/* Add Button */}
+                        {values.customers.length < 3 && (
+                          <button
+                            type="button"
+                            onClick={() =>
+                              push({
+                                salutation: "",
+                                firstName: "",
+                                middleName: "",
+                                lastName: "",
+                                dateOfBirth: "",
+                                gender: "",
+                                photo: "",
+                                maritalStatus: "",
+                                nationality: "",
+                                email: "",
+                                phoneNumber: "",
+                                numberOfChildren: undefined,
+                                anniversaryDate: "",
+                                aadharNumber: "",
+                                panNumber: "",
+                                passportNumber: "",
+                                profession: "",
+                                designation: "",
+                                companyName: "",
+                              })
+                            }
+                          >
+                            Add Customer
+                          </button>
+                        )}
+                      </>
+                    )}
+                  </FieldArray>
+
+                  <button type="button" onClick={handlePrevious}>
+                    Previous
+                  </button>
+
+                  <button type="submit">Submit</button>
+                </>
+              )}
+            </Form>
+          );
+        }}
       </Formik>
     </div>
   );

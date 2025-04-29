@@ -23,6 +23,12 @@ import {
   GetAllOrganizationUsersInput,
   UpdateOrganizationDetailsRequestBodyInput,
 } from "@/utils/routes/organization/types";
+import {
+  AddCustomerToFlatInput,
+  AddCustomerToFlatRequestBodyInput,
+  CustomerDetails,
+} from "@/utils/routes/customer/types";
+import { customer } from "@/utils/routes/customer/customer";
 import { society } from "@/utils/routes/society/society";
 import { flat } from "@/utils/routes/flat/flat";
 import { tower } from "@/utils/routes/tower/tower";
@@ -215,7 +221,7 @@ export const getAllTowerUnsoldFlats = async (
       societyReraNumber,
       towerID,
     };
- 
+
     const url = flat.getAllTowerUnsoldFlats.getEndpoint(input);
     const response = await axios.get(createURL(url), {
       headers: { Authorization: `Bearer ${token}` },
@@ -443,8 +449,42 @@ export const updateOrganizationDetails = async (
     });
     return response.data;
   } catch (error: any) {
-    console.error("Error updating org:", error.response?.data );
+    console.error("Error updating org:", error.response?.data);
     return { error: true, message: error.response?.data };
   }
 };
 
+export const addCustomer = async (
+  societyReraNumber: string,
+  flatID: string,
+  customers: CustomerDetails[]
+) => {
+  try {
+    const token = await getIdToken();
+    console.log("societyReraNumber", societyReraNumber);
+    console.log("flatID", flatID);
+    console.log("customers", customers);
+    const input: AddCustomerToFlatInput = {
+      societyReraNumber,
+      flatID,
+    };
+
+    const reqBody: AddCustomerToFlatRequestBodyInput = {
+      details: customers,
+    };
+
+    const url = customer.addCustomerToFlat.getEndpoint(input);
+
+    const response = await axios.post(createURL(url), reqBody, {
+      headers: { Authorization: `Bearer ${token}` },
+    });
+
+    return response.data;
+  } catch (error: any) {
+    console.error(
+      "Error adding customer:",
+      error.response?.data || error.message
+    );
+    return { error: true, message: error.message };
+  }
+};
