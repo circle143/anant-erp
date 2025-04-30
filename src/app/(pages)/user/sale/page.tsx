@@ -1,9 +1,11 @@
-import React from 'react'
-
+import React from "react";
+import Sale from "@/components/Sale/Sale";
 const page = () => {
   return (
-    <div>page</div>
-  )
-}
+    <div>
+      <Sale />
+    </div>
+  );
+};
 
-export default page
+export default page;

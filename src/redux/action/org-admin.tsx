@@ -22,6 +22,9 @@ import {
   AddUserToOrganizationRequestBodyInput,
   GetAllOrganizationUsersInput,
   UpdateOrganizationDetailsRequestBodyInput,
+  UpdateOrganizationUserRoleInput,
+  UpdateOrganizationUserRoleRequestBodyInput,
+  UserRole,
 } from "@/utils/routes/organization/types";
 import {
   AddCustomerToFlatInput,
@@ -226,7 +229,7 @@ export const getAllTowerUnsoldFlats = async (
     const response = await axios.get(createURL(url), {
       headers: { Authorization: `Bearer ${token}` },
     });
-    console.log("response", response);
+    // console.log("response", response);
     return response.data;
   } catch (error: any) {
     console.error(
@@ -458,13 +461,10 @@ export const addCustomer = async (
   societyReraNumber: string,
   flatID: string,
   customers: CustomerDetails[],
-  seller: string,
+  seller: string
 ) => {
   try {
     const token = await getIdToken();
-    console.log("societyReraNumber", societyReraNumber);
-    console.log("flatID", flatID);
-    console.log("customers", customers);
     const input: AddCustomerToFlatInput = {
       societyReraNumber,
       flatID,
@@ -472,12 +472,40 @@ export const addCustomer = async (
 
     const reqBody: AddCustomerToFlatRequestBodyInput = {
       details: customers,
-      seller
+      seller,
     };
 
     const url = customer.addCustomerToFlat.getEndpoint(input);
 
     const response = await axios.post(createURL(url), reqBody, {
+      headers: { Authorization: `Bearer ${token}` },
+    });
+
+    return response.data;
+  } catch (error: any) {
+    console.error(
+      "Error adding customer:",
+      error.response?.data || error.message
+    );
+    return { error: true, message: error.message };
+  }
+};
+
+export const updateOrganizationUserRole = async (
+  email: string,
+  role: UserRole
+) => {
+  try {
+    const token = await getIdToken();
+    const input: UpdateOrganizationUserRoleInput = {
+      email,
+    };
+
+    const reqBody: UpdateOrganizationUserRoleRequestBodyInput = { role };
+
+    const url = organization.updateOrganizationUserRole.getEndpoint(input);
+
+    const response = await axios.patch(createURL(url), reqBody, {
       headers: { Authorization: `Bearer ${token}` },
     });
 

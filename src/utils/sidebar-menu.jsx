@@ -47,34 +47,9 @@ export const sidebarOrgAdminItems = [
 ];
 export const sidebarUserItems = [
   {
-    eventKey: "dashboard",
+    eventKey: "Sale",
     icon: "bx bx-home-circle",
-    text: "Dashboard",
-    paths: ["/org-admin/flate"],
-  },
-  {
-    eventKey: "fans",
-    icon: "bx bxs-user-account",
-    text: "Fans",
-    paths: ["/app/fans"],
-  },
-  {
-    eventKey: "influencers",
-    icon: "bx bxs-user-account",
-    text: "Influencers",
-    paths: ["/app/influencers"],
-  },
-  {
-    eventKey: "requests",
-    icon: "bx bxs-user-account",
-    text: "Requests",
-    paths: ["/app/requests"],
-  },
-
-  {
-    eventKey: "notifications",
-    icon: "bx bxs-bell-ring",
-    text: "Notifications",
-    paths: ["/app/notifications"],
+    text: "Sale",
+    paths: ["/user/sale"],
   },
 ];

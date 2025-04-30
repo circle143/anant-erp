@@ -1,27 +1,55 @@
 "use client";
-
 import React, { useEffect, useState } from "react";
 import { getSelf } from "../../../redux/action/org-admin";
 import styles from "./page.module.scss";
+import { getUrl } from "aws-amplify/storage";
 import Loader from "@/components/Loader/Loader";
+
 const Page = () => {
-  const [data, setData] = useState<any>(null);
+  const [org, setOrg] = useState<any>(null);
   const [loading, setLoading] = useState(true);
+  const [errorMsg, setErrorMsg] = useState<string | null>(null);
 
   useEffect(() => {
     const fetchSelf = async () => {
-      const res = await getSelf();
-      setData(res);
-      setLoading(false);
+      try {
+        const res = await getSelf();
+
+        if (!res?.error && res?.data) {
+          const item = res.data;
+
+          if (item.logo) {
+            try {
+              const getUrlResult = await getUrl({
+                path: item.logo,
+                options: {
+                  validateObjectExistence: true,
+                  expiresIn: 3600,
+                },
+              });
+              item.logo = getUrlResult.url.toString();
+            } catch (err) {
+              console.error("Error fetching logo URL", err);
+            }
+          }
+
+          setOrg(item);
+        } else {
+          setErrorMsg(res?.message || "Something went wrong.");
+        }
+      } catch (err) {
+        console.error("Failed to fetch organization data", err);
+        setErrorMsg("Something went wrong.");
+      } finally {
+        setLoading(false);
+      }
     };
 
     fetchSelf();
   }, []);
 
   if (loading) return <Loader />;
-  if (data?.error) return <div>Error: {data.message}</div>;
-
-  const org = data?.data;
+  if (errorMsg) return <div>Error: {errorMsg}</div>;
 
   return (
     <div className={styles.organizationProfile}>

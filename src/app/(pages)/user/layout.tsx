@@ -7,7 +7,7 @@ import Sidebar from "../../../components/sidebar/index";
 import styles from "./layout.module.scss";
 import Nav from "../../../components/Nav/Nav";
 import {sidebarUserItems} from "../../../utils/sidebar-menu"
-const authorizedRoles = ["circle-admin", "org-admin", "org-user"];
+const authorizedRoles = ["org-user"];
 export default function ProtectedLayout({
   children,
 }: {
