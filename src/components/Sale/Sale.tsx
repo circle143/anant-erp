@@ -537,7 +537,7 @@ const Sale = () => {
                       <>
                         {values.customers.map((customer, index) => (
                           <div key={index} className={styles.secondform}>
-                            <h4>Customer {index + 1}</h4>
+                            <h4>Applicant {index + 1}</h4>
 
                             {/* Salutation */}
                             <div>

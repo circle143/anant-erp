@@ -151,6 +151,7 @@ const Page = () => {
                               <div className={styles.ownerCards}>
                                 {org.owners.map((owner: any, i: number) => (
                                   <div key={i} className={styles.ownerCard}>
+                                    <h4>Applicant {i + 1}</h4>
                                     <p>
                                       <strong>Full Name:</strong>{" "}
                                       {[
