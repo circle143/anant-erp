@@ -17,6 +17,7 @@ const StepOneSchema = Yup.object().shape({
   society: Yup.string().required("Society is required"),
   tower: Yup.string().required("Tower is required"),
   flat: Yup.string().required("Flat is required"),
+  seller: Yup.string().required("Seller is required"),
 });
 const today = new Date();
 const minDOB = new Date(
@@ -38,7 +39,7 @@ const CustomerSchema = Yup.object().shape({
     .max(minDOB, "Customer must be at least 18 years old")
     .required("Date of Birth is required"),
   gender: Yup.string().required("Gender is required"),
-  photo: Yup.string()
+  photo: Yup.mixed()
     .required("Photo is required")
     .test(
       "fileType",
@@ -46,11 +47,15 @@ const CustomerSchema = Yup.object().shape({
       (value) => {
         if (!value) return false;
 
-        // Allow base64 string if already read by FileReader
+        // Allow base64 string (preview)
         if (typeof value === "string") return true;
 
-        // Cast value as File and check type
-        return SUPPORTED_FORMATS.includes((value as File).type);
+        // Check if it's a File and has a valid type
+        if (value instanceof File) {
+          return SUPPORTED_FORMATS.includes(value.type);
+        }
+
+        return false;
       }
     ),
 
@@ -73,7 +78,6 @@ const CustomerSchema = Yup.object().shape({
   profession: Yup.string(),
   designation: Yup.string(),
   companyName: Yup.string(),
-  seller: Yup.string().required("Seller is required"),
 });
 
 const StepTwoSchema = Yup.object().shape({
@@ -301,13 +305,15 @@ const MultiStepForm = () => {
             delete customer.photoPreview; // Use the uploaded file's path
           }
           const formattedDOB = customer.dateOfBirth
-            ? new Date(customer.dateOfBirth).toISOString()
+            ? new Date(customer.dateOfBirth).toISOString().slice(0, 10)
             : "";
+
           let formattedanniversaryDate = "";
           if (customer.anniversaryDate) {
             const date = new Date(customer.anniversaryDate);
-            formattedanniversaryDate = date.toISOString();
+            formattedanniversaryDate = date.toISOString().slice(0, 10);
           }
+
           let formattedPhone = customer.phoneNumber;
           try {
             const phoneNumber = parsePhoneNumber(customer.phoneNumber, {
@@ -333,19 +339,19 @@ const MultiStepForm = () => {
 
       // Call your API to submit the updated customer data
 
-      // const response = await addCustomer(
-      //   society,
-      //   flat,
-      //   updatedCustomers,
-      //   seller
-      // );
+      const response = await addCustomer(
+        society,
+        flat,
+        updatedCustomers,
+        seller
+      );
 
-      console.log(" updatedCustomers", updatedCustomers);
-      console.log("seller", seller);
-      // if (response.error) {
-      //   toast.error(response.message || "Customer add failed");
-      //   return;
-      // }
+      // console.log(" updatedCustomers", updatedCustomers);
+      // console.log("seller", seller);
+      if (response.error) {
+        toast.error(response.message || "Customer add failed");
+        return;
+      }
       // console.log("Form values:", updatedCustomers, society, flat);
       toast.success("Form submitted successfully!");
       resetForm();
@@ -711,7 +717,7 @@ const MultiStepForm = () => {
                                 name={`customers[${index}].nationality`}
                               >
                                 <option value="">Select Nationality</option>
-                                <option value="RESIDENT">RESIDENT</option>
+                                <option value="Resident">Resident</option>
                                 <option value="PIO">PIO</option>
                                 <option value="NRI">NRI</option>
                                 <option value="OCI">OCI</option>

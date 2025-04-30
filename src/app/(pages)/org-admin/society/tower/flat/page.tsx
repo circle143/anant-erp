@@ -89,94 +89,90 @@ const Page = () => {
     };
 
     return (
-        <div className={`container ${styles.container}`}>
-            <div className={styles.header}>
-                <h2>Flat List</h2>
-                <div className={styles.actions}>
-                    <select
-                        className={styles.selectFilter}
-                        onChange={handleFilterChange}
-                        defaultValue="all"
-                    >
-                        <option value="all">All</option>
-                        <option value="sold">Sold</option>
-                        <option value="unsold">Unsold</option>
-                    </select>
-                    <button
-                        className={styles.newFlatButton}
-                        onClick={() =>
-                            router.push(
-                                `/org-admin/society/tower/flat/new-flat?rera=${rera}&towerId=${towerID}`
-                            )
-                        }
-                    >
-                        New Flat
-                    </button>
-                </div>
-            </div>
-
-            {loading ? (
-                <div className={styles.loading}>
-                    <Loader />
-                </div>
-            ) : (
-                <>
-                    {orgData.length === 0 ? (
-                        <div className={styles.noData}>No data available</div>
-                    ) : (
-                        <>
-                            <ul className={styles.orgList}>
-                                {orgData.map((org) => (
-                                    <li key={org.id} className={styles.orgItem}>
-                                        <div className={styles.rightSection}>
-                                            <div className={styles.details}>
-                                                <div>
-                                                    <strong>Name:</strong>{" "}
-                                                    {org.name}
-                                                </div>
-                                                <div>
-                                                    <strong>Floor:</strong>{" "}
-                                                    {org.floorNumber}
-                                                </div>
-                                                <div>
-                                                    <strong>
-                                                        Flat Status:
-                                                    </strong>{" "}
-                                                    {org.soldBy}
-                                                </div>
-                                                <div>
-                                                    <strong>Created At:</strong>{" "}
-                                                    {new Date(
-                                                        org.createdAt
-                                                    ).toLocaleString()}
-                                                </div>
-                                            </div>
-                                        </div>
-                                    </li>
-                                ))}
-                            </ul>
-
-                            <div className={styles.paginationControls}>
-                                <button
-                                    onClick={handlePrevious}
-                                    disabled={cursorStack.length <= 1}
-                                    className={styles.navButton}
-                                >
-                                    Previous
-                                </button>
-                                <button
-                                    onClick={handleNext}
-                                    disabled={!hasNextPage}
-                                    className={styles.navButton}
-                                >
-                                    Next
-                                </button>
-                            </div>
-                        </>
-                    )}
-                </>
-            )}
+      <div className={`container ${styles.container}`}>
+        <div className={styles.header}>
+          <h2>Flat List</h2>
+          <div className={styles.actions}>
+            <select
+              className={styles.selectFilter}
+              onChange={handleFilterChange}
+              defaultValue="all"
+            >
+              <option value="all">All</option>
+              <option value="sold">Sold</option>
+              <option value="unsold">Unsold</option>
+            </select>
+            <button
+              className={styles.newFlatButton}
+              onClick={() =>
+                router.push(
+                  `/org-admin/society/tower/flat/new-flat?rera=${rera}&towerId=${towerID}`
+                )
+              }
+            >
+              New Flat
+            </button>
+          </div>
         </div>
+
+        {loading ? (
+          <div className={styles.loading}>
+            <Loader />
+          </div>
+        ) : (
+          <>
+            {orgData.length === 0 ? (
+              <div className={styles.noData}>No data available</div>
+            ) : (
+              <>
+                <ul className={styles.orgList}>
+                  {orgData.map((org) => (
+                    <li key={org.id} className={styles.orgItem}>
+                      <div className={styles.rightSection}>
+                        <div className={styles.details}>
+                          <div>
+                            <strong>Name:</strong> {org.name}
+                          </div>
+                          <div>
+                            <strong>id:</strong> {org.id}
+                          </div>
+                          <div>
+                            <strong>Floor:</strong> {org.floorNumber}
+                          </div>
+                          <div>
+                            <strong>Flat Status:</strong> {org.soldBy}
+                          </div>
+                          <div>
+                            <strong>Created At:</strong>{" "}
+                            {new Date(org.createdAt).toLocaleString()}
+                          </div>
+                        </div>
+                      </div>
+                    </li>
+                  ))}
+                </ul>
+
+                <div className={styles.paginationControls}>
+                  <button
+                    onClick={handlePrevious}
+                    disabled={cursorStack.length <= 1}
+                    className={styles.navButton}
+                  >
+                    Previous
+                  </button>
+                  <button
+                    onClick={handleNext}
+                    disabled={!hasNextPage}
+                    className={styles.navButton}
+                  >
+                    Next
+                  </button>
+                </div>
+              </>
+            )}
+          </>
+        )}
+      </div>
     );
 };
 

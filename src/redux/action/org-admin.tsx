@@ -468,7 +468,6 @@ export const addCustomer = async (
     const input: AddCustomerToFlatInput = {
       societyReraNumber,
       flatID,
-
     };
 
     const reqBody: AddCustomerToFlatRequestBodyInput = {
