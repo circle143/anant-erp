@@ -3,7 +3,7 @@ export const sidebarAdminItems = [
     eventKey: "dashboard",
     icon: "bx bx-home-circle",
     text: "Dashboard",
-    paths: ["/admin"],
+    paths: ["/admin/dashboard"],
   },
   {
     eventKey: "Create_Organization",

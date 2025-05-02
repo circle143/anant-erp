@@ -65,7 +65,7 @@ const Page = () => {
   const handleNext = () => fetchData(cursor, true, selectedFilter);
 
   const handlePrevious = () => {
-    if (cursorStack.length > 1) {
+    if (cursorStack.length > 0) {
       const prevCursor = cursorStack[cursorStack.length - 2];
       setCursorStack((prev) => prev.slice(0, -1));
       fetchData(prevCursor, false, selectedFilter);
@@ -153,7 +153,7 @@ const Page = () => {
                                   <div key={i} className={styles.ownerCard}>
                                     <h4>Applicant {i + 1}</h4>
                                     <p>
-                                      <strong>Full Name:</strong>{" "}
+                                      <strong>Full Name:</strong>
                                       {[
                                         owner.salutation,
                                         owner.firstName,
@@ -234,7 +234,7 @@ const Page = () => {
               <div className={styles.paginationControls}>
                 <button
                   onClick={handlePrevious}
-                  disabled={cursorStack.length <= 1}
+                  disabled={cursorStack.length <= 0}
                   className={styles.navButton}
                 >
                   Previous

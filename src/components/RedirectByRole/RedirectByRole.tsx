@@ -5,7 +5,7 @@ import { useRouter, usePathname } from "next/navigation";
 import { fetchAuthSession } from "aws-amplify/auth";
 import Loader from "../Loader/Loader";
 const roleRoutes: Record<string, string> = {
-  "circle-admin": "/admin",
+  "circle-admin": "/admin/dashboard",
   "org-admin": "/org-admin",
   "org-user": "/user",
 };

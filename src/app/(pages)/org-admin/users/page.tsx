@@ -5,7 +5,7 @@ import styles from "./page.module.scss";
 import Loader from "@/components/Loader/Loader";
 import { getUrl } from "aws-amplify/storage";
 import { UserRole } from "@/utils/routes/organization/types";
-
+import { removeUserFromOrganization } from "@/redux/action/org-admin";
 const Page = () => {
   const [orgData, setOrgData] = useState<UserItem[]>([]);
   const [cursor, setCursor] = useState<string | null>(null);
@@ -14,6 +14,11 @@ const Page = () => {
   const [loading, setLoading] = useState<boolean>(true);
   const [editingIndex, setEditingIndex] = useState<number | null>(null);
   const [selectedRole, setSelectedRole] = useState<UserRole | "">("");
+  const [showDeletePopup, setShowDeletePopup] = useState(false);
+  const [userToDelete, setUserToDelete] = useState<{
+    email: string;
+    index: number;
+  } | null>(null);
 
   interface UserItem {
     name: string;
@@ -60,7 +65,7 @@ const Page = () => {
 
   const handleNext = () => fetchData(cursor);
   const handlePrevious = () => {
-    if (cursorStack.length > 1) {
+    if (cursorStack.length > 0) {
       const prevCursor = cursorStack[cursorStack.length - 2];
       setCursorStack((prev) => prev.slice(0, -1));
       fetchData(prevCursor, false);
@@ -93,12 +98,37 @@ const Page = () => {
         await fetchData(cursor, false);
       }
     } catch (error) {
-      console.error("Error updating status:", error);
+      console.log("Error updating status:", error);
     } finally {
       handleCancelEdit();
     }
   };
+  const handleDelete = (email: string, index: number) => {
+    setUserToDelete({ email, index });
+    setShowDeletePopup(true);
+  };
 
+  const confirmDelete = async () => {
+    if (!userToDelete) return;
+
+    try {
+      const response = await removeUserFromOrganization(userToDelete.email);
+      if (!response.error) {
+        // Optionally show success message
+        await fetchData(cursor, false); // Refresh user list
+      }
+    } catch (err) {
+      console.error("Error deleting user:", err);
+    } finally {
+      setShowDeletePopup(false);
+      setUserToDelete(null);
+    }
+  };
+
+  const cancelDelete = () => {
+    setShowDeletePopup(false);
+    setUserToDelete(null);
+  };
   return (
     <div className={`container ${styles.container}`}>
       <h2>Users List</h2>
@@ -174,12 +204,19 @@ const Page = () => {
                       </button>
                     </div>
                   ) : (
-                    <button
-                      className={styles.updateButton}
-                      onClick={() => handleStatusClick(index, org.role)}
-                    >
-                      Update Status
-                    </button>
+                    <div className={styles.groupButtons}>
+                      <i
+                        className="bx bxs-trash"
+                        onClick={() => handleDelete(org.email, index)}
+                      ></i>
+
+                      <button
+                        className={styles.updateButton}
+                        onClick={() => handleStatusClick(index, org.role)}
+                      >
+                        Update Status
+                      </button>
+                    </div>
                   )}
                 </div>
               </li>
@@ -189,7 +226,7 @@ const Page = () => {
           <div className={styles.paginationControls}>
             <button
               onClick={handlePrevious}
-              disabled={cursorStack.length <= 1}
+              disabled={cursorStack.length <= 0}
               className={styles.navButton}
             >
               Previous
@@ -203,6 +240,25 @@ const Page = () => {
             </button>
           </div>
         </>
+      )}
+      {showDeletePopup && userToDelete && (
+        <div className={styles.popupOverlay}>
+          <div className={styles.popup}>
+            <h4>Confirm Delete</h4>
+            <p>
+              Are you sure you want to remove{" "}
+              <strong>{userToDelete.email}</strong>?
+            </p>
+            <div className={styles.popupButtons}>
+              <button className={styles.confirmButton} onClick={confirmDelete}>
+                Yes, Delete
+              </button>
+              <button className={styles.cancelButton} onClick={cancelDelete}>
+                Cancel
+              </button>
+            </div>
+          </div>
+        </div>
       )}
     </div>
   );

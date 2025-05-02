@@ -43,7 +43,7 @@ const Page = () => {
 
     const handleNext = () => fetchData(cursor);
     const handlePrevious = () => {
-        if (cursorStack.length > 1) {
+        if (cursorStack.length > 0) {
             const prevCursor = cursorStack[cursorStack.length - 2];
             setCursorStack((prev) => prev.slice(0, -1));
             fetchData(prevCursor, false);
@@ -163,7 +163,7 @@ const Page = () => {
                             <div className={styles.paginationControls}>
                                 <button
                                     onClick={handlePrevious}
-                                    disabled={cursorStack.length <= 1}
+                                    disabled={cursorStack.length <= 0}
                                     className={styles.navButton}
                                 >
                                     Previous

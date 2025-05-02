@@ -17,6 +17,9 @@ import {
   GetAllFlatTypesInput,
   CreateFlatTyperInput,
   CreateFlatTyperRequestBodyInput,
+  UpdateFlatTypeInput,
+  UpdateFlatTypeRequestBodyInput,
+  DeleteFlatTypeInput,
 } from "@/utils/routes/flat-type/types";
 import {
   AddUserToOrganizationRequestBodyInput,
@@ -25,6 +28,7 @@ import {
   UpdateOrganizationUserRoleInput,
   UpdateOrganizationUserRoleRequestBodyInput,
   UserRole,
+  RemoveUserFromOrganizationInput,
 } from "@/utils/routes/organization/types";
 import {
   AddCustomerToFlatInput,
@@ -513,6 +517,86 @@ export const updateOrganizationUserRole = async (
   } catch (error: any) {
     console.error(
       "Error adding customer:",
+      error.response?.data || error.message
+    );
+    return { error: true, message: error.message };
+  }
+};
+
+export const removeUserFromOrganization = async (email: string) => {
+  try {
+    const token = await getIdToken();
+    const input: RemoveUserFromOrganizationInput = {
+      email,
+    };
+    const url = organization.removeUserFromOrganization.getEndpoint(input);
+    const response = await axios.delete(createURL(url), {
+      headers: { Authorization: `Bearer ${token}` },
+    });
+
+    return response.data;
+  } catch (error: any) {
+    console.error(
+      "Error deleting user:",
+      error.response?.data || error.message
+    );
+    return { error: true, message: error.message };
+  }
+};
+
+export const updateFlatType = async (
+  FlatTypeID: string,
+  societyReraNumber: string,
+  name?: string,
+  type?: string,
+  price?: number,
+  area?: number
+) => {
+  try {
+    const token = await getIdToken();
+    const input: UpdateFlatTypeInput = {
+      FlatTypeID,
+      societyReraNumber,
+    };
+    const reqBody: UpdateFlatTypeRequestBodyInput = {
+      name,
+      type,
+      price,
+      area,
+    };
+    const url = flatType.updateFlatType.getEndpoint(input);
+    const response = await axios.patch(createURL(url), reqBody, {
+      headers: { Authorization: `Bearer ${token}` },
+    });
+
+    return response.data;
+  } catch (error: any) {
+    console.error(
+      "Error updating flattype:",
+      error.response?.data || error.message
+    );
+    return { error: true, message: error.message };
+  }
+};
+
+export const deleteFlatType = async (FlatTypeID: string,
+	societyReraNumber: string,) => {
+  try {
+    const token = await getIdToken();
+    const input: DeleteFlatTypeInput = {
+      FlatTypeID,
+      societyReraNumber,
+    };
+    
+    const url = flatType.deleteFlatType.getEndpoint(input);
+    const response = await axios.delete(createURL(url), {
+      headers: { Authorization: `Bearer ${token}` },
+    });
+
+    return response.data;
+  } catch (error: any) {
+    console.error(
+      "Error deleting flattype:",
       error.response?.data || error.message
     );
     return { error: true, message: error.message };

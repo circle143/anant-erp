@@ -46,26 +46,27 @@ const Page = () => {
       setLoading(false);
       return;
     }
-    console.log("response", response);
+
     setOrgData(response.data.items);
     setHasNextPage(response.data.pageInfo.nextPage);
     setCursor(response.data.pageInfo.cursor);
-
-    if (isNext && cursor !== null) {
-      setCursorStack((prev) => [...prev, cursor]);
-    }
 
     setLoading(false);
   };
 
   useEffect(() => {
     fetchData(null, false, selectedFilter);
-  }, [rera, towerID, selectedFilter]);
+  }, [rera, towerID, selectedFilter, cursorStack]);
 
-  const handleNext = () => fetchData(cursor, true, selectedFilter);
+  const handleNext = () => {
+    if (cursor) {
+      setCursorStack((prev) => [...prev, cursor]); 
+    }
+    fetchData(cursor, true, selectedFilter);
+  };
 
   const handlePrevious = () => {
-    if (cursorStack.length > 1) {
+    if (cursorStack.length > 0) {
       const prevCursor = cursorStack[cursorStack.length - 2];
       setCursorStack((prev) => prev.slice(0, -1));
       fetchData(prevCursor, false, selectedFilter);
@@ -248,7 +249,7 @@ const Page = () => {
               <div className={styles.paginationControls}>
                 <button
                   onClick={handlePrevious}
-                  disabled={cursorStack.length <= 1}
+                  disabled={cursorStack.length <= 0}
                   className={styles.navButton}
                 >
                   Previous
