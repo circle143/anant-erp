@@ -13,7 +13,7 @@ import styles from "./page.module.scss";
 import { addCustomer } from "@/redux/action/org-admin";
 import { getUrl, uploadData } from "aws-amplify/storage";
 import { parsePhoneNumber } from "libphonenumber-js/min";
-import { symlink } from "fs";
+import imageCompression from "browser-image-compression";
 const StepOneSchema = Yup.object().shape({
   society: Yup.string().required("Society is required"),
   tower: Yup.string().required("Tower is required"),
@@ -291,17 +291,25 @@ const Sale = () => {
       const updatedCustomers = await Promise.all(
         customers.map(async (customer: any, index: number) => {
           let photoPath = customer.photo;
-
+          const options = {
+            maxSizeMB: 0.8,
+            maxWidthOrHeight: 800, // Resize to 800x800 if larger
+            useWebWorker: true,
+          };
           // If photo is a File object, upload it to S3
           if (customer.photo instanceof File) {
+            const compressedFile = await imageCompression(
+              customer.photo,
+              options
+            );
             const fileExt = customer.photo.name.split(".").pop();
             const s3Key = `${society}/${flat}/customer${index}/profile.${fileExt}`;
 
             const result = await uploadData({
               path: s3Key,
-              data: customer.photo,
+              data: compressedFile,
               options: {
-                contentType: customer.photo.type,
+                contentType: compressedFile.type,
               },
             }).result;
 

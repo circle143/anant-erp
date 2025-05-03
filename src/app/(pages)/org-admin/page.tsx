@@ -9,7 +9,7 @@ import toast from "react-hot-toast";
 import styles from "./page.module.scss";
 import Loader from "@/components/Loader/Loader";
 import { getUrl, uploadData } from "aws-amplify/storage";
-
+import imageCompression from "browser-image-compression";
 const Page = () => {
   const [data, setData] = useState<any>(null);
   const [loading, setLoading] = useState(true);
@@ -62,14 +62,20 @@ const Page = () => {
     try {
       const userData = await decodeAccessToken();
       let coverPhoto = "";
+        const options = {
+          maxSizeMB: 0.8,
+          maxWidthOrHeight: 800, // Resize to 800x800 if larger
+          useWebWorker: true,
+        };
       if (formData.file) {
+        const compressedFile = await imageCompression(formData.file, options);
         const fileExt = formData.file?.name.split(".").pop();
         const s3Key = `${userData?.["custom:org_id"]}/org/profile.${fileExt}`;
         const result = await uploadData({
           path: s3Key,
-          data: formData.file,
+          data: compressedFile,
           options: {
-            contentType: formData.file.type,
+            contentType: compressedFile.type,
           },
         }).result;
         coverPhoto = result.path;
@@ -126,6 +132,7 @@ const Page = () => {
       <div className={styles.card}>
         {formData.logo ? (
           <img
+          loading="lazy"
             src={formData.logo}
             alt="Organization Logo"
             className={styles.logo}

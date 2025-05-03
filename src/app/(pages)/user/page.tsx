@@ -55,7 +55,7 @@ const Page = () => {
     <div className={styles.organizationProfile}>
       <div className={styles.card}>
         {org.logo ? (
-          <img src={org.logo} alt="Organization Logo" className={styles.logo} />
+          <img loading="lazy" src={org.logo} alt="Organization Logo" className={styles.logo} />
         ) : (
           <div className={styles.placeholderLogo}>No Logo</div>
         )}

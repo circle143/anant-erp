@@ -158,6 +158,7 @@ const Page = () => {
                     <div className={styles.logoContainer}>
                       {org.logo ? (
                         <img
+                        loading="lazy"
                           src={org.logo}
                           alt={`${org.name} logo`}
                           className={styles.logo}

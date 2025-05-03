@@ -97,69 +97,59 @@ const Page = () => {
     );
 
     return (
-        <div className={`container ${styles.container}`}>
-            <h2>Societies List</h2>
+      <div className={`container ${styles.container}`}>
+        <h2>Societies List</h2>
 
-            {loading ? (
-                <div className={styles.loading}>
-                    <Loader />
-                </div>
+        {loading ? (
+          <div className={styles.loading}>
+            <Loader />
+          </div>
+        ) : (
+          <>
+            {orgData.length === 0 ? (
+              <div className={styles.noData}>No data available</div>
             ) : (
-                <>
-                {orgData.length === 0 ? (
-                    <div className={styles.noData}>No data available</div>
-                ) : (
-                <>
-                    <ul className={styles.orgList}>
-                        {orgData.map((org, index) => (
-                            <li
-                                key={org.id || index}
-                                className={styles.orgItem}
-                            >
-                                <div className={styles.logoContainer}>
-                                    {org.coverPhoto ? (
-                                        <img
-                                            src={org.coverPhoto}
-                                            alt={`${org.coverPhoto} logo`}
-                                            className={styles.logo}
-                                        />
-                                    ) : (
-                                        <div className={styles.noLogo}>
-                                            No Logo
-                                        </div>
-                                    )}
-                                </div>
-                                <div className={styles.rightSection}>
-                                    <div className={styles.details}>
-                                        <div>
-                                            <strong>Name:</strong> {org.name}
-                                        </div>
-                                        {/* <div>
+              <>
+                <ul className={styles.orgList}>
+                  {orgData.map((org, index) => (
+                    <li key={org.id || index} className={styles.orgItem}>
+                      <div className={styles.logoContainer}>
+                        {org.coverPhoto ? (
+                          <img
+                            loading="lazy"
+                            src={org.coverPhoto}
+                            alt={`${org.coverPhoto} logo`}
+                            className={styles.logo}
+                          />
+                        ) : (
+                          <div className={styles.noLogo}>No Logo</div>
+                        )}
+                      </div>
+                      <div className={styles.rightSection}>
+                        <div className={styles.details}>
+                          <div>
+                            <strong>Name:</strong> {org.name}
+                          </div>
+                          {/* <div>
                       <strong>GST:</strong> {org.gst || "N/A"}
                     </div> */}
-                                        <div>
-                                            {" "}
-                                            <strong>Address:</strong>{" "}
-                                            {org.address}
-                                        </div>
-                                        <div>
-                                            {" "}
-                                            <strong>Rera Number:</strong>{" "}
-                                            {org.reraNumber}
-                                        </div>
-                                        <div>
-                                            <strong>Created At:</strong>{" "}
-                                            {new Date(
-                                                org.createdAt
-                                            ).toLocaleString()}
-                                        </div>
-                                    </div>
-                                    <div className={styles.dropdown}>
-                                        <DropdownMenu
-                                            reraNumber={org.reraNumber}
-                                        />
-                                    </div>
-                                    {/* {editingId === org.id ? (
+                          <div>
+                            {" "}
+                            <strong>Address:</strong> {org.address}
+                          </div>
+                          <div>
+                            {" "}
+                            <strong>Rera Number:</strong> {org.reraNumber}
+                          </div>
+                          <div>
+                            <strong>Created At:</strong>{" "}
+                            {new Date(org.createdAt).toLocaleString()}
+                          </div>
+                        </div>
+                        <div className={styles.dropdown}>
+                          <DropdownMenu reraNumber={org.reraNumber} />
+                        </div>
+                        {/* {editingId === org.id ? (
                     <div className={styles.editButtons}>
                       <button
                         className={styles.updateButton}
@@ -182,32 +172,32 @@ const Page = () => {
                       Update Status
                     </button>
                   )} */}
-                                </div>
-                            </li>
-                        ))}
-                    </ul>
+                      </div>
+                    </li>
+                  ))}
+                </ul>
 
-                    <div className={styles.paginationControls}>
-                        <button
-                            onClick={handlePrevious}
-                            disabled={cursorStack.length <= 1}
-                            className={styles.navButton}
-                        >
-                            Previous
-                        </button>
-                        <button
-                            onClick={handleNext}
-                            disabled={!hasNextPage}
-                            className={styles.navButton}
-                        >
-                            Next
-                        </button>
-                    </div>
-                    </>
-                    )}
-                </>
+                <div className={styles.paginationControls}>
+                  <button
+                    onClick={handlePrevious}
+                    disabled={cursorStack.length <= 1}
+                    className={styles.navButton}
+                  >
+                    Previous
+                  </button>
+                  <button
+                    onClick={handleNext}
+                    disabled={!hasNextPage}
+                    className={styles.navButton}
+                  >
+                    Next
+                  </button>
+                </div>
+              </>
             )}
-        </div>
+          </>
+        )}
+      </div>
     );
 };
 

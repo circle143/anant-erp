@@ -8,7 +8,7 @@ import styles from "./society.module.scss";
 import toast from "react-hot-toast";
 import { createSociety } from "../../redux/action/org-admin";
 import { getUrl, uploadData } from "aws-amplify/storage";
-
+import imageCompression from "browser-image-compression";
 const SUPPORTED_FORMATS = [
   "image/jpg",
   "image/jpeg",
@@ -112,16 +112,21 @@ const Society: React.FC = () => {
     try {
       const data = await decodeAccessToken();
       let coverPhoto = "";
-
+      const options = {
+        maxSizeMB: 0.8,
+        maxWidthOrHeight: 800, // Resize to 800x800 if larger
+        useWebWorker: true,
+      };
       // Step 1: Upload image if it exists
       if (values.image) {
+        const compressedFile = await imageCompression(values.image, options);
         const fileExt = values.image.name.split(".").pop();
         const s3Key = `${data?.["custom:org_id"]}/${values.Rera}/society/profile.${fileExt}`;
         const result = await uploadData({
           path: s3Key,
-          data: values.image,
+          data: compressedFile,
           options: {
-            contentType: values.image.type,
+            contentType: compressedFile.type,
           },
         }).result;
 

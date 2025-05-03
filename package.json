@@ -17,6 +17,7 @@
     "axios": "^1.8.4",
     "bootstrap": "^5.3.5",
     "boxicons": "^2.1.4",
+    "browser-image-compression": "^2.0.2",
     "formik": "^2.4.6",
     "graphql": "^16.10.0",
     "libphonenumber-js": "^1.12.7",
