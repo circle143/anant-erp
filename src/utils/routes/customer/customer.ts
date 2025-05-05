@@ -19,13 +19,13 @@ export const customer = {
 		},
 		requestMethod: "POST",
 	},
-	updateCustomerToFlat: {
-		getEndpoint: (input: UpdateCustomerInput) => {
-			return getBasePath(input.societyReraNumber, input.flatID);
-		},
-		getReqBody: (input: UpdateCustomerRequestBodyInput) => {
-			return input;
-		},
-		requestMethod: "POST",
-	},
+	// updateCustomerToFlat: {
+	// 	getEndpoint: (input: UpdateCustomerInput) => {
+	// 		return getBasePath(input.societyReraNumber, input.flatID);
+	// 	},
+	// 	getReqBody: (input: UpdateCustomerRequestBodyInput) => {
+	// 		return input;
+	// 	},
+	// 	requestMethod: "POST",
+	// },
 };
