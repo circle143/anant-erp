@@ -31,6 +31,7 @@ export interface AddCustomerToFlatInput {
 export interface AddCustomerToFlatRequestBodyInput {
 	details: CustomerDetails[];
 	optionalCharges: string[];
+	basicCost: number;
 }
 
 // update customer
