@@ -8,6 +8,7 @@ export interface CreateFlatRequestBodyInput {
 	flatType: string; // flat type id
 	name: string;
 	floorNumber: number;
+	facing: string; // Park/Road or Default
 }
 
 // delete flat
