@@ -37,6 +37,7 @@ export interface CreateOtherChargeRequestBodyInput {
 	optional: boolean;
 	advanceMonths: number;
 	price: number;
+	fixed: boolean;
 }
 
 // update other charge details
@@ -46,4 +47,5 @@ export interface UpdateOtherChargeDetailsRequestBodyInput {
 	optional: boolean;
 	advanceMonths: number;
 	disable: boolean;
+	fixed: boolean;
 }

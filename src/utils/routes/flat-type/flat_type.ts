@@ -21,17 +21,17 @@ export const flatType = {
 		},
 		requestMethod: "POST",
 	},
-	updateFlatType: {
-		getEndpoint: (input: UpdateFlatTypeInput) => {
-			return (
-				getBasePath(input.societyReraNumber) + `/${input.FlatTypeID}`
-			);
-		},
-		getReqBody: (input: UpdateFlatTypeRequestBodyInput) => {
-			return input;
-		},
-		requestMethod: "PATCH",
-	},
+	// updateFlatType: {
+	// 	getEndpoint: (input: UpdateFlatTypeInput) => {
+	// 		return (
+	// 			getBasePath(input.societyReraNumber) + `/${input.FlatTypeID}`
+	// 		);
+	// 	},
+	// 	getReqBody: (input: UpdateFlatTypeRequestBodyInput) => {
+	// 		return input;
+	// 	},
+	// 	requestMethod: "PATCH",
+	// },
 	deleteFlatType: {
 		getEndpoint: (input: DeleteFlatTypeInput) => {
 			return (
