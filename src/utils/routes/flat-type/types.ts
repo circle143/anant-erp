@@ -5,9 +5,10 @@ export interface CreateFlatTyperInput {
 
 export interface CreateFlatTyperRequestBodyInput {
 	name: string;
-	type: string;
-	price: number;
-	area: number;
+	accommodation: string;
+	reraCarpetArea: number;
+	balconyArea: number;
+	superArea: number;
 }
 
 // update flat-type
@@ -17,10 +18,7 @@ export interface UpdateFlatTypeInput {
 }
 
 export interface UpdateFlatTypeRequestBodyInput {
-	name?: string;
-	type?: string;
-	price?: number;
-	area?: number;
+	price: number;
 }
 
 // delete flat-type

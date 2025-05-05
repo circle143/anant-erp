@@ -28,10 +28,6 @@ export const flatType = {
 			);
 		},
 		getReqBody: (input: UpdateFlatTypeRequestBodyInput) => {
-			const { name, type, price, area } = input;
-			if (!name && !type && !price && !area) {
-				throw new Error("No details provided to update");
-			}
 			return input;
 		},
 		requestMethod: "PATCH",
