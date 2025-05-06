@@ -35,6 +35,15 @@ import {
   AddCustomerToFlatRequestBodyInput,
   CustomerDetails,
 } from "@/utils/routes/customer/types";
+import {
+  GetChargesInput,
+  CreateChargeInput,
+  CreatePrerenceLocationChargeRequestBodyInput,
+  UpdateChargeInput,
+  UpdateChargePriceRequestBodyInput,
+  UpdatePreferenceChargeDetailsRequestBodyInput,
+} from "@/utils/routes/charges/types";
+import { charges } from "@/utils/routes/charges/charges";
 import { customer } from "@/utils/routes/customer/customer";
 import { society } from "@/utils/routes/society/society";
 import { flat } from "@/utils/routes/flat/flat";
@@ -42,6 +51,7 @@ import { tower } from "@/utils/routes/tower/tower";
 import { organization } from "@/utils/routes/organization/organization";
 import { getIdToken } from "@/utils/get_user_tokens";
 import { flatType } from "@/utils/routes/flat-type/flat_type";
+import { sum } from "lodash";
 
 const apiUrl = process.env.NEXT_PUBLIC_API_URL as string;
 
@@ -603,6 +613,119 @@ export const deleteFlatType = async (
   } catch (error: any) {
     console.error(
       "Error deleting flattype:",
+      error.response?.data || error.message
+    );
+    return { error: true, message: error.message };
+  }
+};
+export const getAllPreferenceLocationCharges = async (
+  societyReraNumber: string,
+  cursor: string | null = null
+) => {
+  try {
+    const token = await getIdToken();
+    const input: GetChargesInput = {
+      societyReraNumber,
+      cursor: cursor ?? "",
+    };
+    const url = charges.getAllPreferenceLocationCharges.getEndpoint(input);
+    const response = await axios.get(createURL(url), {
+      headers: { Authorization: `Bearer ${token}` },
+    });
+    return response.data;
+  } catch (error: any) {
+    console.error(
+      "Error fetching charges:",
+      error.response?.data || error.message
+    );
+    return { error: true, message: error.message };
+  }
+};
+export const createPreferenceLocationCharge = async (
+  societyReraNumber: string,
+  payload: {
+    summary: string;
+    type: string;
+    Price: number;
+    floor?: number;
+  }
+) => {
+  try {
+    const token = await getIdToken();
+    const input = { societyReraNumber };
+    const url = charges.createPreferenceLocationCharge.getEndpoint(input);
+
+    const response = await axios.post(createURL(url), payload, {
+      headers: { Authorization: `Bearer ${token}` },
+    });
+
+    return response.data;
+  } catch (error: any) {
+    console.error(
+      "Error adding customer:",
+      error.response?.data || error.message
+    );
+    return { error: true, message: error.message };
+  }
+};
+export const updatePreferenceLocationChargePrice = async (
+  societyReraNumber: string,
+  chargeId: string,
+  price: number
+) => {
+  try {
+    const token = await getIdToken();
+    const input: UpdateChargeInput = {
+      societyReraNumber,
+      chargeId,
+    };
+
+    const reqBody: UpdateChargePriceRequestBodyInput = { price };
+
+    const url = charges.updatePreferenceLocationChargePrice.getEndpoint(input);
+
+    const response = await axios.patch(createURL(url), reqBody, {
+      headers: { Authorization: `Bearer ${token}` },
+    });
+
+    return response.data;
+  } catch (error: any) {
+    console.error(
+      "Error updating charge:",
+      error.response?.data || error.message
+    );
+    return { error: true, message: error.message };
+  }
+};
+export const updatePreferenceLocationChargeDetails = async (
+  societyReraNumber: string,
+  chargeId: string,
+  summary: string,
+  disabled: boolean
+) => {
+  try {
+    const token = await getIdToken();
+    const input: UpdateChargeInput = {
+      societyReraNumber,
+      chargeId,
+    };
+
+    const reqBody: UpdatePreferenceChargeDetailsRequestBodyInput = {
+      summary,
+      disabled,
+    };
+
+    const url =
+      charges.updatePreferenceLocationChargeDetails.getEndpoint(input);
+
+    const response = await axios.patch(createURL(url), reqBody, {
+      headers: { Authorization: `Bearer ${token}` },
+    });
+
+    return response.data;
+  } catch (error: any) {
+    console.error(
+      "Error updating charge:",
       error.response?.data || error.message
     );
     return { error: true, message: error.message };
