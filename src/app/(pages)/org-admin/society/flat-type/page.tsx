@@ -90,15 +90,20 @@ const Page = () => {
                         <div>
                           <strong>Name:</strong> {org.name}
                         </div>
-
                         <div>
-                          <strong>Area:</strong> {org.area} sqft
+                          <strong>Accommodation:</strong> {org.accommodation}
                         </div>
                         <div>
-                          <strong>price:</strong> {org.price}
+                          <strong>Balcony Area:</strong> {org.balconyArea} sqft
                         </div>
                         <div>
-                          <strong>Type:</strong> {org.type}
+                          <strong>Built Up Area:</strong> {org.builtUpArea} sqft
+                        </div>
+                        <div>
+                          <strong>Carpet Area:</strong> {org.reraCarpetArea} sqft
+                        </div>
+                        <div>
+                          <strong>Super Area:</strong> {org.superArea} sqft
                         </div>
                         <div>
                           <strong>Created At:</strong>{" "}

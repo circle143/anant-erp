@@ -62,7 +62,7 @@ const DropDownFlatType = ({
 
       {isOpen && (
         <div className={styles.dropdownMenu}>
-          <div onClick={handleEdit}>Edit</div>
+          {/* <div onClick={handleEdit}>Edit</div> */}
           <div onClick={handleDeleteClick}>Delete</div>
         </div>
       )}

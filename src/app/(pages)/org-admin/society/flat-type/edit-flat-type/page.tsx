@@ -4,7 +4,7 @@ import { useSearchParams } from "next/navigation";
 import { Formik, Form, Field, ErrorMessage } from "formik";
 import * as Yup from "yup";
 import styles from "./page.module.scss";
-import { updateFlatType } from "@/redux/action/org-admin"; // Assume you have this
+// import { updateFlatType } from "@/redux/action/org-admin"; // Assume you have this
 import toast from "react-hot-toast";
 import { useRouter } from "next/navigation"; // At the top of the file
 
@@ -38,23 +38,23 @@ const router = useRouter();
         return;
       }
 
-      const response = await updateFlatType(
-        id,
-        rera,
-        values.name,
-        values.type,
-        Number(values.price),
-        Number(values.area)
-      );
+      // const response = await updateFlatType(
+      //   id,
+      //   rera,
+      //   values.name,
+      //   values.type,
+      //   Number(values.price),
+      //   Number(values.area)
+      // );
 
-      if (response?.error === false) {
-        toast.success("Flat type updated successfully! Redirecting...");
-        setTimeout(() => {
-          router.push(`/org-admin/society/flat-type?rera=${rera}`);
-        }, 1000); // 5 seconds
-      } else {
-        toast.error(response?.message || "Update failed");
-      }
+      // if (response?.error === false) {
+      //   toast.success("Flat type updated successfully! Redirecting...");
+      //   setTimeout(() => {
+      //     router.push(`/org-admin/society/flat-type?rera=${rera}`);
+      //   }, 1000); // 5 seconds
+      // } else {
+      //   toast.error(response?.message || "Update failed");
+      // }
     } catch (error) {
       toast.error("Something went wrong");
       console.error("Update Error:", error);

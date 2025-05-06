@@ -36,7 +36,9 @@ const Page = () => {
 
     let response;
     if (filter === "all") {
+      
       response = await getTowerFlats(cursor || "", rera, towerID);
+    console.log("response", response);
     } else if (filter === "sold") {
       response = await getAllTowerSoldFlats(cursor || "", rera, towerID);
     } else if (filter === "unsold") {
@@ -140,8 +142,8 @@ const Page = () => {
                           {org.floorNumber ?? "Not Available"}
                         </div>
                         <div>
-                          <strong>Flat Status:</strong>{" "}
-                          {org.soldBy || "Not Available"}
+                          <strong>Facing:</strong>{" "}
+                          {org.facing || "Not Available"}
                         </div>
                         <div>
                           <strong>Created At:</strong>{" "}
