@@ -27,7 +27,7 @@ export interface CreatePrerenceLocationChargeRequestBodyInput {
 // update charge details
 export interface UpdatePreferenceChargeDetailsRequestBodyInput {
 	summary: string;
-	disabled: boolean;
+	disable: boolean;
 }
 
 // create other charge
