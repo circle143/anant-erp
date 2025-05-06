@@ -662,7 +662,7 @@ export const createPreferenceLocationCharge = async (
     return response.data;
   } catch (error: any) {
     console.error(
-      "Error adding customer:",
+      "Error adding charges:",
       error.response?.data || error.message
     );
     return { error: true, message: error.message };
@@ -701,7 +701,7 @@ export const updatePreferenceLocationChargeDetails = async (
   societyReraNumber: string,
   chargeId: string,
   summary: string,
-  disabled: boolean
+  disable: boolean
 ) => {
   try {
     const token = await getIdToken();
@@ -712,7 +712,7 @@ export const updatePreferenceLocationChargeDetails = async (
 
     const reqBody: UpdatePreferenceChargeDetailsRequestBodyInput = {
       summary,
-      disabled,
+      disable,
     };
 
     const url =
@@ -726,6 +726,59 @@ export const updatePreferenceLocationChargeDetails = async (
   } catch (error: any) {
     console.error(
       "Error updating charge:",
+      error.response?.data || error.message
+    );
+    return { error: true, message: error.message };
+  }
+};
+export const getAllOtherCharges = async (
+  societyReraNumber: string,
+  cursor: string | null = null
+) => {
+  try {
+    const token = await getIdToken();
+    const input: GetChargesInput = {
+      societyReraNumber,
+      cursor: cursor ?? "",
+    };
+    const url = charges.getAllOtherCharges.getEndpoint(input);
+    const response = await axios.get(createURL(url), {
+      headers: { Authorization: `Bearer ${token}` },
+    });
+    return response.data;
+  } catch (error: any) {
+    console.error(
+      "Error fetching charges:",
+      error.response?.data || error.message
+    );
+    return { error: true, message: error.message };
+  }
+};
+
+export const createOtherCharge = async (
+  societyReraNumber: string,
+  payload: {
+    summary: string;
+    recurring: boolean;
+    optional: boolean;
+    advanceMonths: number;
+    price: number;
+    fixed: boolean;
+  }
+) => {
+  try {
+    const token = await getIdToken();
+    const input = { societyReraNumber };
+    const url = charges.createOtherCharge.getEndpoint(input);
+
+    const response = await axios.post(createURL(url), payload, {
+      headers: { Authorization: `Bearer ${token}` },
+    });
+
+    return response.data;
+  } catch (error: any) {
+    console.error(
+      "Error adding charges:",
       error.response?.data || error.message
     );
     return { error: true, message: error.message };
