@@ -23,7 +23,7 @@ const Page = () => {
     setLoading(true);
     if (!rera) return;
     const response = await getAllOtherCharges(rera, cursor);
-    console.log("response", response);
+    // console.log("response", response);
     // Set the updated state
     setOrgData(response.data.items);
     setHasNextPage(response.data.pageInfo.nextPage);
@@ -64,7 +64,9 @@ const Page = () => {
         <h2>Other Charges List</h2>
         <button
           onClick={() =>
-            router.push(`/org-admin/society/charges/new-charges?rera=${rera}`)
+            router.push(
+              `/org-admin/society/other-charges/new-charges?rera=${rera}`
+            )
           }
         >
           New Charge
@@ -89,29 +91,29 @@ const Page = () => {
                           <strong>Summary:</strong> {org.summary}
                         </div>
 
-                        {org.type === "Floor" && (
-                          <div>
-                            <strong>Floor:</strong> {org["floor;omitempty"]}
-                          </div>
-                        )}
-
                         <div>
                           <strong>Price:</strong> {org.price}
                         </div>
 
                         <div>
-                          <strong>Price History:</strong>{" "}
-                          {org["priceHistory;omitempty"] &&
-                          org["priceHistory;omitempty"].length > 0
-                            ? org["priceHistory;omitempty"]
-                            : "Not Available"}
+                          <strong>Disable:</strong> {org.disable ? "Yes" : "No"}
                         </div>
+                        <div>
+                          <strong>Fixed:</strong> {org.fixed ? "Yes" : "No"}
+                        </div>
+                        <div>
+                          <strong>Recurring:</strong>{" "}
+                          {org.recurring ? "Yes" : "No"}
+                        </div>
+                        {org.recurring && (
+                          <div>
+                            <strong>Advance Months:</strong> {org.advanceMonths}
+                          </div>
+                        )}
 
                         <div>
-                          <strong>Type:</strong> {org.type}
-                        </div>
-                        <div>
-                          <strong>Disable:</strong> {org.disable ? "Yes" : "No"}
+                          <strong>Optional:</strong>{" "}
+                          {org.optional ? "Yes" : "No"}
                         </div>
                         <div>
                           <strong>Created At:</strong>{" "}
@@ -125,7 +127,7 @@ const Page = () => {
                           id={org.id}
                           price={org.price}
                           summary={org.summary}
-                          route="charges"
+                          route="other-charges"
                         />
                       </div>
                     </div>

@@ -42,6 +42,7 @@ import {
   UpdateChargeInput,
   UpdateChargePriceRequestBodyInput,
   UpdatePreferenceChargeDetailsRequestBodyInput,
+  UpdateOtherChargeDetailsRequestBodyInput,
 } from "@/utils/routes/charges/types";
 import { charges } from "@/utils/routes/charges/charges";
 import { customer } from "@/utils/routes/customer/customer";
@@ -779,6 +780,77 @@ export const createOtherCharge = async (
   } catch (error: any) {
     console.error(
       "Error adding charges:",
+      error.response?.data || error.message
+    );
+    return { error: true, message: error.message };
+  }
+};
+
+export const updateOtherChargePrice = async (
+  societyReraNumber: string,
+  chargeId: string,
+  price: number
+) => {
+  try {
+    const token = await getIdToken();
+    const input: UpdateChargeInput = {
+      societyReraNumber,
+      chargeId,
+    };
+
+    const reqBody: UpdateChargePriceRequestBodyInput = { price };
+
+    const url = charges.updateOtherChargePrice.getEndpoint(input);
+
+    const response = await axios.patch(createURL(url), reqBody, {
+      headers: { Authorization: `Bearer ${token}` },
+    });
+
+    return response.data;
+  } catch (error: any) {
+    console.error(
+      "Error updating charge:",
+      error.response?.data || error.message
+    );
+    return { error: true, message: error.message };
+  }
+};
+export const updateOtherChargeDetails = async (
+  societyReraNumber: string,
+  chargeId: string,
+  summary: string,
+  recurring: boolean,
+  optional: boolean,
+  advanceMonths: number,
+  disable: boolean,
+  fixed: boolean
+) => {
+  try {
+    const token = await getIdToken();
+    const input: UpdateChargeInput = {
+      societyReraNumber,
+      chargeId,
+    };
+
+    const reqBody: UpdateOtherChargeDetailsRequestBodyInput = {
+      summary,
+      recurring,
+      optional,
+      advanceMonths,
+      disable,
+      fixed,
+    };
+
+    const url = charges.updateOtherChargeDetails.getEndpoint(input);
+
+    const response = await axios.patch(createURL(url), reqBody, {
+      headers: { Authorization: `Bearer ${token}` },
+    });
+
+    return response.data;
+  } catch (error: any) {
+    console.error(
+      "Error updating charge:",
       error.response?.data || error.message
     );
     return { error: true, message: error.message };

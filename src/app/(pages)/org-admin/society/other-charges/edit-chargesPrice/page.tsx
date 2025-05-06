@@ -6,7 +6,7 @@ import * as Yup from "yup";
 import styles from "./page.module.scss";
 import toast from "react-hot-toast";
 import { useRouter } from "next/navigation";
-import { updatePreferenceLocationChargePrice } from "@/redux/action/org-admin";
+import { updateOtherChargePrice } from "@/redux/action/org-admin";
 
 const validationSchema = Yup.object({
   price: Yup.number().required("Price is required").min(0),
@@ -34,7 +34,7 @@ const EditCharges = () => {
         return;
       }
 
-      const response = await updatePreferenceLocationChargePrice(
+      const response = await updateOtherChargePrice(
         rera,
         id,
         Number(values.price)
@@ -43,7 +43,7 @@ const EditCharges = () => {
       if (response?.error === false) {
         toast.success("Price updated successfully!");
         setTimeout(() => {
-           router.push(`/org-admin/society/charges/?rera=${rera}`);
+           router.push(`/org-admin/society/other-charges/?rera=${rera}`);
         }, 1000);
       } else {
         toast.error(response?.message || "Update failed");

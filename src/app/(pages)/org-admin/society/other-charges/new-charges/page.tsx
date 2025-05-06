@@ -5,34 +5,37 @@ import * as Yup from "yup";
 import styles from "./page.module.scss";
 import toast from "react-hot-toast";
 import { useSearchParams } from "next/navigation";
-import { createPreferenceLocationCharge } from "@/redux/action/org-admin";
+import { createOtherCharge } from "@/redux/action/org-admin";
+
 const validationSchema = Yup.object({
   summary: Yup.string().required("Summary is required"),
-  type: Yup.string().oneOf(["Floor", "Facing"]).required("Type is required"),
-  floor: Yup.number().when("type", {
-    is: "Floor",
-    then: (schema) =>
-      schema.required("Floor is required").min(0, "Floor must be at least 0"),
-    otherwise: (schema) => schema.notRequired(),
-  }),
-  Price: Yup.number()
-    .transform((value, originalValue) =>
-      String(originalValue).trim() === "" ? NaN : Number(originalValue)
-    )
+  price: Yup.number()
+   
     .required("Price is required")
-    .min(0, "Price must be at least 0"),
+    .min(1, "Price must be at least 1"),
+  advanceMonths: Yup.number().when("recurring", {
+    is: true,
+    then: (schema) =>
+      schema
+        .required("Advance months required for recurring charges")
+        .min(1, "Minimum 1 month"),
+    otherwise: (schema) => schema.notRequired().default(0),
+  }),
 });
 
 const Page = () => {
   const [loading, setLoading] = useState(false);
   const searchParams = useSearchParams();
   const rera = searchParams.get("rera");
+
   const handleSubmit = async (
     values: {
       summary: string;
-      type: string;
-      floor?: number;
-      Price: number;
+      price: number;
+      recurring: boolean;
+      optional: boolean;
+      fixed: boolean;
+      advanceMonths: number;
     },
     { resetForm }: { resetForm: () => void }
   ) => {
@@ -40,22 +43,23 @@ const Page = () => {
       toast.error("RERA number missing from URL");
       return;
     }
+
     setLoading(true);
+
     try {
-      const payload: any = {
+      const payload = {
         summary: values.summary,
-        type: values.type,
-        Price: values.Price,
+        price: values.price,
+        recurring: values.recurring,
+        optional: values.optional,
+        fixed: values.fixed,
+        advanceMonths: values.recurring ? values.advanceMonths : 0,
       };
 
-      if (values.type === "Floor") {
-        payload.floor = values.floor;
-      }
-
-      const response = await createPreferenceLocationCharge(rera, payload);
+      const response = await createOtherCharge(rera, payload);
 
       if (response?.error === false) {
-        toast.success("Flat type created successfully!");
+        toast.success("Other charge created successfully!");
         resetForm();
       } else {
         const errorMessage =
@@ -75,13 +79,15 @@ const Page = () => {
 
   return (
     <div className={`container ${styles.container}`}>
-      <h1>Create Preference Location Charge</h1>
+      <h1>Create Other Charge</h1>
       <Formik
         initialValues={{
           summary: "",
-          type: "",
-          floor: 0,
-          Price: 0,
+          price: 0,
+          recurring: false,
+          optional: false,
+          fixed: false,
+          advanceMonths: 0,
         }}
         validationSchema={validationSchema}
         onSubmit={handleSubmit}
@@ -104,32 +110,41 @@ const Page = () => {
             </div>
 
             <div className={styles.formGroup}>
-              <label htmlFor="type">Type</label>
+              <label htmlFor="price">Price</label>
               <Field
-                as="select"
-                id="type"
-                name="type"
+                type="number"
+                id="price"
+                name="price"
                 className={styles.form_control}
-              >
-                <option value="">Select Type</option>
-                <option value="Floor">Floor</option>
-                <option value="Facing">Facing</option>
-              </Field>
-              <ErrorMessage name="type" component="p" className="text-danger" />
+                min="0"
+                step="0.01"
+              />
+              <ErrorMessage
+                name="price"
+                component="p"
+                className="text-danger"
+              />
             </div>
 
-            {values.type === "Floor" && (
+            <div className={styles.formGroup}>
+              <label>
+                <Field type="checkbox" name="recurring" />
+                &nbsp;Recurring
+              </label>
+            </div>
+
+            {values.recurring && (
               <div className={styles.formGroup}>
-                <label htmlFor="floor">Floor</label>
+                <label htmlFor="advanceMonths">Advance Months</label>
                 <Field
                   type="number"
-                  id="floor"
-                  name="floor"
+                  id="advanceMonths"
+                  name="advanceMonths"
                   className={styles.form_control}
-                  min="0"
+                  min="1"
                 />
                 <ErrorMessage
-                  name="floor"
+                  name="advanceMonths"
                   component="p"
                   className="text-danger"
                 />
@@ -137,20 +152,17 @@ const Page = () => {
             )}
 
             <div className={styles.formGroup}>
-              <label htmlFor="Price">Price</label>
-              <Field
-                type="number"
-                id="Price"
-                name="Price"
-                className={styles.form_control}
-                min="0"
-                step="0.01"
-              />
-              <ErrorMessage
-                name="Price"
-                component="p"
-                className="text-danger"
-              />
+              <label>
+                <Field type="checkbox" name="optional" />
+                &nbsp;Optional
+              </label>
+            </div>
+
+            <div className={styles.formGroup}>
+              <label>
+                <Field type="checkbox" name="fixed" />
+                &nbsp;Fixed
+              </label>
             </div>
 
             <button type="submit" disabled={loading}>
