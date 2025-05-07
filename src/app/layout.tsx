@@ -5,8 +5,11 @@ import Authentication from "@/components/Authentication/Authentication";
 import { SpeedInsights } from "@vercel/speed-insights/next";
 import Providers from "./providers";
 import { Toaster } from "react-hot-toast";
+import { CAlert } from "@coreui/react";
+
 import "bootstrap/dist/css/bootstrap.min.css";
 import "boxicons/css/boxicons.min.css";
+
 import RedirectByRole from "@/components/RedirectByRole/RedirectByRole";
 const geistSans = Geist({
     variable: "--font-geist-sans",

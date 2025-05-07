@@ -6,9 +6,7 @@
   max-width: 800px;
   margin: 0 auto;
   margin-block: 2em;
-  > div {
-    outline: 2px solid red;
-  }
+
   h1 {
     color: var(--color-primary);
     margin-bottom: 1.5rem;
@@ -57,8 +55,12 @@
   }
 }
 .buttonGroup {
-
   display: flex;
   gap: 2em;
-justify-content: flex-end;
+  justify-content: flex-end;
 }
+.multiselect {
+  width: 100%;
+
+}
+

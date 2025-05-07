@@ -6,7 +6,14 @@ import {
   getSocieties,
   getTowers,
   getAllTowerUnsoldFlats,
+  getAllOtherOptionalCharges,
 } from "@/redux/action/org-admin";
+
+import MenuItem from "@mui/material/MenuItem";
+import Select from "@mui/material/Select";
+
+import { useTheme } from "@mui/material/styles";
+
 import toast from "react-hot-toast";
 import Loader from "@/components/Loader/Loader";
 import styles from "./page.module.scss";
@@ -14,11 +21,15 @@ import { addCustomer } from "@/redux/action/org-admin";
 import { getUrl, uploadData } from "aws-amplify/storage";
 import { parsePhoneNumber } from "libphonenumber-js/min";
 import imageCompression from "browser-image-compression";
+import Checkbox from "@mui/material/Checkbox";
+import ListItemText from "@mui/material/ListItemText";
+
 const StepOneSchema = Yup.object().shape({
   society: Yup.string().required("Society is required"),
   tower: Yup.string().required("Tower is required"),
   flat: Yup.string().required("Flat is required"),
   seller: Yup.string().required("Seller is required"),
+  skills: Yup.array(),
 });
 const today = new Date();
 const minDOB = new Date(
@@ -32,6 +43,25 @@ const SUPPORTED_FORMATS = [
   "image/png",
   "image/webp",
 ];
+// const ITEM_HEIGHT = 48;
+// const ITEM_PADDING_TOP = 8;
+// const MenuProps = {
+//   PaperProps: {
+//     style: {
+//       maxHeight: ITEM_HEIGHT * 4.5 + ITEM_PADDING_TOP,
+//       width: 250,
+//     },
+//   },
+// };
+
+let skillOptions = [];
+function getStyles(name: string, selected: string[], theme: any) {
+  return {
+    fontWeight: selected.includes(name)
+      ? theme.typography.fontWeightMedium
+      : theme.typography.fontWeightRegular,
+  };
+}
 const CustomerSchema = Yup.object()
   .shape({
     salutation: Yup.string().required("Salutation is required"),
@@ -96,6 +126,7 @@ const initialValues = {
   tower: "",
   flat: "",
   seller: "",
+  skills: [] as string[],
   customers: [
     {
       salutation: "",
@@ -207,7 +238,6 @@ const Sale = () => {
       if (response?.error) return accumulated;
 
       const items = response?.data?.items || [];
-      // console.log("Items:", items);
       const newData = [...accumulated, ...items];
       const hasNext = response?.data?.pageInfo?.nextPage;
       const nextCursor = response?.data?.pageInfo?.cursor;
@@ -221,8 +251,34 @@ const Sale = () => {
 
     const towerData = await fetchAllTowers();
     setTowers(towerData);
+
+    // 🔽 Fetch and print all optional charges
+    const fetchAllCharges = async (
+      cursor: string | null = null,
+      accumulated: any[] = []
+    ) => {
+      const response = await getAllOtherOptionalCharges(reraNumber, cursor);
+      console.log("Response:", response);
+      if (response?.error) return accumulated;
+
+      const items = response?.data || [];
+      const newData = [...accumulated, ...items];
+      const hasNext = response?.data?.pageInfo?.nextPage;
+      const nextCursor = response?.data?.pageInfo?.cursor;
+
+      if (hasNext && nextCursor) {
+        return await fetchAllCharges(nextCursor, newData);
+      }
+
+      return newData;
+    };
+
+    const optionalCharges = await fetchAllCharges();
+    console.log("Optional Charges:", optionalCharges);
+
     setLoading(false);
   };
+
   const handleTowerChange = async (
     e: React.ChangeEvent<HTMLSelectElement>,
     setFieldValue: any
@@ -480,6 +536,48 @@ const Sale = () => {
                         </Field>
                         <ErrorMessage
                           name="tower"
+                          component="div"
+                          className="error"
+                        />
+                      </div>
+                      <div>
+                        <label>Skills:</label>
+                        <Select
+                          multiple
+                          name="skills"
+                          className={styles.multiselect}
+                          value={values.skills}
+                          renderValue={(selected) => {
+                            if (!selected || !Array.isArray(selected))
+                              return "";
+                            return selected.join(", ");
+                          }}
+                          onChange={(e) =>
+                            setFieldValue(
+                              "skills",
+                              typeof e.target.value === "string"
+                                ? e.target.value.split(",")
+                                : e.target.value
+                            )
+                          }
+                          // MenuProps={MenuProps}
+                        >
+                          {skillOptions.map((name) => (
+                            <MenuItem
+                              key={name}
+                              value={name}
+                              className={styles.select}
+                              style={getStyles(name, values.skills, useTheme())}
+                            >
+                              <Checkbox
+                                checked={values.skills.includes(name)}
+                              />
+                              <ListItemText primary={name} />
+                            </MenuItem>
+                          ))}
+                        </Select>
+                        <ErrorMessage
+                          name="skills"
                           component="div"
                           className="error"
                         />

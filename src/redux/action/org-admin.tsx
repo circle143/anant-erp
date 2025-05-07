@@ -856,4 +856,27 @@ export const updateOtherChargeDetails = async (
     return { error: true, message: error.message };
   }
 };
-                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                         
+export const getAllOtherOptionalCharges = async (
+  societyReraNumber: string,
+  cursor: string | null = null
+) => {
+  try {
+    const token = await getIdToken();
+    const input: GetChargesInput = {
+      societyReraNumber,
+      cursor: cursor ?? "",
+    };
+    console.log("input", input);
+    const url = charges.getAllOtherOptionalCharges.getEndpoint(input);
+    const response = await axios.get(createURL(url), {
+      headers: { Authorization: `Bearer ${token}` },
+    });
+    return response.data;
+  } catch (error: any) {
+    console.error(
+      "Error fetching charges:",
+      error.response?.data || error.message
+    );
+    return { error: true, message: error.message };
+  }
+};
