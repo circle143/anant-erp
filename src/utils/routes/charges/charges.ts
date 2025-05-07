@@ -113,4 +113,13 @@ export const charges = {
 		},
 		requestMethod: "GET",
 	},
+	getAllOtherOptionalCharges: {
+		getEndpoint: (input: GetChargesInput) => {
+			return getBasePath(input.societyReraNumber) + "/other/optional";
+		},
+		getReqBody: () => {
+			// no request body required
+		},
+		requestMethod: "GET",
+	},
 };
