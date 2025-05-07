@@ -856,3 +856,4 @@ export const updateOtherChargeDetails = async (
     return { error: true, message: error.message };
   }
 };
+                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                         
