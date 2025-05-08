@@ -480,7 +480,8 @@ export const addCustomer = async (
   societyReraNumber: string,
   flatID: string,
   customers: CustomerDetails[],
-  seller: string
+  optionalCharges: string[],
+  basicCost: number
 ) => {
   try {
     const token = await getIdToken();
@@ -491,7 +492,8 @@ export const addCustomer = async (
 
     const reqBody: AddCustomerToFlatRequestBodyInput = {
       details: customers,
-      seller,
+      optionalCharges,
+      basicCost,
     };
 
     const url = customer.addCustomerToFlat.getEndpoint(input);

@@ -143,7 +143,7 @@ const Page = () => {
                 id="Price"
                 name="Price"
                 className={styles.form_control}
-                min="0"
+                min="1"
                 step="0.01"
               />
               <ErrorMessage

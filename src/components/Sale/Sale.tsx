@@ -7,6 +7,7 @@ import {
   getTowers,
   getAllTowerUnsoldFlats,
   getAllOtherOptionalCharges,
+  addCustomer,
 } from "@/redux/action/org-admin";
 
 import MenuItem from "@mui/material/MenuItem";
@@ -17,7 +18,7 @@ import { useTheme } from "@mui/material/styles";
 import toast from "react-hot-toast";
 import Loader from "@/components/Loader/Loader";
 import styles from "./page.module.scss";
-import { addCustomer } from "@/redux/action/org-admin";
+
 import { getUrl, uploadData } from "aws-amplify/storage";
 import { parsePhoneNumber } from "libphonenumber-js/min";
 import imageCompression from "browser-image-compression";
@@ -28,9 +29,17 @@ const StepOneSchema = Yup.object().shape({
   society: Yup.string().required("Society is required"),
   tower: Yup.string().required("Tower is required"),
   flat: Yup.string().required("Flat is required"),
-  seller: Yup.string().required("Seller is required"),
-  skills: Yup.array(),
+  charges: Yup.array(),
+  basicCost: Yup.number()
+    .required("Basic Cost is required")
+    .min(1, "Basic Cost must be at least 1")
+    .test(
+      "is-decimal",
+      "Basic Cost can have at most 2 decimal places",
+      (value) => /^\d+(\.\d{1,2})?$/.test(String(value))
+    ),
 });
+
 const today = new Date();
 const minDOB = new Date(
   today.getFullYear() - 18,
@@ -54,14 +63,18 @@ const SUPPORTED_FORMATS = [
 //   },
 // };
 
-let skillOptions = [];
-function getStyles(name: string, selected: string[], theme: any) {
-  return {
-    fontWeight: selected.includes(name)
-      ? theme.typography.fontWeightMedium
-      : theme.typography.fontWeightRegular,
-  };
-}
+type SkillOption = {
+  id: string;
+  summary: string;
+};
+
+// function getStyles(name: string, selected: string[], theme: any) {
+//   return {
+//     fontWeight: selected.includes(name)
+//       ? theme.typography.fontWeightMedium
+//       : theme.typography.fontWeightRegular,
+//   };
+// }
 const CustomerSchema = Yup.object()
   .shape({
     salutation: Yup.string().required("Salutation is required"),
@@ -126,7 +139,8 @@ const initialValues = {
   tower: "",
   flat: "",
   seller: "",
-  skills: [] as string[],
+  charges: [] as string[],
+  basicCost: 0,
   customers: [
     {
       salutation: "",
@@ -174,6 +188,7 @@ const fetchTowers = async (
 };
 
 const Sale = () => {
+  const [skillOptions, setSkillOptions] = useState<SkillOption[]>([]);
   const [step, setStep] = useState(1);
   const [societies, setSocieties] = useState<
     { reraNumber: string; name: string }[]
@@ -235,6 +250,7 @@ const Sale = () => {
       accumulated: any[] = []
     ) => {
       const response = await getTowers(cursor, reraNumber);
+      console.log("Response:", response);
       if (response?.error) return accumulated;
 
       const items = response?.data?.items || [];
@@ -253,27 +269,24 @@ const Sale = () => {
     setTowers(towerData);
 
     // 🔽 Fetch and print all optional charges
+    type MinimalCharge = { id: string; summary: string };
+
     const fetchAllCharges = async (
-      cursor: string | null = null,
-      accumulated: any[] = []
-    ) => {
-      const response = await getAllOtherOptionalCharges(reraNumber, cursor);
-      console.log("Response:", response);
+      accumulated: MinimalCharge[] = []
+    ): Promise<MinimalCharge[]> => {
+      const response = await getAllOtherOptionalCharges(reraNumber);
       if (response?.error) return accumulated;
 
       const items = response?.data || [];
-      const newData = [...accumulated, ...items];
-      const hasNext = response?.data?.pageInfo?.nextPage;
-      const nextCursor = response?.data?.pageInfo?.cursor;
 
-      if (hasNext && nextCursor) {
-        return await fetchAllCharges(nextCursor, newData);
-      }
-
-      return newData;
+      return items.map(({ id, summary }: { id: string; summary: string }) => ({
+        id,
+        summary,
+      }));
     };
 
     const optionalCharges = await fetchAllCharges();
+    setSkillOptions(optionalCharges);
     console.log("Optional Charges:", optionalCharges);
 
     setLoading(false);
@@ -411,11 +424,14 @@ const Sale = () => {
         society,
         flat,
         updatedCustomers,
-        seller
+        values.charges,
+        values.basicCost
       );
-
-      // console.log(" updatedCustomers", updatedCustomers);
-      // console.log("seller", seller);
+      console.log("society", society);
+      console.log(" updatedCustomers", updatedCustomers);
+      console.log("flat", flat);
+      console.log("values.charges", values.charges);
+      console.log("values.basicCost", values.basicCost);
       if (response.error) {
         toast.error(response.message || "Customer add failed");
         return;
@@ -541,43 +557,56 @@ const Sale = () => {
                         />
                       </div>
                       <div>
-                        <label>Skills:</label>
+                        <label>Charges:</label>
                         <Select
                           multiple
-                          name="skills"
+                          name="charges"
                           className={styles.multiselect}
-                          value={values.skills}
+                          value={values.charges}
                           renderValue={(selected) => {
                             if (!selected || !Array.isArray(selected))
                               return "";
-                            return selected.join(", ");
+
+                            const selectedSummaries = selected
+                              .map((id: string) => {
+                                const option = skillOptions.find(
+                                  (opt) => opt.id === id
+                                );
+                                return option?.summary || "";
+                              })
+                              .filter(Boolean);
+
+                            return selectedSummaries.join(", ");
                           }}
-                          onChange={(e) =>
-                            setFieldValue(
-                              "skills",
+                          onChange={(e) => {
+                            const selectedValues =
                               typeof e.target.value === "string"
                                 ? e.target.value.split(",")
-                                : e.target.value
-                            )
-                          }
-                          // MenuProps={MenuProps}
+                                : e.target.value;
+                            setFieldValue("charges", selectedValues);
+                          }}
                         >
-                          {skillOptions.map((name) => (
+                          {skillOptions.map((option) => (
                             <MenuItem
-                              key={name}
-                              value={name}
+                              key={option.id}
+                              value={option.id}
                               className={styles.select}
-                              style={getStyles(name, values.skills, useTheme())}
+                              // style={getStyles(
+                              //   option.id,
+                              //   values.charges,
+                              //   useTheme()
+                              // )}
                             >
                               <Checkbox
-                                checked={values.skills.includes(name)}
+                                checked={values.charges.includes(option.id)}
                               />
-                              <ListItemText primary={name} />
+                              <ListItemText primary={option.summary} />
                             </MenuItem>
                           ))}
                         </Select>
+
                         <ErrorMessage
-                          name="skills"
+                          name="charges"
                           component="div"
                           className="error"
                         />
@@ -607,20 +636,17 @@ const Sale = () => {
                       </div>
                       <div>
                         <label>
-                          Seller:
-                          <span style={{ color: "red" }}>*</span>
+                          Basic Cost : <span style={{ color: "red" }}>*</span>
                         </label>
                         <Field
-                          as="select"
                           className={styles.select}
-                          name={`seller`}
-                        >
-                          <option value="">Select Seller</option>
-                          <option value="Direct">Direct</option>
-                          <option value="Broker">Broker</option>
-                        </Field>
+                          name="basicCost"
+                          type="number"
+                          min="1"
+                          step="0.01"
+                        />
                         <ErrorMessage
-                          name={`seller`}
+                          name="basicCost"
                           component="div"
                           className="error"
                         />
