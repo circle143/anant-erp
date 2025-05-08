@@ -12,7 +12,8 @@ import {
 
 import MenuItem from "@mui/material/MenuItem";
 import Select from "@mui/material/Select";
-
+import Box from "@mui/material/Box";
+import Chip from "@mui/material/Chip";
 import { useTheme } from "@mui/material/styles";
 
 import toast from "react-hot-toast";
@@ -563,21 +564,28 @@ const Sale = () => {
                           name="charges"
                           className={styles.multiselect}
                           value={values.charges}
-                          renderValue={(selected) => {
-                            if (!selected || !Array.isArray(selected))
-                              return "";
-
-                            const selectedSummaries = selected
-                              .map((id: string) => {
+                          renderValue={(selected) => (
+                            <Box
+                              sx={{
+                                display: "flex",
+                                flexWrap: "wrap",
+                                gap: 0.5,
+                              }}
+                            >
+                              {selected.map((id: string) => {
                                 const option = skillOptions.find(
                                   (opt) => opt.id === id
                                 );
-                                return option?.summary || "";
-                              })
-                              .filter(Boolean);
-
-                            return selectedSummaries.join(", ");
-                          }}
+                                return (
+                                  <Chip
+                                    key={id}
+                                    label={option?.summary || id}
+                                    sx={{ maxWidth: 200 }}
+                                  />
+                                );
+                              })}
+                            </Box>
+                          )}
                           onChange={(e) => {
                             const selectedValues =
                               typeof e.target.value === "string"
