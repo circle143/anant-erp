@@ -557,7 +557,7 @@ const Sale = () => {
                         />
                       </div>
                       <div>
-                        <label>Charges:</label>
+                        <label>Optional Charges:</label>
                         <Select
                           multiple
                           name="charges"
