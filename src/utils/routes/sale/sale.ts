@@ -6,7 +6,7 @@ import {
 } from "./types";
 
 function getBasePath(societyReraNumber: string, flatId: string) {
-	return `/society/${societyReraNumber}/flat/${flatId}/customer`;
+	return `/society/${societyReraNumber}/flat/${flatId}/sale`;
 }
 
 export const customer = {
