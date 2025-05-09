@@ -56,3 +56,7 @@ export interface AddPaymentInstallmentToSale {
 	paymentId: string;
 	saleId: string;
 }
+
+export interface GetSocietySalesReport {
+	societyReraNumber: string;
+}

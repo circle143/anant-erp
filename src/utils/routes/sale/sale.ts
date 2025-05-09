@@ -3,6 +3,7 @@ import {
 	AddCustomerToFlatRequestBodyInput,
 	AddPaymentInstallmentToSale,
 	GetSalePaymentBreakDown,
+	GetSocietySalesReport,
 	UpdateCustomerInput,
 	UpdateCustomerRequestBodyInput,
 } from "./types";
@@ -36,15 +37,13 @@ export const customer = {
 		requestMethod: "POST",
 	},
 	getSalePaymentBreakDown: {
-		getEndpoint: (input: GetSalePaymentBreakDown) => {
-			return (
-				getBasePath(input.societyReraNumber) +
-				`/${input.saleId}/payment-breakdown`
-			);
+		getEndpoint: (input: GetSocietySalesReport) => {
+			return getBasePath(input.societyReraNumber) + "/report";
 		},
 		getReqBody: () => {
 			// no request body required
 		},
 		requestMethod: "GET",
 	},
+	getSocietySaleReport: {},
 };
