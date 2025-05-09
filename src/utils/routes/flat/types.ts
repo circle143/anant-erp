@@ -35,9 +35,3 @@ export interface GetSocietyFlatsByName {
 	cursor?: string;
 	name: string;
 }
-
-// get sale payment breakdown
-export interface GetSalePaymentBreakDown {
-	societyReraNumber: string;
-	saleId: string;
-}

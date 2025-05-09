@@ -1,18 +1,21 @@
 import {
 	AddCustomerToFlatInput,
 	AddCustomerToFlatRequestBodyInput,
+	GetSalePaymentBreakDown,
 	UpdateCustomerInput,
 	UpdateCustomerRequestBodyInput,
 } from "./types";
 
-function getBasePath(societyReraNumber: string, flatId: string) {
-	return `/society/${societyReraNumber}/flat/${flatId}/sale`;
+function getBasePath(societyReraNumber: string) {
+	return `/society/${societyReraNumber}/sale`;
 }
 
 export const customer = {
 	addCustomerToFlat: {
 		getEndpoint: (input: AddCustomerToFlatInput) => {
-			return getBasePath(input.societyReraNumber, input.flatID);
+			return (
+				getBasePath(input.societyReraNumber) + `/flat/${input.flatID}`
+			);
 		},
 		getReqBody: (input: AddCustomerToFlatRequestBodyInput) => {
 			return input;
@@ -28,4 +31,16 @@ export const customer = {
 	// 	},
 	// 	requestMethod: "POST",
 	// },
+	getSalePaymentBreakDown: {
+		getEndpoint: (input: GetSalePaymentBreakDown) => {
+			return (
+				getBasePath(input.societyReraNumber) +
+				`/payment-breakdown/${input.saleId}`
+			);
+		},
+		getReqBody: () => {
+			// no request body required
+		},
+		requestMethod: "GET",
+	},
 };

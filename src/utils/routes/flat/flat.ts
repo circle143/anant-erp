@@ -2,7 +2,6 @@ import {
 	CreateFlatInput,
 	CreateFlatRequestBodyInput,
 	DeleteFlatInput,
-	GetSalePaymentBreakDown,
 	GetSocietyFlats,
 	GetSocietyFlatsByName,
 	GetTowerFlats,
@@ -133,18 +132,6 @@ export const flat = {
 			return (
 				getBasePath(input.societyReraNumber) +
 				`/search?name=${input.name}&cursor=${input.cursor}`
-			);
-		},
-		getReqBody: () => {
-			// no request body required
-		},
-		requestMethod: "GET",
-	},
-	getSalePaymentBreakDown: {
-		getEndpoint: (input: GetSalePaymentBreakDown) => {
-			return (
-				getBasePath(input.societyReraNumber) +
-				`/payment-breakdown/${input.saleId}`
 			);
 		},
 		getReqBody: () => {
