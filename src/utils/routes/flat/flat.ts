@@ -3,6 +3,7 @@ import {
 	CreateFlatRequestBodyInput,
 	DeleteFlatInput,
 	GetSocietyFlats,
+	GetSocietyFlatsByName,
 	GetTowerFlats,
 } from "./types";
 
@@ -114,6 +115,23 @@ export const flat = {
 			return (
 				getBasePath(input.societyReraNumber) +
 				`/tower/${input.towerID}?cursor=${input.cursor}&filter=1`
+			);
+		},
+		getReqBody: () => {
+			// no request body required
+		},
+		requestMethod: "GET",
+	},
+	getSocietyFlatsByName: {
+		getEndpoint: (input: GetSocietyFlatsByName) => {
+			if (!input.cursor || input.cursor.trim().length == 0)
+				return (
+					getBasePath(input.societyReraNumber) +
+					`/search?name=${input.name}`
+				);
+			return (
+				getBasePath(input.societyReraNumber) +
+				`/search?name=${input.name}&cursor=${input.cursor}`
 			);
 		},
 		getReqBody: () => {
