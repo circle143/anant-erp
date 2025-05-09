@@ -10,7 +10,7 @@ import styles from "./page.module.scss";
 import Loader from "@/components/Loader/Loader";
 import { debounce } from "lodash";
 import { useRouter, useSearchParams } from "next/navigation";
-
+import { getUrl, uploadData } from "aws-amplify/storage";
 const Page = () => {
   const [orgData, setOrgData] = useState<any[]>([]);
   const [cursor, setCursor] = useState<string | null>(null);
@@ -35,10 +35,9 @@ const Page = () => {
     if (!rera || !towerID) return;
 
     let response;
+
     if (filter === "all") {
-      
       response = await getTowerFlats(cursor || "", rera, towerID);
-    console.log("response", response);
     } else if (filter === "sold") {
       response = await getAllTowerSoldFlats(cursor || "", rera, towerID);
     } else if (filter === "unsold") {
@@ -49,9 +48,61 @@ const Page = () => {
       return;
     }
 
-    setOrgData(response.data.items);
+    const updatedItems = await Promise.all(
+      response.data.items.map(async (item: any) => {
+        // If there's a saleDetail and at least one owner with a photo
+        if (item.saleDetail?.owners && Array.isArray(item.saleDetail.owners)) {
+          const updatedOwners = await Promise.all(
+            item.saleDetail.owners.map(async (owner: any) => {
+              if (owner.photo) {
+                try {
+                  const signedUrl = await getUrl({
+                    path: owner.photo,
+                    options: {
+                      validateObjectExistence: true,
+                      expiresIn: 3600,
+                    },
+                  });
+                  console.log(
+                    "No photo found for owner:",
+                    signedUrl.url.toString()
+                  );
+                  return {
+                    ...owner,
+                    photo: signedUrl.url.toString(),
+                  };
+                } catch (err) {
+                  console.error(
+                    "Error generating URL for photo:",
+                    owner.photo,
+                    err
+                  );
+                  return owner; // fallback to original if error
+                }
+              }
+
+              return owner;
+            })
+          );
+          return {
+            ...item,
+            saleDetail: {
+              ...item.saleDetail,
+              owners: updatedOwners,
+            },
+          };
+        }
+
+        return item;
+      })
+    );
+
+    setOrgData(updatedItems);
     setHasNextPage(response.data.pageInfo.nextPage);
     setCursor(response.data.pageInfo.cursor);
+    if (isNext && cursor !== null) {
+      setCursorStack((prev) => [...prev, cursor]);
+    }
 
     setLoading(false);
   };
@@ -62,7 +113,7 @@ const Page = () => {
 
   const handleNext = () => {
     if (cursor) {
-      setCursorStack((prev) => [...prev, cursor]); 
+      setCursorStack((prev) => [...prev, cursor]);
     }
     fetchData(cursor, true, selectedFilter);
   };
@@ -152,7 +203,7 @@ const Page = () => {
                             : "Not Available"}
                         </div>
 
-                        {org.owners && org.owners.length > 0 && (
+                        {org.saleDetail && (
                           <div className={styles.ownerDetails}>
                             <button
                               className={styles.toggleButton}
@@ -165,79 +216,158 @@ const Page = () => {
 
                             {expandedOwnerIndex === index && (
                               <div className={styles.ownerCards}>
-                                {org.owners.map((owner: any, i: number) => (
-                                  <div key={i} className={styles.ownerCard}>
-                                    <h4>Applicant {i + 1}</h4>
-                                    <p>
-                                      <strong>Full Name:</strong>{" "}
-                                      {[
-                                        owner.salutation,
-                                        owner.firstName,
-                                        owner.middleName,
-                                        owner.lastName,
-                                      ]
-                                        .filter(Boolean)
-                                        .join(" ") || "Not Available"}
-                                    </p>
-                                    <p>
-                                      <strong>Email:</strong>{" "}
-                                      {owner.email || "Not Available"}
-                                    </p>
-                                    <p>
-                                      <strong>Phone:</strong>{" "}
-                                      {owner.phoneNumber || "Not Available"}
-                                    </p>
-                                    <p>
-                                      <strong>Gender:</strong>{" "}
-                                      {owner.gender || "Not Available"}
-                                    </p>
-                                    <p>
-                                      <strong>DOB:</strong>{" "}
-                                      {owner.dateOfBirth
-                                        ? new Date(
-                                            owner.dateOfBirth
-                                          ).toLocaleDateString()
-                                        : "Not Available"}
-                                    </p>
-                                    <p>
-                                      <strong>Nationality:</strong>{" "}
-                                      {owner.nationality || "Not Available"}
-                                    </p>
-                                    <p>
-                                      <strong>Marital Status:</strong>{" "}
-                                      {owner.maritalStatus || "Not Available"}
-                                    </p>
-                                    <p>
-                                      <strong>Number of Children:</strong>{" "}
-                                      {owner.numberOfChildren ??
-                                        "Not Available"}
-                                    </p>
-                                    <p>
-                                      <strong>Profession:</strong>{" "}
-                                      {owner.profession || "Not Available"}
-                                    </p>
-                                    <p>
-                                      <strong>Designation:</strong>{" "}
-                                      {owner.designation || "Not Available"}
-                                    </p>
-                                    <p>
-                                      <strong>Company Name:</strong>{" "}
-                                      {owner.companyName || "Not Available"}
-                                    </p>
-                                    <p>
-                                      <strong>Passport Number:</strong>{" "}
-                                      {owner.passportNumber || "Not Available"}
-                                    </p>
-                                    <p>
-                                      <strong>Pan Number:</strong>{" "}
-                                      {owner.panNumber || "Not Available"}
-                                    </p>
-                                    <p>
-                                      <strong>Aadhar Number:</strong>{" "}
-                                      {owner.aadharNumber || "Not Available"}
-                                    </p>
-                                  </div>
-                                ))}
+                                {org.saleDetail?.owners?.map(
+                                  (owner: any, i: number) => (
+                                    <div key={i} className={styles.ownerCard}>
+                                      <h4>Applicant {i + 1}</h4>
+                                      <div className={styles.imgContainer}>
+                                        {owner.photo ? (
+                                          <img
+                                            src={owner.photo}
+                                            alt={`Owner ${i + 1}`}
+                                            className={styles.ownerImage}
+                                          />
+                                        ) : (
+                                          <span>Not Available</span>
+                                        )}
+                                      </div>
+                                      <p>
+                                        <strong>Full Name:</strong>{" "}
+                                        {[
+                                          owner.salutation,
+                                          owner.firstName,
+                                          owner.middleName,
+                                          owner.lastName,
+                                        ]
+                                          .filter(Boolean)
+                                          .join(" ") || "Not Available"}
+                                      </p>
+                                      <p>
+                                        <strong>Email:</strong>{" "}
+                                        {owner.email || "Not Available"}
+                                      </p>
+                                      <p>
+                                        <strong>Phone:</strong>{" "}
+                                        {owner.phoneNumber || "Not Available"}
+                                      </p>
+                                      <p>
+                                        <strong>Gender:</strong>{" "}
+                                        {owner.gender || "Not Available"}
+                                      </p>
+                                      <p>
+                                        <strong>DOB:</strong>{" "}
+                                        {owner.dateOfBirth
+                                          ? new Date(
+                                              owner.dateOfBirth
+                                            ).toLocaleDateString()
+                                          : "Not Available"}
+                                      </p>
+                                      <p>
+                                        <strong>Nationality:</strong>{" "}
+                                        {owner.nationality || "Not Available"}
+                                      </p>
+                                      <p>
+                                        <strong>Marital Status:</strong>{" "}
+                                        {owner.maritalStatus || "Not Available"}
+                                      </p>
+                                      <p>
+                                        <strong>Number of Children:</strong>{" "}
+                                        {owner.numberOfChildren ??
+                                          "Not Available"}
+                                      </p>
+                                      <p>
+                                        <strong>Profession:</strong>{" "}
+                                        {owner.profession || "Not Available"}
+                                      </p>
+                                      <p>
+                                        <strong>Designation:</strong>{" "}
+                                        {owner.designation || "Not Available"}
+                                      </p>
+                                      <p>
+                                        <strong>Company Name:</strong>{" "}
+                                        {owner.companyName || "Not Available"}
+                                      </p>
+                                      <p>
+                                        <strong>Passport Number:</strong>{" "}
+                                        {owner.passportNumber ||
+                                          "Not Available"}
+                                      </p>
+                                      <p>
+                                        <strong>PAN Number:</strong>{" "}
+                                        {owner.panNumber || "Not Available"}
+                                      </p>
+                                      <p>
+                                        <strong>Aadhar Number:</strong>{" "}
+                                        {owner.aadharNumber || "Not Available"}
+                                      </p>
+                                    </div>
+                                  )
+                                )}
+
+                                {/* Total Price */}
+                                <div className={styles.totalPriceSection}>
+                                  <h4>Total Price</h4>
+                                  <p>
+                                    <strong>₹</strong>{" "}
+                                    {org.saleDetail?.totalPrice?.toLocaleString(
+                                      "en-IN",
+                                      { maximumFractionDigits: 2 }
+                                    ) || "Not Available"}
+                                  </p>
+                                </div>
+
+                                {/* Price Breakdown */}
+                                <div className={styles.priceBreakdownSection}>
+                                  <h4>Price Breakdown</h4>
+                                  {org.saleDetail?.priceBreakdown?.length >
+                                  0 ? (
+                                    <table className={styles.breakdownTable}>
+                                      <thead>
+                                        <tr>
+                                          <th>#</th>
+                                          <th>Summary</th>
+                                          <th>Price</th>
+                                          <th>Super Area</th>
+                                          <th>Total</th>
+                                        </tr>
+                                      </thead>
+                                      <tbody>
+                                        {org.saleDetail.priceBreakdown.map(
+                                          (item: any, index: number) => (
+                                            <tr key={index}>
+                                              <td>{index + 1}</td>
+                                              <td>
+                                                {item.summary || item.type}
+                                              </td>
+                                              <td>
+                                                ₹
+                                                {item.price?.toLocaleString(
+                                                  "en-IN",
+                                                  { maximumFractionDigits: 2 }
+                                                ) || "0.00"}
+                                              </td>
+                                              <td>
+                                                {item.superArea?.toLocaleString(
+                                                  "en-IN",
+                                                  { maximumFractionDigits: 2 }
+                                                ) || "Not Available"}
+                                              </td>
+                                              <td>
+                                                ₹
+                                                {item.total?.toLocaleString(
+                                                  "en-IN",
+                                                  { maximumFractionDigits: 2 }
+                                                ) || "0.00"}
+                                              </td>
+                                            </tr>
+                                          )
+                                        )}
+                                      </tbody>
+                                    </table>
+                                  ) : (
+                                    <p>Not Available</p>
+                                  )}
+                                </div>
                               </div>
                             )}
                           </div>

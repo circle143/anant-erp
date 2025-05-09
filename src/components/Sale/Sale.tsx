@@ -14,12 +14,10 @@ import MenuItem from "@mui/material/MenuItem";
 import Select from "@mui/material/Select";
 import Box from "@mui/material/Box";
 import Chip from "@mui/material/Chip";
-import { useTheme } from "@mui/material/styles";
-
 import toast from "react-hot-toast";
 import Loader from "@/components/Loader/Loader";
 import styles from "./page.module.scss";
-
+import TextField from "@mui/material/TextField";
 import { getUrl, uploadData } from "aws-amplify/storage";
 import { parsePhoneNumber } from "libphonenumber-js/min";
 import imageCompression from "browser-image-compression";
@@ -53,29 +51,12 @@ const SUPPORTED_FORMATS = [
   "image/png",
   "image/webp",
 ];
-// const ITEM_HEIGHT = 48;
-// const ITEM_PADDING_TOP = 8;
-// const MenuProps = {
-//   PaperProps: {
-//     style: {
-//       maxHeight: ITEM_HEIGHT * 4.5 + ITEM_PADDING_TOP,
-//       width: 250,
-//     },
-//   },
-// };
 
 type SkillOption = {
   id: string;
   summary: string;
 };
 
-// function getStyles(name: string, selected: string[], theme: any) {
-//   return {
-//     fontWeight: selected.includes(name)
-//       ? theme.typography.fontWeightMedium
-//       : theme.typography.fontWeightRegular,
-//   };
-// }
 const CustomerSchema = Yup.object()
   .shape({
     salutation: Yup.string().required("Salutation is required"),
@@ -356,7 +337,8 @@ const Sale = () => {
 
   const handleSubmit = async (values: any, { resetForm }: any) => {
     try {
-      const { society, flat, customers, seller } = values;
+      setLoading(true);
+      const { society, flat, customers } = values;
 
       const updatedCustomers = await Promise.all(
         customers.map(async (customer: any, index: number) => {
@@ -428,20 +410,23 @@ const Sale = () => {
         values.charges,
         values.basicCost
       );
-      console.log("society", society);
-      console.log(" updatedCustomers", updatedCustomers);
-      console.log("flat", flat);
-      console.log("values.charges", values.charges);
-      console.log("values.basicCost", values.basicCost);
+      // console.log("society", society);
+      // console.log(" updatedCustomers", updatedCustomers);
+      // console.log("flat", flat);
+      // console.log("values.charges", values.charges);
+      // console.log("values.basicCost", values.basicCost);
       if (response.error) {
         toast.error(response.message || "Customer add failed");
+        setLoading(false);
         return;
       }
       // console.log("Form values:", updatedCustomers, society, flat);
       toast.success("Form submitted successfully!");
       resetForm();
+      setLoading(false);
       setStep(step - 1);
     } catch (error) {
+      setLoading(false);
       console.error("Form submission failed:", error);
       toast.error("Something went wrong while submitting the form.");
     }
@@ -507,7 +492,7 @@ const Sale = () => {
                         <label>
                           Society: <span style={{ color: "red" }}>*</span>
                         </label>
-                        <Field
+                        {/* <Field
                           as="select"
                           name="society"
                           className={styles.select}
@@ -524,7 +509,28 @@ const Sale = () => {
                               {society.name}
                             </option>
                           ))}
-                        </Field>
+                        </Field> */}
+                        <Select
+                          id="society-select"
+                          value={values.society || ""}
+                          onChange={(e: any) =>
+                            handleSocietyChange(e, setFieldValue)
+                          }
+                          displayEmpty
+                          fullWidth
+                          // className={styles.multiselect}
+                          size="small"
+                        >
+                          <MenuItem value="">Select Society</MenuItem>
+                          {societies.map((society) => (
+                            <MenuItem
+                              key={society.reraNumber}
+                              value={society.reraNumber}
+                            >
+                              {society.name}
+                            </MenuItem>
+                          ))}
+                        </Select>
                         <ErrorMessage
                           name="society"
                           component="div"
@@ -536,7 +542,7 @@ const Sale = () => {
                         <label>
                           Tower: <span style={{ color: "red" }}>*</span>
                         </label>
-                        <Field
+                        {/* <Field
                           as="select"
                           name="tower"
                           className={styles.select}
@@ -550,9 +556,98 @@ const Sale = () => {
                               {tower.name}
                             </option>
                           ))}
-                        </Field>
+                        </Field> */}
+                        <Select
+                          id="tower-select"
+                          value={values.tower || ""}
+                          onChange={(e: any) =>
+                            handleTowerChange(e, setFieldValue)
+                          }
+                          displayEmpty
+                          fullWidth
+                          // className={styles.multiselect}
+                          size="small"
+                        >
+                          <MenuItem value="">Select Tower</MenuItem>
+                          {towers.map((tower) => (
+                            <MenuItem key={tower.id} value={tower.id}>
+                              {tower.name}
+                            </MenuItem>
+                          ))}
+                        </Select>
                         <ErrorMessage
                           name="tower"
+                          component="div"
+                          className="error"
+                        />
+                      </div>
+
+                      <div>
+                        <label>
+                          Flat: <span style={{ color: "red" }}>*</span>
+                        </label>
+                        {/* <Field
+                          as="select"
+                          name="flat"
+                          className={styles.select}
+                        >
+                          <option value="">Select Flat</option>
+                          {flats.map((flat) => (
+                            <option key={flat.id} value={flat.id}>
+                              {flat.name}
+                            </option>
+                          ))}
+                        </Field> */}
+                        <Select
+                          id="flat-select"
+                          value={values.flat || ""}
+                          onChange={(e: any) =>
+                            setFieldValue("flat", e.target.value)
+                          }
+                          // className={styles.multiselect}
+                          size="small"
+                          displayEmpty
+                          fullWidth
+                        >
+                          <MenuItem value="">Select Flat</MenuItem>
+                          {flats.map((flat) => (
+                            <MenuItem key={flat.id} value={flat.id}>
+                              {flat.name}
+                            </MenuItem>
+                          ))}
+                        </Select>
+                        <ErrorMessage
+                          name="flat"
+                          component="div"
+                          className="error"
+                        />
+                      </div>
+                      <div>
+                        <label>
+                          Basic Cost : <span style={{ color: "red" }}>*</span>
+                        </label>
+                        {/* <Field
+                          className={styles.select}
+                          name="basicCost"
+                          type="number"
+                          min="1"
+                          step="0.01"
+                        /> */}
+                        <TextField
+                          id="basic-cost"
+                          type="number"
+                          className={styles.multiselect}
+                          value={values.basicCost || ""}
+                          onChange={(e) =>
+                            setFieldValue("basicCost", e.target.value)
+                          }
+                          // variant="outlined"
+                          fullWidth
+                          size="small"
+                          // placeholder="Basic Cost"
+                        />
+                        <ErrorMessage
+                          name="basicCost"
                           component="div"
                           className="error"
                         />
@@ -615,46 +710,6 @@ const Sale = () => {
 
                         <ErrorMessage
                           name="charges"
-                          component="div"
-                          className="error"
-                        />
-                      </div>
-
-                      <div>
-                        <label>
-                          Flat: <span style={{ color: "red" }}>*</span>
-                        </label>
-                        <Field
-                          as="select"
-                          name="flat"
-                          className={styles.select}
-                        >
-                          <option value="">Select Flat</option>
-                          {flats.map((flat) => (
-                            <option key={flat.id} value={flat.id}>
-                              {flat.name}
-                            </option>
-                          ))}
-                        </Field>
-                        <ErrorMessage
-                          name="flat"
-                          component="div"
-                          className="error"
-                        />
-                      </div>
-                      <div>
-                        <label>
-                          Basic Cost : <span style={{ color: "red" }}>*</span>
-                        </label>
-                        <Field
-                          className={styles.select}
-                          name="basicCost"
-                          type="number"
-                          min="1"
-                          step="0.01"
-                        />
-                        <ErrorMessage
-                          name="basicCost"
                           component="div"
                           className="error"
                         />
@@ -1078,7 +1133,9 @@ const Sale = () => {
                       Previous
                     </button>
 
-                    <button type="submit">Submit</button>
+                    <button type="submit" disabled={loading}>
+                      {loading ? "Submitting..." : "Submit"}
+                    </button>
                   </div>
                 </>
               )}
