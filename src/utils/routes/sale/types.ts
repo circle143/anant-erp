@@ -50,3 +50,9 @@ export interface GetSalePaymentBreakDown {
 	societyReraNumber: string;
 	saleId: string;
 }
+
+export interface AddPaymentInstallmentToSale {
+	societyReraNumber: string;
+	paymentId: string;
+	saleId: string;
+}

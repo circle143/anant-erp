@@ -1,6 +1,7 @@
 import {
 	AddCustomerToFlatInput,
 	AddCustomerToFlatRequestBodyInput,
+	AddPaymentInstallmentToSale,
 	GetSalePaymentBreakDown,
 	UpdateCustomerInput,
 	UpdateCustomerRequestBodyInput,
@@ -22,20 +23,23 @@ export const customer = {
 		},
 		requestMethod: "POST",
 	},
-	// updateCustomerToFlat: {
-	// 	getEndpoint: (input: UpdateCustomerInput) => {
-	// 		return getBasePath(input.societyReraNumber, input.flatID);
-	// 	},
-	// 	getReqBody: (input: UpdateCustomerRequestBodyInput) => {
-	// 		return input;
-	// 	},
-	// 	requestMethod: "POST",
-	// },
+	addPaymentInstallmentToSale: {
+		getEndpoint: (input: AddPaymentInstallmentToSale) => {
+			return (
+				getBasePath(input.societyReraNumber) +
+				`/${input.saleId}/add-payment-installment/${input.paymentId}`
+			);
+		},
+		getReqBody: () => {
+			// no req body
+		},
+		requestMethod: "POST",
+	},
 	getSalePaymentBreakDown: {
 		getEndpoint: (input: GetSalePaymentBreakDown) => {
 			return (
 				getBasePath(input.societyReraNumber) +
-				`/payment-breakdown/${input.saleId}`
+				`/${input.saleId}/payment-breakdown`
 			);
 		},
 		getReqBody: () => {
