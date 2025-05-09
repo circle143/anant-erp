@@ -15,26 +15,47 @@ const DropdownMenu = ({ reraNumber }: { reraNumber: string }) => {
     };
 
     return (
-      <div className={styles.dropdownWrapper}>
-        <button
-          className={styles.menuButton}
-          onClick={() => setIsOpen(!isOpen)}
-        >
-          <MoreVertical size={20} />
-        </button>
+        <div className={styles.dropdownWrapper}>
+            <button
+                className={styles.menuButton}
+                onClick={() => setIsOpen(!isOpen)}
+            >
+                <MoreVertical size={20} />
+            </button>
 
-        {isOpen && (
-          <div className={styles.dropdownMenu}>
-            <div onClick={() => handleRedirect(reraNumber, "tower")}>Tower</div>
-            <div onClick={() => handleRedirect(reraNumber, "flat-type")}>
-              Flat Type
-            </div>
-            <div onClick={() => handleRedirect(reraNumber, "flat")}>Flat</div>
-            <div onClick={() => handleRedirect(reraNumber, "charges")}>Charges</div>
-            <div onClick={() => handleRedirect(reraNumber, "other-charges")}>Other Charges</div>
-          </div>
-        )}
-      </div>
+            {isOpen && (
+                <div className={styles.dropdownMenu}>
+                    <div onClick={() => handleRedirect(reraNumber, "tower")}>
+                        Tower
+                    </div>
+                    <div
+                        onClick={() => handleRedirect(reraNumber, "flat-type")}
+                    >
+                        Flat Type
+                    </div>
+                    <div onClick={() => handleRedirect(reraNumber, "flat")}>
+                        Flat
+                    </div>
+                    <div onClick={() => handleRedirect(reraNumber, "charges")}>
+                        Charges
+                    </div>
+                    <div
+                        onClick={() =>
+                            handleRedirect(reraNumber, "other-charges")
+                        }
+                    >
+                        Other Charges
+                    </div>
+                    <div
+                        onClick={() =>
+                            handleRedirect(reraNumber, "payment-plans")
+                        }
+                    >
+                        Payment Plans
+                    </div>
+                </div>
+            )}
+        </div>
     );
 };
 
