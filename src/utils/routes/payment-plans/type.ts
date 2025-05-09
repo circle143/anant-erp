@@ -7,6 +7,7 @@ export interface CreatePaymentPlanRequestBodyInput {
 	scope: string; // Direct or Tower
 	conditionType: string; // On-Booking or After-Days or On-Tower-Stage
 	conditionValue: number;
+	amount: number;
 }
 
 export interface MarkPaymentPlanActiveForTowerInput {
