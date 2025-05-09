@@ -44,3 +44,15 @@ export interface UpdateCustomerInput {
 export interface UpdateCustomerRequestBodyInput {
 	details: CustomerDetails;
 }
+
+// get sale payment breakdown
+export interface GetSalePaymentBreakDown {
+	societyReraNumber: string;
+	saleId: string;
+}
+
+export interface AddPaymentInstallmentToSale {
+	societyReraNumber: string;
+	paymentId: string;
+	saleId: string;
+}

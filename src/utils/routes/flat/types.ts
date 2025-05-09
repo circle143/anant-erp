@@ -28,3 +28,10 @@ export interface GetTowerFlats {
 	cursor?: string;
 	towerID: string;
 }
+
+// get flats by name
+export interface GetSocietyFlatsByName {
+	societyReraNumber: string;
+	cursor?: string;
+	name: string;
+}
