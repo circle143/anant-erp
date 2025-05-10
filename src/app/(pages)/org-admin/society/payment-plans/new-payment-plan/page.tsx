@@ -18,18 +18,29 @@ const validationSchema = Yup.object({
             "Invalid condition type"
         )
         .required("Condition Type is required"),
-    conditionValue: Yup.number()
-        .typeError("Condition Value must be a number")
-        .required("Condition Value is required")
-        .min(0, "Must be at least 0"),
+    conditionValue: Yup.number().when("conditionType", {
+        is: "After-Days",
+        then: (schema) =>
+            schema
+                .typeError("Condition Value must be a number")
+                .required("Condition Value is required")
+                .moreThan(0, "Must be greater than 0"),
+        otherwise: (schema) =>
+            schema
+                .typeError("Condition Value must be a number")
+                .notRequired()
+                .oneOf([0], "Must be 0"),
+    }),
     amount: Yup.number()
         .typeError("Amount must be a number")
         .required("Amount is required")
-        .min(0, "Amount must be at least 0"),
+        .min(1, "Minimum 1%")
+        .max(100, "Maximum 100%"),
 });
 
 const Page = () => {
     const [loading, setLoading] = useState(false);
+    const [conditionType, setConditionType] = useState("");
     const searchParams = useSearchParams();
     const rera = searchParams.get("rera");
 
@@ -54,7 +65,10 @@ const Page = () => {
                 summary: values.summary,
                 scope: values.scope,
                 conditionType: values.conditionType,
-                conditionValue: values.conditionValue,
+                conditionValue:
+                    values.conditionType === "After-Days"
+                        ? values.conditionValue
+                        : 0,
                 amount: values.amount,
             };
 
@@ -63,6 +77,7 @@ const Page = () => {
             if (response?.error === false) {
                 toast.success("Payment Plan created successfully!");
                 resetForm();
+                setConditionType("");
             } else {
                 const errorMessage =
                     response?.response?.data?.message ||
@@ -93,100 +108,120 @@ const Page = () => {
                 validationSchema={validationSchema}
                 onSubmit={handleSubmit}
             >
-                <Form className={`form ${styles.form}`}>
-                    <div className={styles.formGroup}>
-                        <label htmlFor="summary">Summary</label>
-                        <Field
-                            type="text"
-                            id="summary"
-                            name="summary"
-                            className={styles.form_control}
-                        />
-                        <ErrorMessage
-                            name="summary"
-                            component="p"
-                            className="text-danger"
-                        />
-                    </div>
+                {({ values, setFieldValue }) => (
+                    <Form className={`form ${styles.form}`}>
+                        <div className={styles.formGroup}>
+                            <label htmlFor="summary">Summary</label>
+                            <Field
+                                type="text"
+                                id="summary"
+                                name="summary"
+                                className={styles.form_control}
+                            />
+                            <ErrorMessage
+                                name="summary"
+                                component="p"
+                                className="text-danger"
+                            />
+                        </div>
 
-                    <div className={styles.formGroup}>
-                        <label htmlFor="scope">Scope</label>
-                        <Field
-                            as="select"
-                            id="scope"
-                            name="scope"
-                            className={styles.form_control}
-                        >
-                            <option value="">Select Scope</option>
-                            <option value="Direct">Direct</option>
-                            <option value="Tower">Tower</option>
-                        </Field>
-                        <ErrorMessage
-                            name="scope"
-                            component="p"
-                            className="text-danger"
-                        />
-                    </div>
+                        <div className={styles.formGroup}>
+                            <label htmlFor="scope">Scope</label>
+                            <Field
+                                as="select"
+                                id="scope"
+                                name="scope"
+                                className={styles.form_control}
+                            >
+                                <option value="">Select Scope</option>
+                                <option value="Direct">Direct</option>
+                                <option value="Tower">Tower</option>
+                            </Field>
+                            <ErrorMessage
+                                name="scope"
+                                component="p"
+                                className="text-danger"
+                            />
+                        </div>
 
-                    <div className={styles.formGroup}>
-                        <label htmlFor="conditionType">Condition Type</label>
-                        <Field
-                            as="select"
-                            id="conditionType"
-                            name="conditionType"
-                            className={styles.form_control}
-                        >
-                            <option value="">Select Condition Type</option>
-                            <option value="On-Booking">On-Booking</option>
-                            <option value="After-Days">After-Days</option>
-                            <option value="On-Tower-Stage">
-                                On-Tower-Stage
-                            </option>
-                        </Field>
-                        <ErrorMessage
-                            name="conditionType"
-                            component="p"
-                            className="text-danger"
-                        />
-                    </div>
+                        <div className={styles.formGroup}>
+                            <label htmlFor="conditionType">
+                                Condition Type
+                            </label>
+                            <Field
+                                as="select"
+                                id="conditionType"
+                                name="conditionType"
+                                className={styles.form_control}
+                                onChange={(
+                                    e: React.ChangeEvent<HTMLSelectElement>
+                                ) => {
+                                    const selected = e.target.value;
+                                    setConditionType(selected);
+                                    setFieldValue("conditionType", selected);
+                                    if (selected !== "After-Days") {
+                                        setFieldValue("conditionValue", 0);
+                                    }
+                                }}
+                            >
+                                <option value="">Select Condition Type</option>
+                                <option value="On-Booking">On-Booking</option>
+                                <option value="After-Days">After-Days</option>
+                                <option value="On-Tower-Stage">
+                                    On-Tower-Stage
+                                </option>
+                            </Field>
+                            <ErrorMessage
+                                name="conditionType"
+                                component="p"
+                                className="text-danger"
+                            />
+                        </div>
 
-                    <div className={styles.formGroup}>
-                        <label htmlFor="conditionValue">Condition Value</label>
-                        <Field
-                            type="number"
-                            id="conditionValue"
-                            name="conditionValue"
-                            className={styles.form_control}
-                            min="0"
-                        />
-                        <ErrorMessage
-                            name="conditionValue"
-                            component="p"
-                            className="text-danger"
-                        />
-                    </div>
+                        {conditionType === "After-Days" && (
+                            <div className={styles.formGroup}>
+                                <label htmlFor="conditionValue">
+                                    Condition Value
+                                </label>
+                                <Field
+                                    type="number"
+                                    id="conditionValue"
+                                    name="conditionValue"
+                                    className={styles.form_control}
+                                    min="1"
+                                />
+                                <ErrorMessage
+                                    name="conditionValue"
+                                    component="p"
+                                    className="text-danger"
+                                />
+                            </div>
+                        )}
 
-                    <div className={styles.formGroup}>
-                        <label htmlFor="amount">Amount</label>
-                        <Field
-                            type="number"
-                            id="amount"
-                            name="amount"
-                            className={styles.form_control}
-                            min="0"
-                            step="0.01"
-                        />
-                        <ErrorMessage
-                            name="amount"
-                            component="p"
-                            className="text-danger"
-                        />
-                    </div>
+                        <div className={styles.formGroup}>
+                            <label htmlFor="amount">Amount (%)</label>
+                            <Field
+                                type="number"
+                                id="amount"
+                                name="amount"
+                                className={styles.form_control}
+                                min="1"
+                                max="100"
+                                step="0.01"
+                                placeholder="%"
+                            />
+                            <ErrorMessage
+                                name="amount"
+                                component="p"
+                                className="text-danger"
+                            />
+                        </div>
 
-                    <button type="submit" disabled={loading}>
-                        {loading ? "Submitting..." : "Submit"}
-                    </button>
-                </Form>
+                        <button type="submit" disabled={loading}>
+                            {loading ? "Submitting..." : "Submit"}
+                        </button>
+                    </Form>
+                )}
             </Formik>
         </div>
     );
