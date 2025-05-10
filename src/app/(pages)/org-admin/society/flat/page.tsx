@@ -284,7 +284,26 @@ const Page = () => {
                                     </div>
                                   )
                                 )}
-
+                                <div className={styles.totalPriceSection}>
+                                  <h4>Paid</h4>
+                                  <p>
+                                    <strong>₹</strong>{" "}
+                                    {org.saleDetail?.paid?.toLocaleString(
+                                      "en-IN",
+                                      { maximumFractionDigits: 2 }
+                                    ) || "Not Available"}
+                                  </p>
+                                </div>
+                                <div className={styles.totalPriceSection}>
+                                  <h4>Remaining</h4>
+                                  <p>
+                                    <strong>₹</strong>{" "}
+                                    {org.saleDetail?.remaining?.toLocaleString(
+                                      "en-IN",
+                                      { maximumFractionDigits: 2 }
+                                    ) || "Not Available"}
+                                  </p>
+                                </div>
                                 {/* Total Price */}
                                 <div className={styles.totalPriceSection}>
                                   <h4>Total Price</h4>

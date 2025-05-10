@@ -974,7 +974,7 @@ export const markPaymentPlanActiveForTower = async (
     const input = { societyReraNumber, towerId, paymentId };
     const url = paymentPlans.markPaymentPlanActiveForTower.getEndpoint(input);
 
-    const response = await axios.post(createURL(url), {
+    const response = await axios.post(createURL(url), null, {
       headers: { Authorization: `Bearer ${token}` },
     });
 

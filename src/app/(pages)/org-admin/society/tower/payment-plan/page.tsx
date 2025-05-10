@@ -114,7 +114,7 @@ const Page = () => {
                         <strong>Plan Summary:</strong> {plan.summary}
                       </div>
                       <div>
-                        <strong>Amount:</strong> ₹{plan.amount}
+                        <strong>Amount:</strong> {plan.amount}%
                       </div>
                       <div>
                         <strong>Condition Type:</strong> {plan.conditionType}

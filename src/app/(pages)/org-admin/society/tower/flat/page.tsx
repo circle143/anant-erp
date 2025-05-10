@@ -47,7 +47,7 @@ const Page = () => {
       setLoading(false);
       return;
     }
-
+    console.log("response", response);
     const updatedItems = await Promise.all(
       response.data.items.map(async (item: any) => {
         // If there's a saleDetail and at least one owner with a photo
@@ -303,7 +303,26 @@ const Page = () => {
                                     </div>
                                   )
                                 )}
-
+                                <div className={styles.totalPriceSection}>
+                                  <h4>Paid</h4>
+                                  <p>
+                                    <strong>₹</strong>{" "}
+                                    {org.saleDetail?.paid?.toLocaleString(
+                                      "en-IN",
+                                      { maximumFractionDigits: 2 }
+                                    ) || "Not Available"}
+                                  </p>
+                                </div>
+                                <div className={styles.totalPriceSection}>
+                                  <h4>Remaining</h4>
+                                  <p>
+                                    <strong>₹</strong>{" "}
+                                    {org.saleDetail?.remaining?.toLocaleString(
+                                      "en-IN",
+                                      { maximumFractionDigits: 2 }
+                                    ) || "Not Available"}
+                                  </p>
+                                </div>
                                 {/* Total Price */}
                                 <div className={styles.totalPriceSection}>
                                   <h4>Total Price</h4>
@@ -327,6 +346,7 @@ const Page = () => {
                                           <th>#</th>
                                           <th>Summary</th>
                                           <th>Price</th>
+                                          <th>Type</th>
                                           <th>Super Area</th>
                                           <th>Total</th>
                                         </tr>
@@ -336,15 +356,16 @@ const Page = () => {
                                           (item: any, index: number) => (
                                             <tr key={index}>
                                               <td>{index + 1}</td>
-                                              <td>
-                                                {item.summary || item.type}
-                                              </td>
+                                              <td>{item.summary}</td>
                                               <td>
                                                 ₹
                                                 {item.price?.toLocaleString(
                                                   "en-IN",
                                                   { maximumFractionDigits: 2 }
                                                 ) || "0.00"}
+                                              </td>
+                                              <td>
+                                                {item.type || "Not Available"}
                                               </td>
                                               <td>
                                                 {item.superArea?.toLocaleString(
