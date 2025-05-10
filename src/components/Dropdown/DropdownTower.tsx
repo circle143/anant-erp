@@ -20,27 +20,28 @@ const DropdownTower = ({ reraNumber, towerId }: DropdownTowerProps) => {
     };
 
     return (
-        <div className={styles.dropdownWrapper}>
-            <button
-                className={styles.menuButton}
-                onClick={() => setIsOpen(!isOpen)}
-            >
-                <MoreVertical size={20} />
-            </button>
+      <div className={styles.dropdownWrapper}>
+        <button
+          className={styles.menuButton}
+          onClick={() => setIsOpen(!isOpen)}
+        >
+          <MoreVertical size={20} />
+        </button>
 
-            {isOpen && (
-                <div className={styles.dropdownMenu}>
-                    <div>
-                        <div onClick={() => handleRedirect("flat")}>Flats</div>
-                    </div>
-                    <div>
-                        <div onClick={() => handleRedirect("payment-plan")}>
-                            Payment Plan
-                        </div>
-                    </div>
-                </div>
-            )}
-        </div>
+        {isOpen && (
+          <div className={styles.dropdownMenu}>
+            <div>
+              <div onClick={() => handleRedirect("flat")}>Flats</div>
+            </div>
+            <div>
+              <div onClick={() => handleRedirect("payment-plan")}>
+                Payment Plan
+              </div>
+            </div>
+            
+          </div>
+        )}
+      </div>
     );
 };
 
