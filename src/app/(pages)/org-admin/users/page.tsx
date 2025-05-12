@@ -4,6 +4,7 @@ import { getUsers, updateOrganizationUserRole } from "@/redux/action/org-admin";
 import styles from "./page.module.scss";
 import Loader from "@/components/Loader/Loader";
 import { getUrl } from "aws-amplify/storage";
+import { toast } from "react-hot-toast";
 import { UserRole } from "@/utils/routes/organization/types";
 import { removeUserFromOrganization } from "@/redux/action/org-admin";
 const Page = () => {
@@ -116,9 +117,11 @@ const Page = () => {
       if (!response.error) {
         // Optionally show success message
         await fetchData(cursor, false); // Refresh user list
+        toast.success("User deleted successfully");
       }
     } catch (err) {
-      console.error("Error deleting user:", err);
+      toast.error("Error deleting user");
+      // console.error("Error deleting user:", err);
     } finally {
       setShowDeletePopup(false);
       setUserToDelete(null);

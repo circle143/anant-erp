@@ -8,6 +8,7 @@ import {
   CreateFlatInput,
   CreateFlatRequestBodyInput,
   GetTowerFlats,
+  DeleteFlatInput,
 } from "@/utils/routes/flat/types";
 import {
   CreateTowerInput,
@@ -34,6 +35,7 @@ import {
   AddCustomerToFlatInput,
   AddCustomerToFlatRequestBodyInput,
   CustomerDetails,
+  GetSocietySalesReport,
 } from "@/utils/routes/sale/types";
 import {
   GetChargesInput,
@@ -312,6 +314,29 @@ export const createFlat = async (
   } catch (error: any) {
     console.error(
       "Error creating flat:",
+      error.response?.data || error.message
+    );
+    return { error: true, message: error.message };
+  }
+};
+
+export const deleteFlat = async (flatID: string, societyReraNumber: string) => {
+  try {
+    const token = await getIdToken();
+    const input: DeleteFlatInput = {
+      societyReraNumber,
+      flatID,
+    };
+
+    const url = flat.deleteFlat.getEndpoint(input);
+    const response = await axios.delete(createURL(url), {
+      headers: { Authorization: `Bearer ${token}` },
+    });
+
+    return response.data;
+  } catch (error: any) {
+    console.error(
+      "Error deleting flattype:",
       error.response?.data || error.message
     );
     return { error: true, message: error.message };
@@ -981,6 +1006,27 @@ export const markPaymentPlanActiveForTower = async (
     return response.data;
   } catch (error: any) {
     console.error("Error :", error.response?.data || error.message);
+    return { error: true, message: error.message };
+  }
+};
+export const getSalePaymentBreakDown = async (
+  societyReraNumber: string,
+) => {
+  try {
+    const token = await getIdToken();
+    const input: GetSocietySalesReport = {
+      societyReraNumber,
+    };
+    const url = customer.getSalePaymentBreakDown.getEndpoint(input);
+    const response = await axios.get(createURL(url), {
+      headers: { Authorization: `Bearer ${token}` },
+    });
+    return response.data;
+  } catch (error: any) {
+    console.error(
+      "Error fetching payment plan:",
+      error.response?.data || error.message
+    );
     return { error: true, message: error.message };
   }
 };
