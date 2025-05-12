@@ -184,16 +184,7 @@ const Page = () => {
     const value = e.target.value;
     debouncedFilterChange(value);
   };
-  function formatINRTrunc(value: number): string {
-    const [intPart, decPart = ""] = String(value).split(".");
-    const twoDec = (decPart + "00").slice(0, 2); // pad + truncate decimals
 
-    // Format integer part with Indian number system
-    const x = intPart.replace(/\B(?=(\d{3})+(?!\d))/g, ","); // basic format
-    const indianFormatted = x.replace(/(\d+)(?=(\d{2})+(?!\d))/g, "$1,");
-
-    return `${indianFormatted}.${twoDec}`;
-  }
   return (
     <div className={`container ${styles.container}`}>
       <div className={styles.header}>
@@ -369,8 +360,8 @@ const Page = () => {
                                       <p>
                                         <strong>₹</strong>{" "}
                                         {org.saleDetail?.paid != null
-                                          ? formatINRTrunc(org.saleDetail.paid)
-                                          : "Not Available"}
+                                          ? org.saleDetail.paid
+                                          : "0.00"}
                                       </p>
                                     </div>
                                     <div className={styles.totalPriceSection}>
@@ -378,10 +369,8 @@ const Page = () => {
                                       <p>
                                         <strong>₹</strong>{" "}
                                         {org.saleDetail?.paid != null
-                                          ? formatINRTrunc(
-                                              org.saleDetail.remaining
-                                            )
-                                          : "Not Available"}
+                                          ? org.saleDetail.remaining
+                                          : "0.00"}
                                       </p>
                                     </div>
                                     {/* Total Price */}
@@ -390,10 +379,8 @@ const Page = () => {
                                       <p>
                                         <strong>₹</strong>{" "}
                                         {org.saleDetail?.paid != null
-                                          ? formatINRTrunc(
-                                              org.saleDetail.totalPrice
-                                            )
-                                          : "Not Available"}
+                                          ? org.saleDetail.totalPrice
+                                          : "0.00"}
                                       </p>
                                     </div>
                                     {/* Price Breakdown */}
@@ -426,10 +413,8 @@ const Page = () => {
                                                   <td>
                                                     ₹
                                                     {item.price != null
-                                                      ? formatINRTrunc(
-                                                          item.price
-                                                        )
-                                                      : "Not Available"}
+                                                      ? item.price
+                                                      : "0.00"}
                                                   </td>
                                                   <td>
                                                     {item.type ||
@@ -437,18 +422,18 @@ const Page = () => {
                                                   </td>
                                                   <td>
                                                     {item.superArea != null
-                                                      ? formatINRTrunc(
+                                                      ? 
                                                           item.superArea
-                                                        )
-                                                      : "Not Available"}
+                                                        
+                                                      : "0.00"}
                                                   </td>
                                                   <td>
                                                     ₹
                                                     {item.total != null
-                                                      ? formatINRTrunc(
+                                                      ? 
                                                           item.total
-                                                        )
-                                                      : "Not Available"}
+                                                        
+                                                      : "0.00"}
                                                   </td>
                                                 </tr>
                                               )

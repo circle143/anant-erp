@@ -48,8 +48,8 @@ const Page = () => {
     if (filter === "all") {
       response = await getFlats(cursor || "", rera);
       console.log("response", response);
-      reponse2 = await getSalePaymentBreakDown(rera);
-      console.log("response2", reponse2);
+      // reponse2 = await getSalePaymentBreakDown(rera);
+      // console.log("response2", reponse2);
     } else if (filter === "sold") {
       response = await getAllSocietySoldFlats(cursor || "", rera);
     } else if (filter === "unsold") {
@@ -153,19 +153,8 @@ const Page = () => {
   const toggleAdditionalDetails = (index: number) => {
     setShowAdditionalDetails((prev) => (prev === index ? null : index));
   };
-function formatINRTrunc(value: number): string {
-  const [intPart, decPart = ""] = String(value).split(".");
-  const twoDec = (decPart + "00").slice(0, 2); // pad + truncate decimals
-
-  // Format integer part with Indian number system
-  const x = intPart.replace(/\B(?=(\d{3})+(?!\d))/g, ","); // basic format
-  const indianFormatted = x.replace(/(\d+)(?=(\d{2})+(?!\d))/g, "$1,");
-
-  return `${indianFormatted}.${twoDec}`;
-}
 
   const handleDelete = (flatId: string, name: string, index: number) => {
-   
     setUserToDelete({ flatId, name, index });
     setShowDeletePopup(true);
   };
@@ -194,6 +183,11 @@ function formatINRTrunc(value: number): string {
       setUserToDelete(null);
     }
   };
+  const handleRedirect = (path: string, id: string) => {
+    const url = `${path}?id=${id}&rera=${rera}`;
+    router.push(url);
+  };
+  
   return (
     <div className={`container ${styles.container}`}>
       <div className={styles.header}>
@@ -342,14 +336,7 @@ function formatINRTrunc(value: number): string {
                                     </div>
                                   )
                                 )}
-                                <button
-                                  className={styles.toggleButton}
-                                  onClick={() => toggleAdditionalDetails(index)}
-                                >
-                                  {showAdditionalDetails === index
-                                    ? "Show Less"
-                                    : "Show More"}
-                                </button>
+
                                 {showAdditionalDetails === index && (
                                   <>
                                     <div className={styles.totalPriceSection}>
@@ -357,8 +344,8 @@ function formatINRTrunc(value: number): string {
                                       <p>
                                         <strong>₹</strong>{" "}
                                         {org.saleDetail?.paid != null
-                                          ? formatINRTrunc(org.saleDetail.paid)
-                                          : "Not Available"}
+                                          ? org.saleDetail.paid
+                                          : "0.00"}
                                       </p>
                                     </div>
                                     <div className={styles.totalPriceSection}>
@@ -366,10 +353,8 @@ function formatINRTrunc(value: number): string {
                                       <p>
                                         <strong>₹</strong>{" "}
                                         {org.saleDetail?.paid != null
-                                          ? formatINRTrunc(
-                                              org.saleDetail.remaining
-                                            )
-                                          : "Not Available"}
+                                          ? org.saleDetail.remaining
+                                          : "0.00"}
                                       </p>
                                     </div>
                                     {/* Total Price */}
@@ -378,10 +363,8 @@ function formatINRTrunc(value: number): string {
                                       <p>
                                         <strong>₹</strong>{" "}
                                         {org.saleDetail?.paid != null
-                                          ? formatINRTrunc(
-                                              org.saleDetail.totalPrice
-                                            )
-                                          : "Not Available"}
+                                          ? org.saleDetail.totalPrice
+                                          : "0.00"}
                                       </p>
                                     </div>
                                     {/* Price Breakdown */}
@@ -414,10 +397,8 @@ function formatINRTrunc(value: number): string {
                                                   <td>
                                                     ₹
                                                     {item.price != null
-                                                      ? formatINRTrunc(
-                                                          item.price
-                                                        )
-                                                      : "Not Available"}
+                                                      ? item.price
+                                                      : "0.00"}
                                                   </td>
                                                   <td>
                                                     {item.type ||
@@ -425,18 +406,14 @@ function formatINRTrunc(value: number): string {
                                                   </td>
                                                   <td>
                                                     {item.superArea != null
-                                                      ? formatINRTrunc(
-                                                          item.superArea
-                                                        )
-                                                      : "Not Available"}
+                                                      ? item.superArea
+                                                      : "0.00"}
                                                   </td>
                                                   <td>
                                                     ₹
                                                     {item.total != null
-                                                      ? formatINRTrunc(
-                                                          item.total
-                                                        )
-                                                      : "Not Available"}
+                                                      ? item.total
+                                                      : "0.00"}
                                                   </td>
                                                 </tr>
                                               )
@@ -449,6 +426,40 @@ function formatINRTrunc(value: number): string {
                                     </div>
                                   </>
                                 )}
+                                <div className={styles.buttonGroup}>
+                                  <button
+                                    className={styles.toggleButton}
+                                    onClick={() =>
+                                      toggleAdditionalDetails(index)
+                                    }
+                                  >
+                                    {showAdditionalDetails === index
+                                      ? "Show Less"
+                                      : "Show More"}
+                                  </button>
+                                  <button
+                                    className={styles.toggleButton}
+                                    onClick={() =>
+                                      handleRedirect(
+                                        "/org-admin/society/flat/sale-report",
+                                        org.saleDetail.id
+                                      )
+                                    }
+                                  >
+                                    Sale Report
+                                  </button>
+                                  <button
+                                    className={styles.toggleButton}
+                                    onClick={() =>
+                                      handleRedirect(
+                                        "/org-admin/society/flat/payment-breakdown",
+                                        org.saleDetail.id
+                                      )
+                                    }
+                                  >
+                                    Payment Breakdown
+                                  </button>
+                                </div>
                               </div>
                             )}
                           </div>
