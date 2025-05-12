@@ -1,11 +1,13 @@
 "use client";
-
 import React, { useEffect, useState, useCallback } from "react";
 import {
   getFlats,
   getAllSocietySoldFlats,
   getAllSocietyUnsoldFlats,
+  deleteFlat,
+  getSalePaymentBreakDown,
 } from "@/redux/action/org-admin";
+import { toast } from "react-hot-toast";
 import styles from "./page.module.scss";
 import Loader from "@/components/Loader/Loader";
 import { debounce } from "lodash";
@@ -24,6 +26,15 @@ const Page = () => {
   const [expandedOwnerIndex, setExpandedOwnerIndex] = useState<number | null>(
     null
   );
+  const [showAdditionalDetails, setShowAdditionalDetails] = useState<
+    number | null
+  >(null);
+  const [userToDelete, setUserToDelete] = useState<{
+    flatId: string;
+    name: string;
+    index: number;
+  } | null>(null);
+  const [showDeletePopup, setShowDeletePopup] = useState(false);
   const fetchData = async (
     cursor: string | null = null,
     isNext = true,
@@ -33,67 +44,70 @@ const Page = () => {
     if (!rera) return;
 
     let response;
+    let reponse2;
     if (filter === "all") {
       response = await getFlats(cursor || "", rera);
       console.log("response", response);
+      reponse2 = await getSalePaymentBreakDown(rera);
+      console.log("response2", reponse2);
     } else if (filter === "sold") {
       response = await getAllSocietySoldFlats(cursor || "", rera);
     } else if (filter === "unsold") {
       response = await getAllSocietyUnsoldFlats(cursor || "", rera);
     } else {
-      console.error("Invalid filter:", filter);
+      //   console.error("Invalid filter:", filter);
       setLoading(false);
       return;
     }
 
     const updatedItems = await Promise.all(
-          response.data.items.map(async (item: any) => {
-            // If there's a saleDetail and at least one owner with a photo
-            if (item.saleDetail?.owners && Array.isArray(item.saleDetail.owners)) {
-              const updatedOwners = await Promise.all(
-                item.saleDetail.owners.map(async (owner: any) => {
-                  if (owner.photo) {
-                    try {
-                      const signedUrl = await getUrl({
-                        path: owner.photo,
-                        options: {
-                          validateObjectExistence: true,
-                          expiresIn: 3600,
-                        },
-                      });
-                      console.log(
-                        "No photo found for owner:",
-                        signedUrl.url.toString()
-                      );
-                      return {
-                        ...owner,
-                        photo: signedUrl.url.toString(),
-                      };
-                    } catch (err) {
-                      console.error(
-                        "Error generating URL for photo:",
-                        owner.photo,
-                        err
-                      );
-                      return owner; // fallback to original if error
-                    }
-                  }
-    
-                  return owner;
-                })
-              );
-              return {
-                ...item,
-                saleDetail: {
-                  ...item.saleDetail,
-                  owners: updatedOwners,
-                },
-              };
-            }
-    
-            return item;
-          })
-        );
+      response.data.items.map(async (item: any) => {
+        // If there's a saleDetail and at least one owner with a photo
+        if (item.saleDetail?.owners && Array.isArray(item.saleDetail.owners)) {
+          const updatedOwners = await Promise.all(
+            item.saleDetail.owners.map(async (owner: any) => {
+              if (owner.photo) {
+                try {
+                  const signedUrl = await getUrl({
+                    path: owner.photo,
+                    options: {
+                      validateObjectExistence: true,
+                      expiresIn: 3600,
+                    },
+                  });
+                  console.log(
+                    "No photo found for owner:",
+                    signedUrl.url.toString()
+                  );
+                  return {
+                    ...owner,
+                    photo: signedUrl.url.toString(),
+                  };
+                } catch (err) {
+                  console.error(
+                    "Error generating URL for photo:",
+                    owner.photo,
+                    err
+                  );
+                  return owner; // fallback to original if error
+                }
+              }
+
+              return owner;
+            })
+          );
+          return {
+            ...item,
+            saleDetail: {
+              ...item.saleDetail,
+              owners: updatedOwners,
+            },
+          };
+        }
+
+        return item;
+      })
+    );
 
     setOrgData(updatedItems);
     setHasNextPage(response.data.pageInfo.nextPage);
@@ -135,6 +149,50 @@ const Page = () => {
   };
   const toggleOwnerDetails = (index: number) => {
     setExpandedOwnerIndex((prevIndex) => (prevIndex === index ? null : index));
+  };
+  const toggleAdditionalDetails = (index: number) => {
+    setShowAdditionalDetails((prev) => (prev === index ? null : index));
+  };
+function formatINRTrunc(value: number): string {
+  const [intPart, decPart = ""] = String(value).split(".");
+  const twoDec = (decPart + "00").slice(0, 2); // pad + truncate decimals
+
+  // Format integer part with Indian number system
+  const x = intPart.replace(/\B(?=(\d{3})+(?!\d))/g, ","); // basic format
+  const indianFormatted = x.replace(/(\d+)(?=(\d{2})+(?!\d))/g, "$1,");
+
+  return `${indianFormatted}.${twoDec}`;
+}
+
+  const handleDelete = (flatId: string, name: string, index: number) => {
+   
+    setUserToDelete({ flatId, name, index });
+    setShowDeletePopup(true);
+  };
+  const cancelDelete = () => {
+    setShowDeletePopup(false);
+    setUserToDelete(null);
+  };
+  const confirmDelete = async () => {
+    if (!userToDelete || !rera) {
+      toast.error("Missing RERA information");
+      return;
+    }
+
+    try {
+      const response = await deleteFlat(userToDelete.flatId, rera);
+      if (!response.error) {
+        // Optionally show success message
+        await fetchData(null, false, selectedFilter); // Refresh user list
+        toast.success("Flat deleted successfully");
+      }
+    } catch (err) {
+      toast.error("Error deleting flat");
+      // console.error("Error deleting user:", err);
+    } finally {
+      setShowDeletePopup(false);
+      setUserToDelete(null);
+    }
   };
   return (
     <div className={`container ${styles.container}`}>
@@ -284,94 +342,123 @@ const Page = () => {
                                     </div>
                                   )
                                 )}
-                                <div className={styles.totalPriceSection}>
-                                  <h4>Paid</h4>
-                                  <p>
-                                    <strong>₹</strong>{" "}
-                                    {org.saleDetail?.paid?.toLocaleString(
-                                      "en-IN",
-                                      { maximumFractionDigits: 2 }
-                                    ) || "Not Available"}
-                                  </p>
-                                </div>
-                                <div className={styles.totalPriceSection}>
-                                  <h4>Remaining</h4>
-                                  <p>
-                                    <strong>₹</strong>{" "}
-                                    {org.saleDetail?.remaining?.toLocaleString(
-                                      "en-IN",
-                                      { maximumFractionDigits: 2 }
-                                    ) || "Not Available"}
-                                  </p>
-                                </div>
-                                {/* Total Price */}
-                                <div className={styles.totalPriceSection}>
-                                  <h4>Total Price</h4>
-                                  <p>
-                                    <strong>₹</strong>{" "}
-                                    {org.saleDetail?.totalPrice?.toLocaleString(
-                                      "en-IN",
-                                      { maximumFractionDigits: 2 }
-                                    ) || "Not Available"}
-                                  </p>
-                                </div>
+                                <button
+                                  className={styles.toggleButton}
+                                  onClick={() => toggleAdditionalDetails(index)}
+                                >
+                                  {showAdditionalDetails === index
+                                    ? "Show Less"
+                                    : "Show More"}
+                                </button>
+                                {showAdditionalDetails === index && (
+                                  <>
+                                    <div className={styles.totalPriceSection}>
+                                      <h4>Paid</h4>
+                                      <p>
+                                        <strong>₹</strong>{" "}
+                                        {org.saleDetail?.paid != null
+                                          ? formatINRTrunc(org.saleDetail.paid)
+                                          : "Not Available"}
+                                      </p>
+                                    </div>
+                                    <div className={styles.totalPriceSection}>
+                                      <h4>Remaining</h4>
+                                      <p>
+                                        <strong>₹</strong>{" "}
+                                        {org.saleDetail?.paid != null
+                                          ? formatINRTrunc(
+                                              org.saleDetail.remaining
+                                            )
+                                          : "Not Available"}
+                                      </p>
+                                    </div>
+                                    {/* Total Price */}
+                                    <div className={styles.totalPriceSection}>
+                                      <h4>Total Price</h4>
+                                      <p>
+                                        <strong>₹</strong>{" "}
+                                        {org.saleDetail?.paid != null
+                                          ? formatINRTrunc(
+                                              org.saleDetail.totalPrice
+                                            )
+                                          : "Not Available"}
+                                      </p>
+                                    </div>
+                                    {/* Price Breakdown */}
+                                    <div
+                                      className={styles.priceBreakdownSection}
+                                    >
+                                      <h4>Price Breakdown</h4>
+                                      {org.saleDetail?.priceBreakdown?.length >
+                                      0 ? (
+                                        <table
+                                          className={styles.breakdownTable}
+                                        >
+                                          <thead>
+                                            <tr>
+                                              <th>#</th>
+                                              <th>Summary</th>
+                                              <th>Price</th>
 
-                                {/* Price Breakdown */}
-                                <div className={styles.priceBreakdownSection}>
-                                  <h4>Price Breakdown</h4>
-                                  {org.saleDetail?.priceBreakdown?.length >
-                                  0 ? (
-                                    <table className={styles.breakdownTable}>
-                                      <thead>
-                                        <tr>
-                                          <th>#</th>
-                                          <th>Summary</th>
-                                          <th>Price</th>
-                                          <th>Super Area</th>
-                                          <th>Total</th>
-                                        </tr>
-                                      </thead>
-                                      <tbody>
-                                        {org.saleDetail.priceBreakdown.map(
-                                          (item: any, index: number) => (
-                                            <tr key={index}>
-                                              <td>{index + 1}</td>
-                                              <td>
-                                                {item.summary || item.type}
-                                              </td>
-                                              <td>
-                                                ₹
-                                                {item.price?.toLocaleString(
-                                                  "en-IN",
-                                                  { maximumFractionDigits: 2 }
-                                                ) || "0.00"}
-                                              </td>
-                                              <td>
-                                                {item.superArea?.toLocaleString(
-                                                  "en-IN",
-                                                  { maximumFractionDigits: 2 }
-                                                ) || "Not Available"}
-                                              </td>
-                                              <td>
-                                                ₹
-                                                {item.total?.toLocaleString(
-                                                  "en-IN",
-                                                  { maximumFractionDigits: 2 }
-                                                ) || "0.00"}
-                                              </td>
+                                              <th>Type</th>
+                                              <th>Super Area</th>
+                                              <th>Total</th>
                                             </tr>
-                                          )
-                                        )}
-                                      </tbody>
-                                    </table>
-                                  ) : (
-                                    <p>Not Available</p>
-                                  )}
-                                </div>
+                                          </thead>
+                                          <tbody>
+                                            {org.saleDetail.priceBreakdown.map(
+                                              (item: any, index: number) => (
+                                                <tr key={index}>
+                                                  <td>{index + 1}</td>
+                                                  <td>{item.summary}</td>
+                                                  <td>
+                                                    ₹
+                                                    {item.price != null
+                                                      ? formatINRTrunc(
+                                                          item.price
+                                                        )
+                                                      : "Not Available"}
+                                                  </td>
+                                                  <td>
+                                                    {item.type ||
+                                                      "Not Available"}
+                                                  </td>
+                                                  <td>
+                                                    {item.superArea != null
+                                                      ? formatINRTrunc(
+                                                          item.superArea
+                                                        )
+                                                      : "Not Available"}
+                                                  </td>
+                                                  <td>
+                                                    ₹
+                                                    {item.total != null
+                                                      ? formatINRTrunc(
+                                                          item.total
+                                                        )
+                                                      : "Not Available"}
+                                                  </td>
+                                                </tr>
+                                              )
+                                            )}
+                                          </tbody>
+                                        </table>
+                                      ) : (
+                                        <p>Not Available</p>
+                                      )}
+                                    </div>
+                                  </>
+                                )}
                               </div>
                             )}
                           </div>
                         )}
+                      </div>
+                      <div className={styles.groupButtons}>
+                        <i
+                          className="bx bxs-trash"
+                          onClick={() => handleDelete(org.id, org.name, index)}
+                        ></i>
                       </div>
                     </div>
                   </li>
@@ -396,6 +483,25 @@ const Page = () => {
             </>
           )}
         </>
+      )}
+      {showDeletePopup && userToDelete && (
+        <div className={styles.popupOverlay}>
+          <div className={styles.popup}>
+            <h4>Confirm Delete</h4>
+            <p>
+              Are you sure you want to remove
+              <strong>{userToDelete.name}</strong>?
+            </p>
+            <div className={styles.popupButtons}>
+              <button className={styles.confirmButton} onClick={confirmDelete}>
+                Yes, Delete
+              </button>
+              <button className={styles.cancelButton} onClick={cancelDelete}>
+                Cancel
+              </button>
+            </div>
+          </div>
+        </div>
       )}
     </div>
   );
