@@ -37,7 +37,19 @@ export const customer = {
 		requestMethod: "POST",
 	},
 	getSalePaymentBreakDown: {
-		getEndpoint: (input: GetSocietySalesReport) => {
+		getEndpoint: (input: GetSalePaymentBreakDown) => {
+			return (
+				getBasePath(input.societyReraNumber) +
+				`/${input.saleId}/payment-breakdown`
+			);
+		},
+		getReqBody: () => {
+			// no request body required
+		},
+		requestMethod: "GET",
+	},
+	getSocietySaleReport: {
+		getEndpoint: (input: GetSalePaymentBreakDown) => {
 			return getBasePath(input.societyReraNumber) + "/report";
 		},
 		getReqBody: () => {
@@ -45,5 +57,4 @@ export const customer = {
 		},
 		requestMethod: "GET",
 	},
-	getSocietySaleReport: {},
 };
