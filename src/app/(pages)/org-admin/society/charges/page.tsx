@@ -126,6 +126,7 @@ const Page = () => {
                           price={org.price}
                           summary={org.summary}
                           route="charges"
+                          disable={org.disable}
                         />
                       </div>
                     </div>

@@ -1,5 +1,4 @@
 "use client";
-
 import React, { useEffect, useState } from "react";
 import { decodeAccessToken } from "@/utils/get_user_tokens";
 import { uploadData } from "aws-amplify/storage";

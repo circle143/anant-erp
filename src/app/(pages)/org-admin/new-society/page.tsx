@@ -1,3 +1,4 @@
+"use client";
 import React from "react";
 import Society from "@/components/Forms/Society";
 const page = () => {

@@ -71,7 +71,6 @@ const CustomerSchema = Yup.object()
       .required("Date of Birth is required"),
     gender: Yup.string().required("Gender is required"),
     photo: Yup.mixed()
-      .required("Photo is required")
       .test(
         "fileType",
         "Only JPG, JPEG, PNG, and WEBP files are allowed",

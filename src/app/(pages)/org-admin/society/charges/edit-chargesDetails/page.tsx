@@ -1,5 +1,5 @@
 "use client";
-import React, { useState } from "react";
+import React, { useEffect, useState } from "react";
 import { useSearchParams } from "next/navigation";
 import { Formik, Form, Field, ErrorMessage } from "formik";
 import * as Yup from "yup";
@@ -15,29 +15,42 @@ const validationSchema = Yup.object({
 
 const EditCharges = () => {
   const searchParams = useSearchParams();
-  const id = searchParams.get("id");
-  const rera = searchParams.get("rera");
-  const summary = searchParams.get("summary") || "";
   const router = useRouter();
 
-  const initialValues = {
-    summary: summary,
+  const [initialValues, setInitialValues] = useState({
+    summary: "",
     disabled: false,
-  };
+  });
+
+  const [params, setParams] = useState({ id: "", rera: "" });
+
+  useEffect(() => {
+    const id = searchParams.get("id") || "";
+    const rera = searchParams.get("rera") || "";
+    const summary = searchParams.get("summary") || "";
+    const disable = searchParams.get("disable") === "true";
+
+    setParams({ id, rera });
+
+    setInitialValues({
+      summary,
+      disabled: disable,
+    });
+  }, [searchParams]);
 
   const handleSubmit = async (
     values: typeof initialValues,
     { setSubmitting }: { setSubmitting: (isSubmitting: boolean) => void }
   ) => {
     try {
-      if (!id || !rera) {
+      if (!params.id || !params.rera) {
         toast.error("Missing RERA or Charge ID");
         return;
       }
 
       const response = await updatePreferenceLocationChargeDetails(
-        rera,
-        id,
+        params.rera,
+        params.id,
         values.summary,
         values.disabled
       );
@@ -45,7 +58,7 @@ const EditCharges = () => {
       if (response?.error === false) {
         toast.success("Details updated successfully!");
         setTimeout(() => {
-          router.push(`/org-admin/society/charges/?rera=${rera}`);
+          router.push(`/org-admin/society/charges/?rera=${params.rera}`);
         }, 1000);
       } else {
         toast.error(response?.message || "Update failed");
