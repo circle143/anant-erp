@@ -85,7 +85,7 @@ const Page = () => {
                 </p>
               )}
               <p>
-                <strong>Amount:</strong> ₹{item.amount}
+                <strong>Amount:</strong> {item.amount}%
               </p>
               <p>
                 <strong>Amount Paid:</strong> ₹

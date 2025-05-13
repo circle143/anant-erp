@@ -5,7 +5,7 @@ import {
   getAllSocietySoldFlats,
   getAllSocietyUnsoldFlats,
   deleteFlat,
-  getSalePaymentBreakDown,
+  getSocietyFlatsByName,
 } from "@/redux/action/org-admin";
 import { toast } from "react-hot-toast";
 import styles from "./page.module.scss";
@@ -35,102 +35,112 @@ const Page = () => {
     index: number;
   } | null>(null);
   const [showDeletePopup, setShowDeletePopup] = useState(false);
-  const fetchData = async (
-    cursor: string | null = null,
-    isNext = true,
-    filter: string = "all"
-  ) => {
-    setLoading(true);
-    if (!rera) return;
+  const [searchTerm, setSearchTerm] = useState<string>("");
+  const [isSearchMode, setIsSearchMode] = useState<boolean>(false);
+const fetchData = async (
+  cursor: string | null = null,
+  isNext = true,
+  filter: string = "all",
+  search: string = ""
+) => {
+  setLoading(true);
+  if (!rera) return;
 
-    let response;
-    let reponse2;
+  let response;
+  if (search.trim() !== "") {
+    setIsSearchMode(true);
+    response = await getSocietyFlatsByName(rera, search.trim(), cursor || "");
+  } else {
+    setIsSearchMode(false);
     if (filter === "all") {
       response = await getFlats(cursor || "", rera);
-      console.log("response", response);
-      // reponse2 = await getSalePaymentBreakDown(rera);
-      // console.log("response2", reponse2);
     } else if (filter === "sold") {
       response = await getAllSocietySoldFlats(cursor || "", rera);
     } else if (filter === "unsold") {
       response = await getAllSocietyUnsoldFlats(cursor || "", rera);
     } else {
-      //   console.error("Invalid filter:", filter);
       setLoading(false);
       return;
     }
+  }
 
-    const updatedItems = await Promise.all(
-      response.data.items.map(async (item: any) => {
-        // If there's a saleDetail and at least one owner with a photo
-        if (item.saleDetail?.owners && Array.isArray(item.saleDetail.owners)) {
-          const updatedOwners = await Promise.all(
-            item.saleDetail.owners.map(async (owner: any) => {
-              if (owner.photo) {
-                try {
-                  const signedUrl = await getUrl({
-                    path: owner.photo,
-                    options: {
-                      validateObjectExistence: true,
-                      expiresIn: 3600,
-                    },
-                  });
-                  console.log(
-                    "No photo found for owner:",
-                    signedUrl.url.toString()
-                  );
-                  return {
-                    ...owner,
-                    photo: signedUrl.url.toString(),
-                  };
-                } catch (err) {
-                  console.error(
-                    "Error generating URL for photo:",
-                    owner.photo,
-                    err
-                  );
-                  return owner; // fallback to original if error
-                }
+  const updatedItems = await Promise.all(
+    response.data.items.map(async (item: any) => {
+      if (item.saleDetail?.owners && Array.isArray(item.saleDetail.owners)) {
+        const updatedOwners = await Promise.all(
+          item.saleDetail.owners.map(async (owner: any) => {
+            if (owner.photo) {
+              try {
+                const signedUrl = await getUrl({
+                  path: owner.photo,
+                  options: {
+                    validateObjectExistence: true,
+                    expiresIn: 3600,
+                  },
+                });
+                return {
+                  ...owner,
+                  photo: signedUrl.url.toString(),
+                };
+              } catch (err) {
+                console.error("Error generating URL for:", owner.photo, err);
+                return owner;
               }
+            }
+            return owner;
+          })
+        );
+        return {
+          ...item,
+          saleDetail: {
+            ...item.saleDetail,
+            owners: updatedOwners,
+          },
+        };
+      }
+      return item;
+    })
+  );
 
-              return owner;
-            })
-          );
-          return {
-            ...item,
-            saleDetail: {
-              ...item.saleDetail,
-              owners: updatedOwners,
-            },
-          };
-        }
+  setOrgData(updatedItems);
+  setHasNextPage(response.data.pageInfo.nextPage);
+  setCursor(response.data.pageInfo.cursor);
 
-        return item;
-      })
-    );
+  if (isNext && cursor !== null) {
+    setCursorStack((prev) => [...prev, cursor]);
+  }
 
-    setOrgData(updatedItems);
-    setHasNextPage(response.data.pageInfo.nextPage);
-    setCursor(response.data.pageInfo.cursor);
+  setLoading(false);
+};
 
-    if (isNext && cursor !== null) {
-      setCursorStack((prev) => [...prev, cursor]);
-    }
+useEffect(() => {
+  fetchData(null, false, selectedFilter, searchTerm);
+}, [rera, selectedFilter]);
+  const debouncedSearchChange = useCallback(
+    debounce((value: string) => {
+      setCursor(null);
+      setCursorStack([]);
+      setSearchTerm(value);
+      fetchData(null, false, selectedFilter, value);
+    }, 700),
+    [rera, selectedFilter]
+  );
 
-    setLoading(false);
+  // 🧠 Called on input change
+  const handleSearchChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const value = e.target.value;
+    debouncedSearchChange(value);
+  };
+  const handleNext = () => {
+    fetchData(cursor, true, selectedFilter, searchTerm);
   };
 
-  useEffect(() => {
-    fetchData(null, false, selectedFilter);
-  }, [rera, selectedFilter]);
-
-  const handleNext = () => fetchData(cursor, true, selectedFilter);
-
+  // ◀️ Previous Page
   const handlePrevious = () => {
     if (cursorStack.length > 0) {
       const prevCursor = cursorStack[cursorStack.length - 2];
       setCursorStack((prev) => prev.slice(0, -1));
-      fetchData(prevCursor, false, selectedFilter);
+      fetchData(prevCursor, false, selectedFilter, searchTerm);
     }
   };
 
@@ -142,7 +152,6 @@ const Page = () => {
     }, 300),
     []
   );
-
   const handleFilterChange = (e: React.ChangeEvent<HTMLSelectElement>) => {
     const value = e.target.value;
     debouncedFilterChange(value);
@@ -172,7 +181,7 @@ const Page = () => {
       const response = await deleteFlat(userToDelete.flatId, rera);
       if (!response.error) {
         // Optionally show success message
-        await fetchData(null, false, selectedFilter); // Refresh user list
+        await fetchData(null, false, selectedFilter, searchTerm);// Refresh user list
         toast.success("Flat deleted successfully");
       }
     } catch (err) {
@@ -187,20 +196,30 @@ const Page = () => {
     const url = `${path}?id=${id}&rera=${rera}`;
     router.push(url);
   };
-  
+
   return (
     <div className={`container ${styles.container}`}>
       <div className={styles.header}>
         <h2>Flat List</h2>
-        <select
-          className={styles.selectFilter}
-          onChange={handleFilterChange}
-          defaultValue="all"
-        >
-          <option value="all">All</option>
-          <option value="sold">Sold</option>
-          <option value="unsold">Unsold</option>
-        </select>
+
+        <div className={styles.controls}>
+          <input
+            type="text"
+            placeholder="Search by name"
+            className={styles.searchInput}
+            onChange={handleSearchChange} // Implement this in your component
+          />
+
+          <select
+            className={styles.selectFilter}
+            onChange={handleFilterChange}
+            defaultValue="all"
+          >
+            <option value="all">All</option>
+            <option value="sold">Sold</option>
+            <option value="unsold">Unsold</option>
+          </select>
+        </div>
       </div>
 
       {loading ? (

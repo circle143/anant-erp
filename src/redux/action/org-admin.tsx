@@ -2,6 +2,7 @@ import axios from "axios";
 import {
   CreateSocietyRequestBodyInput,
   GetAllSocitiesInput,
+  DeleteSocietyInput,
 } from "@/utils/routes/society/types";
 import {
   GetSocietyFlats,
@@ -9,6 +10,7 @@ import {
   CreateFlatRequestBodyInput,
   GetTowerFlats,
   DeleteFlatInput,
+  GetSocietyFlatsByName,
 } from "@/utils/routes/flat/types";
 import {
   CreateTowerInput,
@@ -1079,6 +1081,52 @@ export const addPaymentInstallmentToSale = async (
   } catch (error: any) {
     console.error(
       "Error :",
+      error.response?.data || error.message
+    );
+    return { error: true, message: error.message };
+  }
+};
+
+export const getSocietyFlatsByName = async (
+  societyReraNumber: string,
+  name: string,
+  cursor?: string
+) => {
+  try {
+    const token = await getIdToken();
+    const input: GetSocietyFlatsByName = {
+      societyReraNumber,
+      cursor: cursor ?? "",
+      name,
+    };
+    const url = flat.getSocietyFlatsByName.getEndpoint(input);
+    const response = await axios.get(createURL(url), {
+      headers: { Authorization: `Bearer ${token}` },
+    });
+    return response.data;
+  } catch (error: any) {
+    console.error(
+      "Error :",
+      error.response?.data || error.message
+    );
+    return { error: true, message: error.message };
+  }
+};
+export const deleteSociety = async (reraNumber: string) => {
+  try {
+    const token = await getIdToken();
+    const input: DeleteSocietyInput = {
+     reraNumber
+    };
+    const url = society.deleteSociety.getEndpoint(input);
+    const response = await axios.delete(createURL(url), {
+      headers: { Authorization: `Bearer ${token}` },
+    });
+
+    return response.data;
+  } catch (error: any) {
+    console.error(
+      "Error deleting:",
       error.response?.data || error.message
     );
     return { error: true, message: error.message };
