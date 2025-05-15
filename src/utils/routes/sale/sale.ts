@@ -4,6 +4,7 @@ import {
 	AddPaymentInstallmentToSale,
 	GetSalePaymentBreakDown,
 	GetSocietySalesReport,
+	GetTowerSalesReport,
 	UpdateCustomerInput,
 	UpdateCustomerRequestBodyInput,
 } from "./types";
@@ -51,6 +52,18 @@ export const customer = {
 	getSocietySaleReport: {
 		getEndpoint: (input: GetSocietySalesReport) => {
 			return getBasePath(input.societyReraNumber) + "/report";
+		},
+		getReqBody: () => {
+			// no request body required
+		},
+		requestMethod: "GET",
+	},
+	getTowerSalesReport: {
+		getEndpoint: (input: GetTowerSalesReport) => {
+			return (
+				getBasePath(input.societyReraNumber) +
+				`/tower/${input.towerId}/report`
+			);
 		},
 		getReqBody: () => {
 			// no request body required

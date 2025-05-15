@@ -5,7 +5,7 @@ export interface CustomerDetails {
 	lastName: string;
 	dateOfBirth: Date; // ISO string representation of time.Time
 	gender: string;
-  
+
 	maritalStatus: string;
 	nationality: string;
 	email: string;
@@ -59,4 +59,9 @@ export interface AddPaymentInstallmentToSale {
 
 export interface GetSocietySalesReport {
 	societyReraNumber: string;
+}
+
+export interface GetTowerSalesReport {
+	societyReraNumber: string;
+	towerId: string;
 }
