@@ -6,7 +6,8 @@ import Modal from "@mui/material/Modal";
 import styles from "./page.module.scss";
 import Spinner from "react-bootstrap/Spinner";
 import { formatIndianCurrencyWithDecimals } from "@/utils/formatIndianCurrencyWithDecimals";
-const SaleReportContent = ({ id, rera }: { id: string; rera: string }) => {
+
+const SaleReportContent = ({ rera }: { rera: string }) => {
   const [response, setResponse] = useState<any>(null);
   const [loading, setLoading] = useState<boolean>(true);
   const [error, setError] = useState<string | null>(null);
@@ -14,7 +15,7 @@ const SaleReportContent = ({ id, rera }: { id: string; rera: string }) => {
   const fetchData = useCallback(async () => {
     try {
       setLoading(true);
-      const data = await getSocietySaleReport(rera, id);
+      const data = await getSocietySaleReport(rera); 
       if (data?.error) {
         setError(data.message || "Unknown error occurred");
       } else {
@@ -25,7 +26,7 @@ const SaleReportContent = ({ id, rera }: { id: string; rera: string }) => {
     } finally {
       setLoading(false);
     }
-  }, [id, rera]);
+  }, [rera]);
 
   useEffect(() => {
     fetchData();
@@ -64,24 +65,23 @@ const SaleReportContent = ({ id, rera }: { id: string; rera: string }) => {
 };
 
 interface SaleReportModalProps {
-  id: string;
   rera: string;
 }
 
-const SaleReportModal: React.FC<SaleReportModalProps> = ({ id, rera }) => {
+const SaleReportModal: React.FC<SaleReportModalProps> = ({ rera }) => {
   const [open, setOpen] = useState(false);
   const handleOpen = () => setOpen(true);
   const handleClose = () => setOpen(false);
 
   return (
     <div>
-      <button onClick={handleOpen} className={styles.button}>
+      <button onClick={handleOpen} >
         Sale Report
       </button>
 
       <Modal open={open} onClose={handleClose}>
         <Box className={styles.modal}>
-          <SaleReportContent id={id} rera={rera} />
+          <SaleReportContent rera={rera} />
         </Box>
       </Modal>
     </div>

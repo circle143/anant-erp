@@ -457,7 +457,7 @@ const Page = () => {
                                   </button>
 
                                   <SaleReportModal
-                                    id={org.saleDetail.id}
+                              
                                     rera={rera ?? ""}
                                   />
                                   <PaymentBreakdownModal

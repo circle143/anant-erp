@@ -1038,13 +1038,12 @@ export const getSalePaymentBreakDown = async (
 };
 export const getSocietySaleReport = async (
   societyReraNumber: string,
-  saleId: string
+ 
 ) => {
   try {
     const token = await getIdToken();
-    const input: GetSalePaymentBreakDown = {
+    const input: GetSocietySalesReport = {
       societyReraNumber,
-      saleId,
     };
     const url = customer.getSocietySaleReport.getEndpoint(input);
     const response = await axios.get(createURL(url), {
