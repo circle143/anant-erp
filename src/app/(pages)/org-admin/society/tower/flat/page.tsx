@@ -14,6 +14,7 @@ import { debounce } from "lodash";
 import { useRouter, useSearchParams } from "next/navigation";
 import { getUrl, uploadData } from "aws-amplify/storage";
 import SaleReportModal from "@/components/sale-report/sale_report";
+import { formatIndianCurrencyWithDecimals } from "@/utils/formatIndianCurrencyWithDecimals";
 import PaymentBreakdownModal from "@/components/payment-breakdown/payment_breakdown";
 const Page = () => {
   const [orgData, setOrgData] = useState<any[]>([]);
@@ -355,29 +356,32 @@ const Page = () => {
                                     <div className={styles.totalPriceSection}>
                                       <h4>Paid</h4>
                                       <p>
-                                        <strong>₹</strong>{" "}
-                                        {org.saleDetail?.paid != null
-                                          ? org.saleDetail.paid
-                                          : "0.00"}
+                                        {formatIndianCurrencyWithDecimals(
+                                          org.saleDetail?.paid != null
+                                            ? org.saleDetail.paid
+                                            : "0.00"
+                                        )}
                                       </p>
                                     </div>
                                     <div className={styles.totalPriceSection}>
                                       <h4>Remaining</h4>
                                       <p>
-                                        <strong>₹</strong>{" "}
-                                        {org.saleDetail?.paid != null
-                                          ? org.saleDetail.remaining
-                                          : "0.00"}
+                                        {formatIndianCurrencyWithDecimals(
+                                          org.saleDetail?.paid != null
+                                            ? org.saleDetail.remaining
+                                            : "0.00"
+                                        )}
                                       </p>
                                     </div>
                                     {/* Total Price */}
                                     <div className={styles.totalPriceSection}>
                                       <h4>Total Price</h4>
                                       <p>
-                                        <strong>₹</strong>{" "}
-                                        {org.saleDetail?.paid != null
-                                          ? org.saleDetail.totalPrice
-                                          : "0.00"}
+                                        {formatIndianCurrencyWithDecimals(
+                                          org.saleDetail?.paid != null
+                                            ? org.saleDetail.totalPrice
+                                            : "0.00"
+                                        )}
                                       </p>
                                     </div>
                                     {/* Price Breakdown */}
@@ -397,7 +401,7 @@ const Page = () => {
                                               <th>Price</th>
 
                                               <th>Type</th>
-                                              <th>Super Area</th>
+                                              <th>Super Area(sqft)</th>
                                               <th>Total</th>
                                             </tr>
                                           </thead>
@@ -408,10 +412,11 @@ const Page = () => {
                                                   <td>{index + 1}</td>
                                                   <td>{item.summary}</td>
                                                   <td>
-                                                    ₹
-                                                    {item.price != null
-                                                      ? item.price
-                                                      : "0.00"}
+                                                    {formatIndianCurrencyWithDecimals(
+                                                      item.price != null
+                                                        ? item.price
+                                                        : "0.00"
+                                                    )}
                                                   </td>
                                                   <td>
                                                     {item.type ||
@@ -423,10 +428,10 @@ const Page = () => {
                                                       : "0.00"}
                                                   </td>
                                                   <td>
-                                                    ₹
-                                                    {item.total != null
+                                                    {formatIndianCurrencyWithDecimals(item.total !=
+                                                    null
                                                       ? item.total
-                                                      : "0.00"}
+                                                      : "0.00")}
                                                   </td>
                                                 </tr>
                                               )

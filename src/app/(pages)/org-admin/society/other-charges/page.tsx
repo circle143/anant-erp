@@ -6,7 +6,7 @@ import Loader from "@/components/Loader/Loader";
 import { debounce } from "lodash";
 import DropDownCharges from "@/components/Dropdown/DropDownCharges";
 import { useRouter, useSearchParams } from "next/navigation";
-
+import { formatIndianCurrencyWithDecimals } from "@/utils/formatIndianCurrencyWithDecimals";
 const Page = () => {
     const [orgData, setOrgData] = useState<any[]>([]);
     const [cursor, setCursor] = useState<string | null>(null);
@@ -92,7 +92,8 @@ const Page = () => {
                           </div>
 
                           <div>
-                            <strong>Price:</strong> {org.price} per sqft
+                            <strong>Price:</strong>{" "}
+                            {formatIndianCurrencyWithDecimals(org.price)} per sqft
                           </div>
 
                           <div>
