@@ -13,6 +13,8 @@ import Loader from "@/components/Loader/Loader";
 import { debounce } from "lodash";
 import { useRouter, useSearchParams } from "next/navigation";
 import { getUrl, uploadData } from "aws-amplify/storage";
+import SaleReportModal from "@/components/sale-report/sale_report";
+import PaymentBreakdownModal from "@/components/payment-breakdown/payment_breakdown";
 const Page = () => {
   const [orgData, setOrgData] = useState<any[]>([]);
   const [cursor, setCursor] = useState<string | null>(null);
@@ -270,7 +272,9 @@ const Page = () => {
                                             className={styles.ownerImage}
                                           />
                                         ) : (
-                                          <span>Not Available</span>
+                                          <div className={styles.noLogo}>
+                                            No Logo
+                                          </div>
                                         )}
                                       </div>
                                       <p>
@@ -345,14 +349,7 @@ const Page = () => {
                                     </div>
                                   )
                                 )}
-                                <button
-                                  className={styles.toggleButton}
-                                  onClick={() => toggleAdditionalDetails(index)}
-                                >
-                                  {showAdditionalDetails === index
-                                    ? "Show Less"
-                                    : "Show More"}
-                                </button>
+
                                 {showAdditionalDetails === index && (
                                   <>
                                     <div className={styles.totalPriceSection}>
@@ -422,17 +419,13 @@ const Page = () => {
                                                   </td>
                                                   <td>
                                                     {item.superArea != null
-                                                      ? 
-                                                          item.superArea
-                                                        
+                                                      ? item.superArea
                                                       : "0.00"}
                                                   </td>
                                                   <td>
                                                     ₹
                                                     {item.total != null
-                                                      ? 
-                                                          item.total
-                                                        
+                                                      ? item.total
                                                       : "0.00"}
                                                   </td>
                                                 </tr>
@@ -446,6 +439,27 @@ const Page = () => {
                                     </div>
                                   </>
                                 )}
+                                <div className={styles.buttonGroup}>
+                                  <button
+                                    className={styles.toggleButton}
+                                    onClick={() =>
+                                      toggleAdditionalDetails(index)
+                                    }
+                                  >
+                                    {showAdditionalDetails === index
+                                      ? "Show Less"
+                                      : "Show More"}
+                                  </button>
+
+                                  <SaleReportModal
+                                    id={org.saleDetail.id}
+                                    rera={rera ?? ""}
+                                  />
+                                  <PaymentBreakdownModal
+                                    id={org.saleDetail.id}
+                                    rera={rera ?? ""}
+                                  />
+                                </div>
                               </div>
                             )}
                           </div>

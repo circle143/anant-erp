@@ -5,7 +5,7 @@ export interface CustomerDetails {
 	lastName: string;
 	dateOfBirth: Date; // ISO string representation of time.Time
 	gender: string;
-	photo: string;
+  
 	maritalStatus: string;
 	nationality: string;
 	email: string;

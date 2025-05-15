@@ -69,7 +69,7 @@ const EditCharges = () => {
         {({ isSubmitting }) => (
           <Form className={styles.form}>
             <div className={styles.formGroup}>
-              <label htmlFor="price">Price</label>
+              <label htmlFor="price">Price per sqft</label>
               <Field
                 type="number"
                 name="price"

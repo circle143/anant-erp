@@ -70,19 +70,26 @@ const CustomerSchema = Yup.object()
       .max(minDOB, "Customer must be at least 18 years old")
       .required("Date of Birth is required"),
     gender: Yup.string().required("Gender is required"),
-    photo: Yup.mixed()
-      .test(
-        "fileType",
-        "Only JPG, JPEG, PNG, and WEBP files are allowed",
-        (value) => {
-          if (!value) return false;
-          if (typeof value === "string") return true;
-          if (value instanceof File) {
-            return SUPPORTED_FORMATS.includes(value.type);
-          }
-          return false;
+
+    photo: Yup.mixed().test(
+      "fileType",
+      "Only JPG, JPEG, PNG, and WEBP files are allowed",
+      (value) => {
+        // Allow if not provided (optional)
+        if (!value) return true;
+
+        // Allow if it's a URL (already uploaded)
+        if (typeof value === "string") return true;
+
+        // Validate if it's a File
+        if (value instanceof File) {
+          return SUPPORTED_FORMATS.includes(value.type);
         }
-      ),
+
+        return false;
+      }
+    ),
+
     maritalStatus: Yup.string().required("Marital Status is required"),
     nationality: Yup.string().required("Nationality is required"),
     email: Yup.string().email("Invalid email").required("Email is required"),
@@ -378,8 +385,9 @@ const Sale = () => {
             }).result;
 
             photoPath = result.path;
-            delete customer.photoPreview; // Use the uploaded file's path
+            // Use the uploaded file's path
           }
+          delete customer.photoPreview;
           const formattedDOB = customer.dateOfBirth
             ? new Date(customer.dateOfBirth).toISOString().slice(0, 10)
             : "";
@@ -414,7 +422,7 @@ const Sale = () => {
       );
 
       // Call your API to submit the updated customer data
-
+      // console.log("Updated Customers:", updatedCustomers);
       const response = await addCustomer(
         society,
         flat,
@@ -674,7 +682,6 @@ const Sale = () => {
                           value={values.charges}
                           fullWidth
                           size="small"
-                          
                           renderValue={(selected) => (
                             <Box
                               sx={{

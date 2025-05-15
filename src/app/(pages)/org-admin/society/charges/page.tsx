@@ -91,12 +91,12 @@ const Page = () => {
 
                         {org.type === "Floor" && (
                           <div>
-                            <strong>Floor:</strong> {org["floor;omitempty"]}
+                            <strong>Floor:</strong> {org.floor}
                           </div>
                         )}
 
                         <div>
-                          <strong>Price:</strong> {org.price}
+                          <strong>Price:</strong> {org.price} per sqft
                         </div>
 
                         <div>
