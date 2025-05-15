@@ -41,18 +41,24 @@ const PaymentBreakdownContent = ({
     }, [fetchData]);
 
     const handleMarkAsPaid = async (index: number, paymentId: string) => {
-        try {
-            const res = await addPaymentInstallmentToSale(rera, paymentId, id);
-            if (res?.error) {
-                toast.error(res.message || "Failed to mark as paid");
-            } else {
-                toast.success("Installment marked as paid");
-                fetchData();
-            }
-        } catch (err: any) {
-            toast.error(err.message || "Error processing request");
+      const confirm = window.confirm(
+        "Are you sure you want to mark this installment as paid?"
+      );
+      if (!confirm) return;
+
+      try {
+        const res = await addPaymentInstallmentToSale(rera, paymentId, id);
+        if (res?.error) {
+          toast.error(res.message || "Failed to mark as paid");
+        } else {
+          toast.success("Installment marked as paid");
+          fetchData();
         }
+      } catch (err: any) {
+        toast.error(err.message || "Error processing request");
+      }
     };
+
 
     if (loading)
         return (

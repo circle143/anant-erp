@@ -272,7 +272,9 @@ const Page = () => {
                                             className={styles.ownerImage}
                                           />
                                         ) : (
-                                          <span>Not Available</span>
+                                          <div className={styles.noLogo}>
+                                            No Logo
+                                          </div>
                                         )}
                                       </div>
                                       <p>

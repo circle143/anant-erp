@@ -97,17 +97,7 @@
   border: 2px solid #0070f3;
 }
 
-.noLogo {
-  width: 80px;
-  height: 80px;
-  border-radius: 50%;
-  background-color: #e0e0e0;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  color: #777;
-  font-size: 0.8rem;
-}
+
 
 .details {
   display: flex;
@@ -273,7 +263,17 @@
   align-items: center;
   gap: 0.5rem;
 }
-
+.noLogo {
+  width: 60px;
+  height: 60px;
+  border-radius: 50%;
+  background-color: #e0e0e0;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  color: #777;
+  font-size: 0.8rem;
+}
 .ownerImage {
   width: 60px;
   height: 60px;

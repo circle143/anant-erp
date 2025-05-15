@@ -422,7 +422,7 @@ const Sale = () => {
       );
 
       // Call your API to submit the updated customer data
-      console.log("Updated Customers:", updatedCustomers);
+      // console.log("Updated Customers:", updatedCustomers);
       const response = await addCustomer(
         society,
         flat,

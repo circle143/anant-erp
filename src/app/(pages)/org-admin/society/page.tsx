@@ -1,6 +1,6 @@
 "use client";
 import React, { useEffect, useState, useCallback } from "react";
-import { getSocieties} from "@/redux/action/org-admin";
+import { getSocieties } from "@/redux/action/org-admin";
 import styles from "./page.module.scss";
 import Loader from "@/components/Loader/Loader";
 import { debounce } from "lodash";
@@ -27,7 +27,7 @@ const Page = () => {
   const fetchData = async (cursor: string | null = null, isNext = true) => {
     setLoading(true);
     const response = await getSocieties(cursor);
-
+    console.log("response", response);
     if (!response.error && response.data?.items?.length) {
       // Replace coverPhoto with signed URL
       const updatedItems = await Promise.all(

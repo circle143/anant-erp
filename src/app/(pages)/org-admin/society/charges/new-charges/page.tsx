@@ -137,7 +137,7 @@ const Page = () => {
             )}
 
             <div className={styles.formGroup}>
-              <label htmlFor="Price">Price</label>
+              <label htmlFor="Price">Price per sqft</label>
               <Field
                 type="number"
                 id="Price"
