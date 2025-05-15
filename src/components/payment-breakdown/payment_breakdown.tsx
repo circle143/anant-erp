@@ -9,6 +9,7 @@ import Modal from "@mui/material/Modal";
 import styles from "./page.module.scss";
 import toast from "react-hot-toast";
 import Spinner from "react-bootstrap/Spinner";
+import { formatIndianCurrencyWithDecimals } from "@/utils/formatIndianCurrencyWithDecimals";
 const PaymentBreakdownContent = ({
     id,
     rera,
@@ -71,56 +72,53 @@ const PaymentBreakdownContent = ({
     if (error) return <p className={styles.error}>{error}</p>;
 
     return (
-        <div className={styles.container}>
-            <h1>Sale Payment Breakdown</h1>
-            <div className={styles.grid}>
-                {response.map((item, index) => (
-                    <div className={styles.card} key={index}>
-                        <div>
-                            <p>
-                                <strong>Scope:</strong> {item.scope}
-                            </p>
-                            <p>
-                                <strong>Summary:</strong> {item.summary}
-                            </p>
-                            <p>
-                                <strong>Condition Type:</strong>{" "}
-                                {item.conditionType}
-                            </p>
-                            {item.conditionValue && (
-                                <p>
-                                    <strong>Condition Value:</strong>{" "}
-                                    {item.conditionValue}
-                                </p>
-                            )}
-                            <p>
-                                <strong>Amount:</strong> {item.amount}%
-                            </p>
-                            <p>
-                                <strong>Amount Paid:</strong> ₹
-                                {parseFloat(item.amountPaid).toLocaleString()}
-                            </p>
-                            <p>
-                                <strong>Paid:</strong>{" "}
-                                {item.paid ? "Yes" : "No"}
-                            </p>
-                        </div>
-                        <div>
-                            {!item.paid && (
-                                <button
-                                    onClick={() =>
-                                        handleMarkAsPaid(index, item.id)
-                                    }
-                                    className={styles.paidButton}
-                                >
-                                    Mark as Paid
-                                </button>
-                            )}
-                        </div>
-                    </div>
-                ))}
+      <div className={styles.container}>
+        <h1>Sale Payment Breakdown</h1>
+        <div className={styles.grid}>
+          {response.map((item, index) => (
+            <div className={styles.card} key={index}>
+              <div>
+                <p>
+                  <strong>Scope:</strong> {item.scope}
+                </p>
+                <p>
+                  <strong>Summary:</strong> {item.summary}
+                </p>
+                <p>
+                  <strong>Condition Type:</strong> {item.conditionType}
+                </p>
+                {item.conditionValue && (
+                  <p>
+                    <strong>Condition Value:</strong> {item.conditionValue}
+                  </p>
+                )}
+                <p>
+                  <strong>Amount:</strong> {item.amount}%
+                </p>
+                <p>
+                  <strong>Amount Paid: </strong> 
+                  {formatIndianCurrencyWithDecimals(
+                    item.amountPaid
+                  )}
+                </p>
+                <p>
+                  <strong>Paid:</strong> {item.paid ? "Yes" : "No"}
+                </p>
+              </div>
+              <div>
+                {!item.paid && (
+                  <button
+                    onClick={() => handleMarkAsPaid(index, item.id)}
+                    className={styles.paidButton}
+                  >
+                    Mark as Paid
+                  </button>
+                )}
+              </div>
             </div>
+          ))}
         </div>
+      </div>
     );
 };
 interface PaymentBreakdownModalProps {
