@@ -49,7 +49,7 @@ export const customer = {
 		requestMethod: "GET",
 	},
 	getSocietySaleReport: {
-		getEndpoint: (input: GetSalePaymentBreakDown) => {
+		getEndpoint: (input: GetSocietySalesReport) => {
 			return getBasePath(input.societyReraNumber) + "/report";
 		},
 		getReqBody: () => {
