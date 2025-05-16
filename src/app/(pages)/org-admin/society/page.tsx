@@ -6,6 +6,8 @@ import Loader from "@/components/Loader/Loader";
 import { debounce } from "lodash";
 import { getUrl, uploadData } from "aws-amplify/storage";
 import DropdownMenu from "@/components/Dropdown/DropdownMenu";
+import CustomBreadcrumbs from "@/components/Breadcrumbs/Breadcrumbs";
+import { society } from "@/utils/breadcrumbs";
 const Page = () => {
   const [orgData, setOrgData] = useState<any[]>([]);
   const [cursor, setCursor] = useState<string | null>(null);
@@ -91,6 +93,7 @@ const Page = () => {
   return (
     <div className={`container ${styles.container}`}>
       <h2>Societies List</h2>
+      <CustomBreadcrumbs items={society} />
       {loading ? (
         <div className={styles.loading}>
           <Loader />

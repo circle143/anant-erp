@@ -1,13 +1,13 @@
 "use client";
-
 import React, { useEffect, useState, useCallback } from "react";
-import { getTowers } from "@/redux/action/org-admin";
+import { getFlatTypes } from "@/redux/action/org-admin";
 import styles from "./page.module.scss";
 import Loader from "@/components/Loader/Loader";
 import { debounce } from "lodash";
-import DropdownTower from "@/components/Dropdown/DropdownTower";
+import DropDownFlatType from "@/components/Dropdown/DropDownFlatType";
 import { useRouter, useSearchParams } from "next/navigation";
-import { formatIndianCurrencyWithDecimals } from "@/utils/formatIndianCurrencyWithDecimals";
+import CustomBreadcrumbs from "@/components/Breadcrumbs/Breadcrumbs";
+import { flat_type } from "@/utils/breadcrumbs";
 const Page = () => {
   const [orgData, setOrgData] = useState<any[]>([]);
   const [cursor, setCursor] = useState<string | null>(null);
@@ -23,7 +23,7 @@ const Page = () => {
   const fetchData = async (cursor: string | null = null, isNext = true) => {
     setLoading(true);
     if (!rera) return;
-    const response = await getTowers(cursor, rera);
+    const response = await getFlatTypes(cursor, rera);
     console.log("response", response);
     // Set the updated state
     setOrgData(response.data.items);
@@ -62,15 +62,18 @@ const Page = () => {
   return (
     <div className={`container ${styles.container}`}>
       <div className={styles.header}>
-        <h2>Tower List</h2>
+        <h2>Flat type List</h2>
         <button
           onClick={() =>
-            router.push(`/org-admin/society/tower/new-tower?rera=${rera}`)
+            router.push(
+              `/org-admin/society/flat-types/new-flat-type?rera=${rera}`
+            )
           }
         >
-          New Tower
+          New Flat type
         </button>
       </div>
+         <CustomBreadcrumbs items={flat_type} />
       {loading ? (
         <div className={styles.loading}>
           <Loader />
@@ -84,45 +87,25 @@ const Page = () => {
               <ul className={styles.orgList}>
                 {orgData.map((org) => (
                   <li key={org.id} className={styles.orgItem}>
-                    {/* <div className={styles.logoContainer}>
-              {org.coverPhoto ? (
-                <img
-                  src={org.coverPhoto}
-                  alt={`${org.coverPhoto} logo`}
-                  className={styles.logo}
-                />
-              ) : (
-                <div className={styles.noLogo}>No Logo</div>
-              )}
-            </div> */}
                     <div className={styles.rightSection}>
                       <div className={styles.details}>
                         <div>
                           <strong>Name:</strong> {org.name}
                         </div>
-                        {/* <div>
-              <strong>GST:</strong> {org.gst || "N/A"}
-            </div> */}
                         <div>
-                          {" "}
-                          <strong>Floor Count:</strong> {org.floorCount}
+                          <strong>Accommodation:</strong> {org.accommodation}
                         </div>
                         <div>
-                          {" "}
-                          <strong>Rera Number:</strong> {org.societyId}
+                          <strong>Balcony Area:</strong> {org.balconyArea} sqft
                         </div>
                         <div>
-                          {" "}
-                          <strong>Paid Amount:</strong>{" "}
-                          {formatIndianCurrencyWithDecimals(org.paidAmount)}
+                          <strong>Built Up Area:</strong> {org.builtUpArea} sqft
                         </div>
                         <div>
-                          <strong>Remaining:</strong>{" "}
-                          {formatIndianCurrencyWithDecimals(org.remaining)}
+                          <strong>Carpet Area:</strong> {org.reraCarpetArea} sqft
                         </div>
                         <div>
-                          <strong>Total Amount:</strong>{" "}
-                          {formatIndianCurrencyWithDecimals(org.totalAmount)} 
+                          <strong>Super Area:</strong> {org.superArea} sqft
                         </div>
                         <div>
                           <strong>Created At:</strong>{" "}
@@ -130,37 +113,15 @@ const Page = () => {
                         </div>
                       </div>
                       <div className={styles.dropdown}>
-                        <DropdownTower
-                          soldFlats={org.soldFlats}
-                          totalFlats={org.totalFlats}
-                          unsoldFlats={org.unsoldFlats}
-                          reraNumber={org.societyId}
-                          towerId={org.id}
+                        <DropDownFlatType
+                          reraNumber={rera ?? ""}
+                          id={org.id}
+                          name={org.name}
+                          area={org.area}
+                          price={org.price}
+                          type={org.type}
                         />
                       </div>
-                      {/* {editingId === org.id ? (
-              <div className={styles.editButtons}>
-                <button
-                  className={styles.updateButton}
-                  onClick={handleStatusDone}
-                >
-                  Done
-                </button>
-                <button
-                  className={styles.cancelButton}
-                  onClick={handleCancelEdit}
-                >
-                  Cancel
-                </button>
-              </div>
-            ) : (
-              <button
-                className={styles.updateButton}
-                onClick={() => handleStatusClick(org.id, org.status)}
-              >
-                Update Status
-              </button>
-            )} */}
                     </div>
                   </li>
                 ))}

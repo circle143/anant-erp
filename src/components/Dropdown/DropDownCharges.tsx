@@ -33,7 +33,7 @@ const DropDownFlatType = ({
 
   const handleUpdatePrice = () => {
     router.push(
-      `/org-admin/society/${route}/edit-chargesPrice?rera=${reraNumber}&id=${id}&type=price&price=${price}`
+      `/org-admin/society/${route}/edit-chargePrice?rera=${reraNumber}&id=${id}&type=price&price=${price}`
     );
   };
 
@@ -54,7 +54,7 @@ const DropDownFlatType = ({
     if (optional !== undefined) queryParams.set("optional", String(optional));
 
     router.push(
-      `/org-admin/society/${route}/edit-chargesDetails?${queryParams.toString()}`
+      `/org-admin/society/${route}/edit-chargeDetails?${queryParams.toString()}`
     );
   };
 

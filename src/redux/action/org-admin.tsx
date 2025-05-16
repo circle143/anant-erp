@@ -40,6 +40,7 @@ import {
   GetSocietySalesReport,
   GetSalePaymentBreakDown,
   AddPaymentInstallmentToSale,
+  GetTowerSalesReport,
 } from "@/utils/routes/sale/types";
 import {
   GetChargesInput,
@@ -1036,10 +1037,7 @@ export const getSalePaymentBreakDown = async (
     return { error: true, message: error.message };
   }
 };
-export const getSocietySaleReport = async (
-  societyReraNumber: string,
- 
-) => {
+export const getSocietySaleReport = async (societyReraNumber: string) => {
   try {
     const token = await getIdToken();
     const input: GetSocietySalesReport = {
@@ -1059,9 +1057,9 @@ export const getSocietySaleReport = async (
   }
 };
 export const addPaymentInstallmentToSale = async (
- 	societyReraNumber: string,
-	paymentId: string,
-	saleId: string,
+  societyReraNumber: string,
+  paymentId: string,
+  saleId: string
 ) => {
   try {
     const token = await getIdToken();
@@ -1073,15 +1071,12 @@ export const addPaymentInstallmentToSale = async (
     };
 
     const url = customer.addPaymentInstallmentToSale.getEndpoint(input);
-    const response = await axios.post(createURL(url),null, {
+    const response = await axios.post(createURL(url), null, {
       headers: { Authorization: `Bearer ${token}` },
     });
     return response.data;
   } catch (error: any) {
-    console.error(
-      "Error :",
-      error.response?.data || error.message
-    );
+    console.error("Error :", error.response?.data || error.message);
     return { error: true, message: error.message };
   }
 };
@@ -1104,10 +1099,7 @@ export const getSocietyFlatsByName = async (
     });
     return response.data;
   } catch (error: any) {
-    console.error(
-      "Error :",
-      error.response?.data || error.message
-    );
+    console.error("Error :", error.response?.data || error.message);
     return { error: true, message: error.message };
   }
 };
@@ -1115,7 +1107,7 @@ export const deleteSociety = async (reraNumber: string) => {
   try {
     const token = await getIdToken();
     const input: DeleteSocietyInput = {
-     reraNumber
+      reraNumber,
     };
     const url = society.deleteSociety.getEndpoint(input);
     const response = await axios.delete(createURL(url), {
@@ -1124,10 +1116,30 @@ export const deleteSociety = async (reraNumber: string) => {
 
     return response.data;
   } catch (error: any) {
-    console.error(
-      "Error deleting:",
-      error.response?.data || error.message
-    );
+    console.error("Error deleting:", error.response?.data || error.message);
+    return { error: true, message: error.message };
+  }
+};
+
+export const getTowerSalesReport = async (
+  societyReraNumber: string,
+  towerId: string
+) => {
+  try {
+    const token = await getIdToken();
+    const input: GetTowerSalesReport = {
+      societyReraNumber,
+      towerId,
+    };
+
+    const url = customer.getTowerSalesReport.getEndpoint(input);
+    const response = await axios.get(createURL(url), {
+      headers: { Authorization: `Bearer ${token}` },
+    });
+    // console.log("response", response);
+    return response.data;
+  } catch (error: any) {
+    console.error("Error :", error.response?.data || error.message);
     return { error: true, message: error.message };
   }
 };

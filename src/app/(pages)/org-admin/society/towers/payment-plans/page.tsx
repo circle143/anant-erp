@@ -9,7 +9,7 @@ import styles from "./page.module.scss";
 import Loader from "@/components/Loader/Loader";
 import { debounce } from "lodash";
 import { useRouter, useSearchParams } from "next/navigation";
-
+import CustomBreadcrumbs from "@/components/Breadcrumbs/Breadcrumbs";
 const Page = () => {
   const [orgData, setOrgData] = useState<any[]>([]);
   const [cursor, setCursor] = useState<string | null>(null);
@@ -89,13 +89,19 @@ const Page = () => {
       alert("Failed to activate payment plan");
     }
   };
+  const payment_plan = [
+    { name: "Home", href: "/org-admin" },
+    { name: "Societies", href: "/org-admin/society" },
+    { name: "Towers", href: `/org-admin/society/tower?rera=${rera}` },
 
+    { name: "Payment Plan" },
+  ];
   return (
     <div className={`container ${styles.container}`}>
       <div className={styles.header}>
         <h2>Payment Plan List</h2>
       </div>
-
+      <CustomBreadcrumbs items={payment_plan} />
       {loading ? (
         <div className={styles.loading}>
           <Loader />

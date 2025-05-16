@@ -39,6 +39,12 @@ export const sidebarOrgAdminItems = [
     paths: ["/org-admin/users"],
   },
   {
+    eventKey: "report",
+    icon: "bx bxs-bell-ring",
+    text: "Report",
+    paths: ["/org-admin/report"],
+  },
+  {
     eventKey: "Sale",
     icon: "bx bxs-user-account",
     text: "Sale",

@@ -80,6 +80,7 @@ const ImageUploadField: React.FC<{
 
     return (
         <div className={styles.image_upload}>
+            
             <label htmlFor="imageUpload" className={styles.image_label}>
                 {preview ? (
                     <img

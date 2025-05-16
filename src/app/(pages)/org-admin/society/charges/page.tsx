@@ -64,7 +64,7 @@ const Page = () => {
         <h2>Charges List</h2>
         <button
           onClick={() =>
-            router.push(`/org-admin/society/charges/new-charges?rera=${rera}`)
+            router.push(`/org-admin/society/charges/new-charge?rera=${rera}`)
           }
         >
           New Charge

@@ -51,7 +51,7 @@ const DropdownTower = ({
           <div>
             <div
               onClick={() =>
-                handleRedirect(reraNumber, "flat", {
+                handleRedirect(reraNumber, "flats", {
                   soldFlats,
                   totalFlats,
                   unsoldFlats,
@@ -65,12 +65,12 @@ const DropdownTower = ({
           <div>
             <div
               onClick={() =>
-                handleRedirect(reraNumber, "payment-plan", {
+                handleRedirect(reraNumber, "payment-plans", {
                   towerId,
                 })
               }
             >
-              Payment Plan
+              Payment Plans
             </div>
           </div>
         </div>

@@ -67,20 +67,20 @@ const DropdownMenu = ({
 
       {isOpen && (
         <div className={styles.dropdownMenu}>
-          <div onClick={() => handleRedirect(reraNumber, "tower")}>Tower</div>
-          <div onClick={() => handleRedirect(reraNumber, "flat-type")}>
-            Flat Type
+          <div onClick={() => handleRedirect(reraNumber, "towers")}>Towers</div>
+          <div onClick={() => handleRedirect(reraNumber, "flat-types")}>
+            Flat Types
           </div>
           <div
             onClick={() =>
-              handleRedirect(reraNumber, "flat", {
+              handleRedirect(reraNumber, "flats", {
                 soldFlats,
                 totalFlats,
                 unsoldFlats,
               })
             }
           >
-            Flat
+            Flats
           </div>
           <div onClick={() => handleRedirect(reraNumber, "charges")}>
             Charges
