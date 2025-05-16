@@ -6,6 +6,7 @@ import styles from "./page.module.scss";
 import { createFlatType } from "@/redux/action/org-admin";
 import toast from "react-hot-toast";
 import { useSearchParams } from "next/navigation";
+import CustomBreadcrumbs from "@/components/Breadcrumbs/Breadcrumbs";
 
 const validationSchema = Yup.object({
     name: Yup.string()
@@ -81,115 +82,133 @@ const Page = () => {
             setLoading(false);
         }
     };
+    const new_flat_type = [
+        { name: "Home", href: "/org-admin" },
+        { name: "Societies", href: "/org-admin/society" },
+        {
+            name: "Payment Plans",
+            href: `/org-admin/society/flat-types?rera=${rera}`,
+        },
+        {
+            name: "New Flat Type",
+        },
+    ];
 
     return (
-        <div className={`container ${styles.container}`}>
-            <h1>Create Flat Type</h1>
-            <Formik
-                initialValues={{
-                    name: "",
-                    accommodation: "",
-                    reraCarpetArea: "",
-                    balconyArea: "",
-                    superArea: "",
-                }}
-                validationSchema={validationSchema}
-                onSubmit={handleSubmit}
-            >
-                {() => (
-                    <Form className={`form ${styles.form}`}>
-                        <div className={styles.formGroup}>
-                            <label htmlFor="name">Name</label>
-                            <Field
-                                type="text"
-                                id="name"
-                                name="name"
-                                className={styles.form_control}
-                            />
-                            <ErrorMessage
-                                name="name"
-                                component="p"
-                                className="text-danger"
-                            />
-                        </div>
+        <div>
+            <div style={{ paddingTop: "1rem", paddingLeft: "1rem" }}>
+                <CustomBreadcrumbs items={new_flat_type} />
+            </div>
+            <div className={`container ${styles.container}`}>
+                <h1>Create Flat Type</h1>
+                <Formik
+                    initialValues={{
+                        name: "",
+                        accommodation: "",
+                        reraCarpetArea: "",
+                        balconyArea: "",
+                        superArea: "",
+                    }}
+                    validationSchema={validationSchema}
+                    onSubmit={handleSubmit}
+                >
+                    {() => (
+                        <Form className={`form ${styles.form}`}>
+                            <div className={styles.formGroup}>
+                                <label htmlFor="name">Name</label>
+                                <Field
+                                    type="text"
+                                    id="name"
+                                    name="name"
+                                    className={styles.form_control}
+                                />
+                                <ErrorMessage
+                                    name="name"
+                                    component="p"
+                                    className="text-danger"
+                                />
+                            </div>
 
-                        <div className={styles.formGroup}>
-                            <label htmlFor="accommodation">BHK Type</label>
-                            <Field
-                                type="text"
-                                id="accommodation"
-                                name="accommodation"
-                                className={styles.form_control}
-                                placeholder="e.g. 2 BHK"
-                            />
-                            <ErrorMessage
-                                name="accommodation"
-                                component="p"
-                                className="text-danger"
-                            />
-                        </div>
+                            <div className={styles.formGroup}>
+                                <label htmlFor="accommodation">BHK Type</label>
+                                <Field
+                                    type="text"
+                                    id="accommodation"
+                                    name="accommodation"
+                                    className={styles.form_control}
+                                    placeholder="e.g. 2 BHK"
+                                />
+                                <ErrorMessage
+                                    name="accommodation"
+                                    component="p"
+                                    className="text-danger"
+                                />
+                            </div>
 
-                        <div className={styles.formGroup}>
-                            <label htmlFor="reraCarpetArea">
-                                Carpet Area (sqft)
-                            </label>
-                            <Field
-                                type="number"
-                                id="reraCarpetArea"
-                                name="reraCarpetArea"
-                                min="0"
-                                step="0.01"
-                                className={styles.form_control}
-                            />
-                            <ErrorMessage
-                                name="reraCarpetArea"
-                                component="p"
-                                className="text-danger"
-                            />
-                        </div>
+                            <div className={styles.formGroup}>
+                                <label htmlFor="reraCarpetArea">
+                                    Carpet Area (sqft)
+                                </label>
+                                <Field
+                                    type="number"
+                                    id="reraCarpetArea"
+                                    name="reraCarpetArea"
+                                    min="0"
+                                    step="0.01"
+                                    className={styles.form_control}
+                                />
+                                <ErrorMessage
+                                    name="reraCarpetArea"
+                                    component="p"
+                                    className="text-danger"
+                                />
+                            </div>
 
-                        <div className={styles.formGroup}>
-                            <label htmlFor="balconyArea">
-                                Balcony Area (sqft)
-                            </label>
-                            <Field
-                                type="number"
-                                id="balconyArea"
-                                name="balconyArea"
-                                min="0"
-                                step="0.01"
-                                className={styles.form_control}
-                            />
-                            <ErrorMessage
-                                name="balconyArea"
-                                component="p"
-                                className="text-danger"
-                            />
-                        </div>
+                            <div className={styles.formGroup}>
+                                <label htmlFor="balconyArea">
+                                    Balcony Area (sqft)
+                                </label>
+                                <Field
+                                    type="number"
+                                    id="balconyArea"
+                                    name="balconyArea"
+                                    min="0"
+                                    step="0.01"
+                                    className={styles.form_control}
+                                />
+                                <ErrorMessage
+                                    name="balconyArea"
+                                    component="p"
+                                    className="text-danger"
+                                />
+                            </div>
 
-                        <div className={styles.formGroup}>
-                            <label htmlFor="superArea">Super Area (sqft)</label>
-                            <Field
-                                type="number"
-                                id="superArea"
-                                name="superArea"
-                                step="0.01"
-                                min="0"
-                                className={styles.form_control}
-                            />
-                            <ErrorMessage
-                                name="superArea"
-                                component="p"
-                                className="text-danger"
-                            />
-                        </div>
+                            <div className={styles.formGroup}>
+                                <label htmlFor="superArea">
+                                    Super Area (sqft)
+                                </label>
+                                <Field
+                                    type="number"
+                                    id="superArea"
+                                    name="superArea"
+                                    step="0.01"
+                                    min="0"
+                                    className={styles.form_control}
+                                />
+                                <ErrorMessage
+                                    name="superArea"
+                                    component="p"
+                                    className="text-danger"
+                                />
+                            </div>
 
-                        <button type="submit" disabled={loading}>
-                            {loading ? "Submitting..." : "Submit"}
-                        </button>
-                    </Form>
-                )}
-            </Formik>
+                            <button type="submit" disabled={loading}>
+                                {loading ? "Submitting..." : "Submit"}
+                            </button>
+                        </Form>
+                    )}
+                </Formik>
+            </div>
         </div>
     );
 };

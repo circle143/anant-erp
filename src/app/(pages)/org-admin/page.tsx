@@ -10,7 +10,8 @@ import styles from "./page.module.scss";
 import Loader from "@/components/Loader/Loader";
 import { getUrl, uploadData } from "aws-amplify/storage";
 import imageCompression from "browser-image-compression";
-
+import CustomBreadcrumbs from "@/components/Breadcrumbs/Breadcrumbs";
+import { home } from "@/utils/breadcrumbs";
 const Page = () => {
     const [data, setData] = useState<any>(null);
     const [loading, setLoading] = useState(true);
@@ -149,85 +150,93 @@ const Page = () => {
     const org = data || {};
 
     return (
-        <div className={styles.organizationProfile}>
-            <div className={styles.card}>
-                {formData.logo ? (
-                    <img
-                        loading="lazy"
-                        src={formData.logo}
-                        alt="Organization Logo"
-                        className={styles.logo}
-                    />
-                ) : (
-                    <div className={styles.placeholderLogo}>No Logo</div>
-                )}
+        <div className={styles.container}>
+            <div style={{ paddingTop: "1rem", paddingLeft: "1rem" }}>
+                <CustomBreadcrumbs items={home} />
+            </div>
+            <div className={styles.organizationProfile}>
+                <div className={styles.card}>
+                    {formData.logo ? (
+                        <img
+                            loading="lazy"
+                            src={formData.logo}
+                            alt="Organization Logo"
+                            className={styles.logo}
+                        />
+                    ) : (
+                        <div className={styles.placeholderLogo}>No Logo</div>
+                    )}
 
-                {uploading && (
-                    <p className={styles.uploadingText}>Uploading preview...</p>
-                )}
-                {editMode ? (
-                    <>
-                        <input
-                            type="text"
-                            name="name"
-                            value={formData.name}
-                            onChange={handleInputChange}
-                            className={styles.input}
-                            placeholder="Organization Name"
-                            disabled={saving}
-                        />
-                        <input
-                            type="text"
-                            name="gst"
-                            value={formData.gst}
-                            onChange={handleInputChange}
-                            className={styles.input}
-                            placeholder="GST Number"
-                            disabled={saving}
-                        />
-                        <input
-                            type="file"
-                            accept="image/*"
-                            onChange={handleFileChange}
-                            className={styles.inputFile}
-                            disabled={uploading || saving}
-                        />
-                    </>
-                ) : (
-                    <>
-                        <h2 className={styles.name}>{org.name}</h2>
-                        <p className={styles.gst}>
-                            <strong>GST:</strong> {org.gst || "Not Provided"}
+                    {uploading && (
+                        <p className={styles.uploadingText}>
+                            Uploading preview...
                         </p>
-                    </>
-                )}
-
-                <div className={styles.buttonGroup}>
+                    )}
                     {editMode ? (
                         <>
-                            <button
-                                className={styles.saveButton}
-                                onClick={handleSave}
-                                disabled={saving || uploading}
-                            >
-                                {saving ? "Saving..." : "Save"}
-                            </button>
-                            <button
-                                className={styles.cancelButton}
-                                onClick={handleCancel}
+                            <input
+                                type="text"
+                                name="name"
+                                value={formData.name}
+                                onChange={handleInputChange}
+                                className={styles.input}
+                                placeholder="Organization Name"
                                 disabled={saving}
-                            >
-                                Cancel
-                            </button>
+                            />
+                            <input
+                                type="text"
+                                name="gst"
+                                value={formData.gst}
+                                onChange={handleInputChange}
+                                className={styles.input}
+                                placeholder="GST Number"
+                                disabled={saving}
+                            />
+                            <input
+                                type="file"
+                                accept="image/*"
+                                onChange={handleFileChange}
+                                className={styles.inputFile}
+                                disabled={uploading || saving}
+                            />
                         </>
                     ) : (
-                        <button
-                            className={styles.editButton}
-                            onClick={() => setEditMode(true)}
-                        >
-                            Edit
-                        </button>
+                        <>
+                            <h2 className={styles.name}>{org.name}</h2>
+                            <p className={styles.gst}>
+                                <strong>GST:</strong>{" "}
+                                {org.gst || "Not Provided"}
+                            </p>
+                        </>
                     )}
+
+                    <div className={styles.buttonGroup}>
+                        {editMode ? (
+                            <>
+                                <button
+                                    className={styles.saveButton}
+                                    onClick={handleSave}
+                                    disabled={saving || uploading}
+                                >
+                                    {saving ? "Saving..." : "Save"}
+                                </button>
+                                <button
+                                    className={styles.cancelButton}
+                                    onClick={handleCancel}
+                                    disabled={saving}
+                                >
+                                    Cancel
+                                </button>
+                            </>
+                        ) : (
+                            <button
+                                className={styles.editButton}
+                                onClick={() => setEditMode(true)}
+                            >
+                                Edit
+                            </button>
+                        )}
+                    </div>
                 </div>
             </div>
         </div>
