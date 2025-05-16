@@ -7,7 +7,7 @@ import Loader from "@/components/Loader/Loader";
 import { debounce } from "lodash";
 import DropdownTower from "@/components/Dropdown/DropdownTower";
 import { useRouter, useSearchParams } from "next/navigation";
-
+import { formatIndianCurrencyWithDecimals } from "@/utils/formatIndianCurrencyWithDecimals";
 const Page = () => {
   const [orgData, setOrgData] = useState<any[]>([]);
   const [cursor, setCursor] = useState<string | null>(null);
@@ -113,13 +113,16 @@ const Page = () => {
                         </div>
                         <div>
                           {" "}
-                          <strong>Paid Amount:</strong> {org.paidAmount}
+                          <strong>Paid Amount:</strong>{" "}
+                          {formatIndianCurrencyWithDecimals(org.paidAmount)}
                         </div>
                         <div>
-                          <strong>Remaining:</strong> {org.remaining}
+                          <strong>Remaining:</strong>{" "}
+                          {formatIndianCurrencyWithDecimals(org.remaining)}
                         </div>
                         <div>
-                          <strong>Total Amount:</strong> {org.totalAmount}
+                          <strong>Total Amount:</strong>{" "}
+                          {formatIndianCurrencyWithDecimals(org.totalAmount)} 
                         </div>
                         <div>
                           <strong>Created At:</strong>{" "}
