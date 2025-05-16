@@ -13,7 +13,6 @@ import Loader from "@/components/Loader/Loader";
 import { debounce } from "lodash";
 import { useRouter, useSearchParams } from "next/navigation";
 import { getUrl, uploadData } from "aws-amplify/storage";
-import SaleReportModal from "@/components/sale-report/sale_report";
 import { formatIndianCurrencyWithDecimals } from "@/utils/formatIndianCurrencyWithDecimals";
 import PaymentBreakdownModal from "@/components/payment-breakdown/payment_breakdown";
 const Page = () => {
@@ -28,6 +27,9 @@ const Page = () => {
   );
   const searchParams = useSearchParams();
   const rera = searchParams.get("rera");
+    const soldFlats = searchParams.get("soldFlats");
+    const totalFlats = searchParams.get("totalFlats");
+    const unsoldFlats = searchParams.get("unsoldFlats");
   const towerID = searchParams.get("towerId");
   const router = useRouter();
   const [showAdditionalDetails, setShowAdditionalDetails] = useState<
@@ -61,7 +63,7 @@ const Page = () => {
       setLoading(false);
       return;
     }
-    // console.log("response", response);
+    console.log("response", response);
     const updatedItems = await Promise.all(
       response.data.items.map(async (item: any) => {
         // If there's a saleDetail and at least one owner with a photo
@@ -191,7 +193,15 @@ const Page = () => {
   return (
     <div className={`container ${styles.container}`}>
       <div className={styles.header}>
-        <h2>Flat List</h2>
+        <div>
+          <h2>Flat List</h2>
+          <div className={styles.flatCount}>
+            {selectedFilter === "all" && <p>Total Flats: {totalFlats}</p>}
+            {selectedFilter === "sold" && <p>Sold Flats: {soldFlats}</p>}
+            {selectedFilter === "unsold" && <p>Unsold Flats: {unsoldFlats}</p>}
+          </div>
+        </div>
+
         <div className={styles.actions}>
           <select
             className={styles.selectFilter}
@@ -428,10 +438,11 @@ const Page = () => {
                                                       : "0.00"}
                                                   </td>
                                                   <td>
-                                                    {formatIndianCurrencyWithDecimals(item.total !=
-                                                    null
-                                                      ? item.total
-                                                      : "0.00")}
+                                                    {formatIndianCurrencyWithDecimals(
+                                                      item.total != null
+                                                        ? item.total
+                                                        : "0.00"
+                                                    )}
                                                   </td>
                                                 </tr>
                                               )
@@ -456,10 +467,6 @@ const Page = () => {
                                       : "Show More"}
                                   </button>
 
-                                  <SaleReportModal
-                              
-                                    rera={rera ?? ""}
-                                  />
                                   <PaymentBreakdownModal
                                     id={org.saleDetail.id}
                                     rera={rera ?? ""}

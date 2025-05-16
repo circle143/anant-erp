@@ -1,24 +1,45 @@
+"use client";
 import { useState } from "react";
 import { useRouter } from "next/navigation";
 import { MoreVertical } from "lucide-react";
 import styles from "./page.module.scss";
 import { deleteSociety } from "@/redux/action/org-admin";
 import toast from "react-hot-toast";
-import SaleReportModal from "@/components/sale-report/sale_report"; // ✅ Add this import
+
+interface DropdownMenuProps {
+  reraNumber: string;
+  fetchData: () => void;
+  soldFlats: number;
+  totalFlats: number;
+  unsoldFlats: number;
+}
 
 const DropdownMenu = ({
   reraNumber,
   fetchData,
-}: {
-  reraNumber: string;
-  fetchData: () => void;
-}) => {
+  soldFlats,
+  totalFlats,
+  unsoldFlats,
+}: DropdownMenuProps) => {
   const [isOpen, setIsOpen] = useState(false);
-  const [openModal, setOpenModal] = useState(false); // ✅ for controlling modal state
   const router = useRouter();
 
-  const handleRedirect = (reraNumber: string, type: string) => {
-    router.push(`/org-admin/society/${type.toLowerCase()}?rera=${reraNumber}`);
+  const handleRedirect = (
+    reraNumber: string,
+    type: string,
+    extras?: Record<string, string | number>
+  ) => {
+    const params = new URLSearchParams({ rera: reraNumber });
+
+    if (extras) {
+      Object.entries(extras).forEach(([key, value]) => {
+        params.append(key, value.toString());
+      });
+    }
+
+    router.push(
+      `/org-admin/society/${type.toLowerCase()}?${params.toString()}`
+    );
     setIsOpen(false);
   };
 
@@ -50,7 +71,17 @@ const DropdownMenu = ({
           <div onClick={() => handleRedirect(reraNumber, "flat-type")}>
             Flat Type
           </div>
-          <div onClick={() => handleRedirect(reraNumber, "flat")}>Flat</div>
+          <div
+            onClick={() =>
+              handleRedirect(reraNumber, "flat", {
+                soldFlats,
+                totalFlats,
+                unsoldFlats,
+              })
+            }
+          >
+            Flat
+          </div>
           <div onClick={() => handleRedirect(reraNumber, "charges")}>
             Charges
           </div>
@@ -60,14 +91,11 @@ const DropdownMenu = ({
           <div onClick={() => handleRedirect(reraNumber, "payment-plans")}>
             Payment Plans
           </div>
+          <div onClick={() => handleRedirect(reraNumber, "sale-report")}>
+            Sale Report
+          </div>
           <div onClick={handleDelete}>Delete</div>
-          <div onClick={() => setOpenModal(true)}>Sale Report</div>{" "}
-          {/* ✅ Button to open modal */}
         </div>
-      )}
-
-      {openModal && (
-        <SaleReportModal rera={reraNumber} /> // ✅ Pass reraNumber as prop
       )}
     </div>
   );

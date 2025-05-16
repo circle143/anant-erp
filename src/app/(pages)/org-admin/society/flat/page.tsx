@@ -11,10 +11,10 @@ import { toast } from "react-hot-toast";
 import styles from "./page.module.scss";
 import Loader from "@/components/Loader/Loader";
 import { debounce } from "lodash";
-import { useRouter, useSearchParams } from "next/navigation";
 import { getUrl, uploadData } from "aws-amplify/storage";
-import SaleReportModal from "@/components/sale-report/sale_report";
+import { formatIndianCurrencyWithDecimals } from "@/utils/formatIndianCurrencyWithDecimals";
 import PaymentBreakdownModal from "@/components/payment-breakdown/payment_breakdown";
+import { useRouter, useSearchParams } from "next/navigation";
 const Page = () => {
   const [orgData, setOrgData] = useState<any[]>([]);
   const [cursor, setCursor] = useState<string | null>(null);
@@ -24,6 +24,9 @@ const Page = () => {
   const [selectedFilter, setSelectedFilter] = useState<string>("all");
   const searchParams = useSearchParams();
   const rera = searchParams.get("rera");
+  const soldFlats = searchParams.get("soldFlats");
+  const totalFlats = searchParams.get("totalFlats");
+  const unsoldFlats = searchParams.get("unsoldFlats");
   const router = useRouter();
   const [expandedOwnerIndex, setExpandedOwnerIndex] = useState<number | null>(
     null
@@ -223,7 +226,11 @@ const Page = () => {
           </select>
         </div>
       </div>
-
+      <div className={styles.flatCount}>
+        {selectedFilter === "all" && <p>Total Flats: {totalFlats}</p>}
+        {selectedFilter === "sold" && <p>Sold Flats: {soldFlats}</p>}
+        {selectedFilter === "unsold" && <p>Unsold Flats: {unsoldFlats}</p>}
+      </div>
       {loading ? (
         <div className={styles.loading}>
           <Loader />
@@ -365,29 +372,32 @@ const Page = () => {
                                     <div className={styles.totalPriceSection}>
                                       <h4>Paid</h4>
                                       <p>
-                                        <strong>₹</strong>{" "}
-                                        {org.saleDetail?.paid != null
-                                          ? org.saleDetail.paid
-                                          : "0.00"}
+                                        {formatIndianCurrencyWithDecimals(
+                                          org.saleDetail?.paid != null
+                                            ? org.saleDetail.paid
+                                            : "0.00"
+                                        )}
                                       </p>
                                     </div>
                                     <div className={styles.totalPriceSection}>
                                       <h4>Remaining</h4>
                                       <p>
-                                        <strong>₹</strong>{" "}
-                                        {org.saleDetail?.paid != null
-                                          ? org.saleDetail.remaining
-                                          : "0.00"}
+                                        {formatIndianCurrencyWithDecimals(
+                                          org.saleDetail?.paid != null
+                                            ? org.saleDetail.remaining
+                                            : "0.00"
+                                        )}
                                       </p>
                                     </div>
                                     {/* Total Price */}
                                     <div className={styles.totalPriceSection}>
                                       <h4>Total Price</h4>
                                       <p>
-                                        <strong>₹</strong>{" "}
-                                        {org.saleDetail?.paid != null
-                                          ? org.saleDetail.totalPrice
-                                          : "0.00"}
+                                        {formatIndianCurrencyWithDecimals(
+                                          org.saleDetail?.paid != null
+                                            ? org.saleDetail.totalPrice
+                                            : "0.00"
+                                        )}
                                       </p>
                                     </div>
                                     {/* Price Breakdown */}
@@ -418,10 +428,11 @@ const Page = () => {
                                                   <td>{index + 1}</td>
                                                   <td>{item.summary}</td>
                                                   <td>
-                                                    ₹
-                                                    {item.price != null
-                                                      ? item.price
-                                                      : "0.00"}
+                                                    {formatIndianCurrencyWithDecimals(
+                                                      item.price != null
+                                                        ? item.price
+                                                        : "0.00"
+                                                    )}
                                                   </td>
                                                   <td>
                                                     {item.type ||
@@ -433,10 +444,11 @@ const Page = () => {
                                                       : "0.00"}
                                                   </td>
                                                   <td>
-                                                    ₹
-                                                    {item.total != null
-                                                      ? item.total
-                                                      : "0.00"}
+                                                    {formatIndianCurrencyWithDecimals(
+                                                      item.total != null
+                                                        ? item.total
+                                                        : "0.00"
+                                                    )}
                                                   </td>
                                                 </tr>
                                               )
@@ -461,7 +473,6 @@ const Page = () => {
                                       : "Show More"}
                                   </button>
 
-                                  <SaleReportModal rera={rera ?? ""} />
                                   <PaymentBreakdownModal
                                     id={org.saleDetail.id}
                                     rera={rera ?? ""}

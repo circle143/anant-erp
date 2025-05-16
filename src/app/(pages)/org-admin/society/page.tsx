@@ -136,6 +136,9 @@ const Page = () => {
                       </div>
                       <div className={styles.dropdown}>
                         <DropdownMenu
+                          soldFlats={org.soldFlats}
+                          totalFlats={org.totalFlats}
+                          unsoldFlats={org.unsoldFlats}
                           reraNumber={org.reraNumber}
                           fetchData={() => fetchData(null, false)}
                         />

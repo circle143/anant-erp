@@ -3,7 +3,8 @@ import { useSearchParams } from "next/navigation";
 import { useEffect, useState } from "react";
 import styles from "./page.module.scss";
 import { getSocietySaleReport } from "@/redux/action/org-admin";
-
+import Loader from "@/components/Loader/Loader";
+import { formatIndianCurrencyWithDecimals } from "@/utils/formatIndianCurrencyWithDecimals";
 const Page = () => {
   const searchParams = useSearchParams();
   const [response, setResponse] = useState<any>(null);
@@ -11,13 +12,12 @@ const Page = () => {
   const [error, setError] = useState<string | null>(null);
 
   useEffect(() => {
-    const id = searchParams.get("id");
     const rera = searchParams.get("rera");
 
     const fetchData = async () => {
-      if (id && rera) {
+      if (rera) {
         try {
-          const data = await getSocietySaleReport(rera, id);
+          const data = await getSocietySaleReport(rera);
           console.log("Society Sale Report Response:", data);
           if (data?.error) {
             setError(data.message || "Unknown error occurred");
@@ -38,29 +38,28 @@ const Page = () => {
     fetchData();
   }, [searchParams]);
 
-  if (loading) return <p>Loading...</p>;
+  if (loading) return <Loader />;
   if (error) return <p style={{ color: "red" }}>{error}</p>;
 
-return (
-  <div className={styles.container}>
-    <h1 className={styles.title}>Society Sale Report</h1>
-    <div className={styles.cardWrapper}>
-      <div className={styles.card}>
-        <h3>Total Amount</h3>
-        <p>₹ {Number(response?.data?.total).toLocaleString("en-IN")}</p>
-      </div>
-      <div className={styles.card}>
-        <h3>Paid Amount</h3>
-        <p>₹ {Number(response?.data?.paid).toLocaleString("en-IN")}</p>
-      </div>
-      <div className={styles.card}>
-        <h3>Pending Amount</h3>
-        <p>₹ {Number(response?.data?.pending).toLocaleString("en-IN")}</p>
+  return (
+    <div className={styles.container}>
+      <h1 className={styles.title}>Society Sale Report</h1>
+      <div className={styles.cardWrapper}>
+        <div className={styles.card}>
+          <h3>Total Amount</h3>
+          <p>{formatIndianCurrencyWithDecimals(response?.data?.total)}</p>
+        </div>
+        <div className={styles.card}>
+          <h3>Paid Amount</h3>
+          <p>{formatIndianCurrencyWithDecimals(response?.data?.paid)}</p>
+        </div>
+        <div className={styles.card}>
+          <h3>Pending Amount</h3>
+          <p>{formatIndianCurrencyWithDecimals(response?.data?.pending)}</p>
+        </div>
       </div>
     </div>
-  </div>
-);
-
+  );
 };
 
 export default Page;
