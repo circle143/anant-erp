@@ -404,46 +404,52 @@ const Page = () => {
 
                 {/* Tab 1: Tower Sales Report */}
                 <TabPanel value={tabIndex} index={0} dir={theme.direction}>
-                    {!society ? (
-                        <Typography>
-                            Select a society to view the sales report
-                        </Typography>
-                    ) : loadingSocieties ? (
-                        <Loader />
-                    ) : societyReport && !societyReport.error ? (
-                        <div className={styles.cardsContainer}>
-                            <div className={styles.card}>
-                                <div className={styles.label}>Total Amount</div>
-                                <div className={styles.value}>
-                                    {formatIndianCurrencyWithDecimals(
-                                        societyReport.data.total
-                                    )}
+                    <div className={styles.tab2}>
+                        {!society ? (
+                            <Typography>
+                                Select a society to view the sales report
+                            </Typography>
+                        ) : loadingSocieties ? (
+                            <Loader />
+                        ) : societyReport && !societyReport.error ? (
+                            <div className={styles.cardsContainer}>
+                                <div className={styles.card}>
+                                    <div className={styles.label}>
+                                        Total Amount
+                                    </div>
+                                    <div className={styles.value}>
+                                        {formatIndianCurrencyWithDecimals(
+                                            societyReport.data.total
+                                        )}
+                                    </div>
+                                </div>
+                                <div className={styles.card}>
+                                    <div className={styles.label}>
+                                        Paid Amount
+                                    </div>
+                                    <div className={styles.value}>
+                                        {formatIndianCurrencyWithDecimals(
+                                            societyReport.data.paid
+                                        )}
+                                    </div>
+                                </div>
+                                <div className={styles.card}>
+                                    <div className={styles.label}>
+                                        Pending Amount
+                                    </div>
+                                    <div className={styles.value}>
+                                        {formatIndianCurrencyWithDecimals(
+                                            societyReport.data.pending
+                                        )}
+                                    </div>
                                 </div>
                             </div>
-                            <div className={styles.card}>
-                                <div className={styles.label}>Paid Amount</div>
-                                <div className={styles.value}>
-                                    {formatIndianCurrencyWithDecimals(
-                                        societyReport.data.paid
-                                    )}
-                                </div>
-                            </div>
-                            <div className={styles.card}>
-                                <div className={styles.label}>
-                                    Pending Amount
-                                </div>
-                                <div className={styles.value}>
-                                    {formatIndianCurrencyWithDecimals(
-                                        societyReport.data.pending
-                                    )}
-                                </div>
-                            </div>
-                        </div>
-                    ) : (
-                        <Typography>
-                            No report found for the selected society
-                        </Typography>
-                    )}
+                        ) : (
+                            <Typography>
+                                No report found for the selected society
+                            </Typography>
+                        )}
+                    </div>
                 </TabPanel>
 
                 {/* Tab 2: Unsold Flats */}

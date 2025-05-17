@@ -82,9 +82,14 @@ const Page = () => {
         const value = e.target.value;
         debouncedFilterChange(value);
     };
-
     const handleActivate = async (paymentId: string) => {
+        const confirm = window.confirm(
+            "Are you sure you want to activate this payment plan?"
+        );
+        if (!confirm) return;
+
         if (!rera || !towerID) return;
+
         setActivatingId(paymentId);
         const res = await markPaymentPlanActiveForTower(
             rera,
@@ -99,6 +104,7 @@ const Page = () => {
             alert("Failed to activate payment plan");
         }
     };
+
     const payment_plan = [
         { name: "Home", href: "/org-admin" },
         { name: "Societies", href: "/org-admin/society" },
@@ -172,15 +178,7 @@ const Page = () => {
                                                     styles.actionButtonWrapper
                                                 }
                                             >
-                                                {plan.active ? (
-                                                    <button
-                                                        className={
-                                                            styles.deactivateBtn
-                                                        }
-                                                    >
-                                                        Deactivate
-                                                    </button>
-                                                ) : (
+                                                {!plan.active && (
                                                     <button
                                                         className={
                                                             styles.activateBtn

@@ -68,7 +68,7 @@ const Page = () => {
             setLoading(false);
             return;
         }
-        console.log("response", response);
+        // console.log("response", response);
         const updatedItems = await Promise.all(
             response.data.items.map(async (item: any) => {
                 // If there's a saleDetail and at least one owner with a photo
@@ -689,6 +689,24 @@ const Page = () => {
                                                                             rera ??
                                                                             ""
                                                                         }
+                                                                        paid={
+                                                                            org
+                                                                                .saleDetail
+                                                                                ?.paid ??
+                                                                            "0.00"
+                                                                        }
+                                                                        remaining={
+                                                                            org
+                                                                                .saleDetail
+                                                                                ?.remaining ??
+                                                                            "0.00"
+                                                                        }
+                                                                        totalPrice={
+                                                                            org
+                                                                                .saleDetail
+                                                                                ?.totalPrice ??
+                                                                            "0.00"
+                                                                        }
                                                                     />
                                                                 </div>
                                                             </div>
@@ -741,7 +759,7 @@ const Page = () => {
                         <h4>Confirm Delete</h4>
                         <p>
                             Are you sure you want to remove
-                            <strong>{userToDelete.name}</strong>?
+                            <strong> {userToDelete.name}</strong>?
                         </p>
                         <div className={styles.popupButtons}>
                             <button
