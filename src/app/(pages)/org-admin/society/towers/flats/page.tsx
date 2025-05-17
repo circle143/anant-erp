@@ -16,16 +16,19 @@ import { getUrl, uploadData } from "aws-amplify/storage";
 import CustomBreadcrumbs from "@/components/Breadcrumbs/Breadcrumbs";
 import { formatIndianCurrencyWithDecimals } from "@/utils/formatIndianCurrencyWithDecimals";
 import PaymentBreakdownModal from "@/components/payment-breakdown/payment_breakdown";
+
+const ITEMS_PER_PAGE = 25;
+
 const Page = () => {
-    const [orgData, setOrgData] = useState<any[]>([]);
-    const [cursor, setCursor] = useState<string | null>(null);
-    const [hasNextPage, setHasNextPage] = useState(false);
-    const [cursorStack, setCursorStack] = useState<string[]>([]);
+    const [allData, setAllData] = useState<any[]>([]); // Store all fetched data
+    const [displayedData, setDisplayedData] = useState<any[]>([]); // Data to display after search/filter
+    const [currentPage, setCurrentPage] = useState(1);
     const [loading, setLoading] = useState<boolean>(true);
     const [selectedFilter, setSelectedFilter] = useState<string>("all");
     const [expandedOwnerIndex, setExpandedOwnerIndex] = useState<number | null>(
         null
     );
+    const [searchQuery, setSearchQuery] = useState<string>("");
     const searchParams = useSearchParams();
     const rera = searchParams.get("rera");
     const soldFlats = searchParams.get("soldFlats");
@@ -41,37 +44,28 @@ const Page = () => {
         name: string;
         index: number;
     } | null>(null);
-
     const [showDeletePopup, setShowDeletePopup] = useState(false);
-    const fetchData = async (
-        cursor: string | null = null,
-        isNext = true,
-        filter: string = "all"
-    ) => {
+
+    const fetchData = async (filter: string = "all") => {
         setLoading(true);
         if (!rera || !towerID) return;
 
         let response;
 
         if (filter === "all") {
-            response = await getTowerFlats(cursor || "", rera, towerID);
+            response = await getTowerFlats("", rera, towerID);
         } else if (filter === "sold") {
-            response = await getAllTowerSoldFlats(cursor || "", rera, towerID);
+            response = await getAllTowerSoldFlats("", rera, towerID);
         } else if (filter === "unsold") {
-            response = await getAllTowerUnsoldFlats(
-                cursor || "",
-                rera,
-                towerID
-            );
+            response = await getAllTowerUnsoldFlats("", rera, towerID);
         } else {
             console.error("Invalid filter:", filter);
             setLoading(false);
             return;
         }
-        // console.log("response", response);
+
         const updatedItems = await Promise.all(
             response.data.items.map(async (item: any) => {
-                // If there's a saleDetail and at least one owner with a photo
                 if (
                     item.saleDetail?.owners &&
                     Array.isArray(item.saleDetail.owners)
@@ -87,10 +81,6 @@ const Page = () => {
                                             expiresIn: 3600,
                                         },
                                     });
-                                    console.log(
-                                        "No photo found for owner:",
-                                        signedUrl.url.toString()
-                                    );
                                     return {
                                         ...owner,
                                         photo: signedUrl.url.toString(),
@@ -101,10 +91,9 @@ const Page = () => {
                                         owner.photo,
                                         err
                                     );
-                                    return owner; // fallback to original if error
+                                    return owner;
                                 }
                             }
-
                             return owner;
                         })
                     );
@@ -116,55 +105,92 @@ const Page = () => {
                         },
                     };
                 }
-
                 return item;
             })
         );
 
-        setOrgData(updatedItems);
-        setHasNextPage(response.data.pageInfo.nextPage);
-        setCursor(response.data.pageInfo.cursor);
-        if (isNext && cursor !== null) {
-            setCursorStack((prev) => [...prev, cursor]);
-        }
-
+        setAllData(updatedItems);
         setLoading(false);
     };
 
     useEffect(() => {
-        fetchData(null, false, selectedFilter);
-    }, [rera, towerID, selectedFilter, cursorStack]);
+        fetchData(selectedFilter);
+    }, [rera, towerID, selectedFilter]);
 
-    const handleNext = () => {
-        if (cursor) {
-            setCursorStack((prev) => [...prev, cursor]);
+    // Apply search and pagination
+    useEffect(() => {
+        let filteredData = [...allData];
+
+        // Apply search filter
+        if (searchQuery) {
+            filteredData = filteredData.filter(
+                (item) =>
+                    item.name
+                        ?.toLowerCase()
+                        .includes(searchQuery.toLowerCase()) ||
+                    item.saleDetail?.owners?.some((owner: any) =>
+                        `${owner.firstName} ${owner.lastName}`
+                            .toLowerCase()
+                            .includes(searchQuery.toLowerCase())
+                    )
+            );
         }
-        fetchData(cursor, true, selectedFilter);
+
+        const totalPages = Math.ceil(filteredData.length / ITEMS_PER_PAGE);
+        const validatedPage = currentPage > totalPages ? 1 : currentPage;
+
+        if (validatedPage !== currentPage) {
+            setCurrentPage(validatedPage);
+        }
+
+        const startIndex = (validatedPage - 1) * ITEMS_PER_PAGE;
+        const paginatedData = filteredData.slice(
+            startIndex,
+            startIndex + ITEMS_PER_PAGE
+        );
+        setDisplayedData(paginatedData);
+    }, [allData, searchQuery, currentPage]);
+
+    const totalPages = Math.ceil(
+        allData.filter((item) =>
+            searchQuery
+                ? item.name
+                      ?.toLowerCase()
+                      .includes(searchQuery.toLowerCase()) ||
+                  item.saleDetail?.owners?.some((owner: any) =>
+                      `${owner.firstName} ${owner.lastName}`
+                          .toLowerCase()
+                          .includes(searchQuery.toLowerCase())
+                  )
+                : true
+        ).length / ITEMS_PER_PAGE
+    );
+
+    const handleSearchChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+        setSearchQuery(e.target.value);
+        setCurrentPage(1);
     };
 
-    const handlePrevious = () => {
-        if (cursorStack.length > 0) {
-            const prevCursor = cursorStack[cursorStack.length - 2];
-            setCursorStack((prev) => prev.slice(0, -1));
-            fetchData(prevCursor, false, selectedFilter);
-        }
-    };
     const toggleOwnerDetails = (index: number) => {
         setExpandedOwnerIndex((prevIndex) =>
             prevIndex === index ? null : index
         );
     };
+
     const toggleAdditionalDetails = (index: number) => {
         setShowAdditionalDetails((prev) => (prev === index ? null : index));
     };
+
     const handleDelete = (flatId: string, name: string, index: number) => {
         setUserToDelete({ flatId, name, index });
         setShowDeletePopup(true);
     };
+
     const cancelDelete = () => {
         setShowDeletePopup(false);
         setUserToDelete(null);
     };
+
     const confirmDelete = async () => {
         if (!userToDelete || !rera) {
             toast.error("Missing RERA information");
@@ -174,22 +200,20 @@ const Page = () => {
         try {
             const response = await deleteFlat(userToDelete.flatId, rera);
             if (!response.error) {
-                // Optionally show success message
-                await fetchData(null, false, selectedFilter); // Refresh user list
+                await fetchData(selectedFilter);
                 toast.success("Flat deleted successfully");
             }
         } catch (err) {
             toast.error("Error deleting flat");
-            // console.error("Error deleting user:", err);
         } finally {
             setShowDeletePopup(false);
             setUserToDelete(null);
         }
     };
+
     const debouncedFilterChange = useCallback(
         debounce((value: string) => {
-            setCursor(null);
-            setCursorStack([]);
+            setCurrentPage(1);
             setSelectedFilter(value);
         }, 300),
         []
@@ -199,6 +223,7 @@ const Page = () => {
         const value = e.target.value;
         debouncedFilterChange(value);
     };
+
     const flat = [
         { name: "Home", href: "/org-admin" },
         { name: "Societies", href: "/org-admin/society" },
@@ -234,6 +259,13 @@ const Page = () => {
                         <option value="sold">Sold</option>
                         <option value="unsold">Unsold</option>
                     </select>
+                    <input
+                        type="text"
+                        placeholder="Search by name or owner"
+                        className={styles.searchInput}
+                        value={searchQuery}
+                        onChange={handleSearchChange}
+                    />
                     <button
                         className={styles.newFlatButton}
                         onClick={() =>
@@ -253,12 +285,12 @@ const Page = () => {
                 </div>
             ) : (
                 <>
-                    {orgData.length === 0 ? (
+                    {displayedData.length === 0 ? (
                         <div className={styles.noData}>No data available</div>
                     ) : (
                         <>
                             <ul className={styles.orgList}>
-                                {orgData.map((org, index) => (
+                                {displayedData.map((org, index) => (
                                     <li key={org.id} className={styles.orgItem}>
                                         <div className={styles.rightSection}>
                                             <div className={styles.details}>
@@ -531,7 +563,6 @@ const Page = () => {
                                                                                 )}
                                                                             </p>
                                                                         </div>
-                                                                        {/* Total Price */}
                                                                         <div
                                                                             className={
                                                                                 styles.totalPriceSection
@@ -554,7 +585,6 @@ const Page = () => {
                                                                                 )}
                                                                             </p>
                                                                         </div>
-                                                                        {/* Price Breakdown */}
                                                                         <div
                                                                             className={
                                                                                 styles.priceBreakdownSection
@@ -585,7 +615,6 @@ const Page = () => {
                                                                                             <th>
                                                                                                 Price
                                                                                             </th>
-
                                                                                             <th>
                                                                                                 Type
                                                                                             </th>
@@ -735,15 +764,32 @@ const Page = () => {
 
                             <div className={styles.paginationControls}>
                                 <button
-                                    onClick={handlePrevious}
-                                    disabled={cursorStack.length <= 0}
+                                    onClick={() =>
+                                        setCurrentPage((prev) =>
+                                            Math.max(prev - 1, 1)
+                                        )
+                                    }
+                                    disabled={
+                                        currentPage === 1 || totalPages === 0
+                                    }
                                     className={styles.navButton}
                                 >
                                     Previous
                                 </button>
+                                {/* <span>
+                                    Page {totalPages === 0 ? 0 : currentPage} of{" "}
+                                    {totalPages}
+                                </span> */}
                                 <button
-                                    onClick={handleNext}
-                                    disabled={!hasNextPage}
+                                    onClick={() =>
+                                        setCurrentPage((prev) =>
+                                            Math.min(prev + 1, totalPages)
+                                        )
+                                    }
+                                    disabled={
+                                        currentPage === totalPages ||
+                                        totalPages === 0
+                                    }
                                     className={styles.navButton}
                                 >
                                     Next
