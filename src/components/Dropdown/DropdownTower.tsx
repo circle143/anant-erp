@@ -6,18 +6,9 @@ import styles from "./page.module.scss";
 interface DropdownTowerProps {
     reraNumber: string;
     towerId: string;
-    soldFlats: number;
-    totalFlats: number;
-    unsoldFlats: number;
 }
 
-const DropdownTower = ({
-    reraNumber,
-    towerId,
-    soldFlats,
-    totalFlats,
-    unsoldFlats,
-}: DropdownTowerProps) => {
+const DropdownTower = ({ reraNumber, towerId }: DropdownTowerProps) => {
     const [isOpen, setIsOpen] = useState(false);
     const router = useRouter();
 
@@ -51,30 +42,23 @@ const DropdownTower = ({
 
             {isOpen && (
                 <div className={styles.dropdownMenu}>
-                    <div>
-                        <div
-                            onClick={() =>
-                                handleRedirect(reraNumber, "flats", {
-                                    soldFlats,
-                                    totalFlats,
-                                    unsoldFlats,
-                                    towerId,
-                                })
-                            }
-                        >
-                            Flats
-                        </div>
+                    <div
+                        onClick={() =>
+                            handleRedirect(reraNumber, "flats", {
+                                towerId,
+                            })
+                        }
+                    >
+                        Flats
                     </div>
-                    <div>
-                        <div
-                            onClick={() =>
-                                handleRedirect(reraNumber, "payment-plans", {
-                                    towerId,
-                                })
-                            }
-                        >
-                            Payment Plans
-                        </div>
+                    <div
+                        onClick={() =>
+                            handleRedirect(reraNumber, "payment-plans", {
+                                towerId,
+                            })
+                        }
+                    >
+                        Payment Plans
                     </div>
                 </div>
             )}

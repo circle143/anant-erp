@@ -16,12 +16,15 @@ import { getUrl, uploadData } from "aws-amplify/storage";
 import CustomBreadcrumbs from "@/components/Breadcrumbs/Breadcrumbs";
 import { formatIndianCurrencyWithDecimals } from "@/utils/formatIndianCurrencyWithDecimals";
 import PaymentBreakdownModal from "@/components/payment-breakdown/payment_breakdown";
+import { useSelector } from "react-redux";
+import { RootState } from "@/redux/store";
 
 const ITEMS_PER_PAGE = 25;
 
 const Page = () => {
-    const [allData, setAllData] = useState<any[]>([]); // Store all fetched data
-    const [displayedData, setDisplayedData] = useState<any[]>([]); // Data to display after search/filter
+    const [allData, setAllData] = useState<any[]>([]);
+    const [displayedData, setDisplayedData] = useState<any[]>([]);
+
     const [currentPage, setCurrentPage] = useState(1);
     const [loading, setLoading] = useState<boolean>(true);
     const [selectedFilter, setSelectedFilter] = useState<string>("all");
@@ -31,10 +34,10 @@ const Page = () => {
     const [searchQuery, setSearchQuery] = useState<string>("");
     const searchParams = useSearchParams();
     const rera = searchParams.get("rera");
-    const soldFlats = searchParams.get("soldFlats");
-    const totalFlats = searchParams.get("totalFlats");
-    const unsoldFlats = searchParams.get("unsoldFlats");
     const towerID = searchParams.get("towerId");
+    const towerFlatData = useSelector((state: RootState) =>
+        towerID ? state.flats.towerFlats[towerID] : null
+    );
     const router = useRouter();
     const [showAdditionalDetails, setShowAdditionalDetails] = useState<
         number | null
@@ -238,13 +241,15 @@ const Page = () => {
                     <h2>Flat List</h2>
                     <div className={styles.flatCount}>
                         {selectedFilter === "all" && (
-                            <p>Total Flats: {totalFlats}</p>
+                            <p>Total Flats: {towerFlatData?.totalFlats}</p>
                         )}
                         {selectedFilter === "sold" && (
-                            <p>Sold Flats: {soldFlats}</p>
+                            <p>Sold Flats: {towerFlatData?.totalSoldFlats} </p>
                         )}
                         {selectedFilter === "unsold" && (
-                            <p>Unsold Flats: {unsoldFlats}</p>
+                            <p>
+                                Unsold Flats: {towerFlatData?.totalUnsoldFlats}{" "}
+                            </p>
                         )}
                     </div>
                 </div>
@@ -270,7 +275,7 @@ const Page = () => {
                         className={styles.newFlatButton}
                         onClick={() =>
                             router.push(
-                                `/org-admin/society/towers/flats/new-flat?rera=${rera}&soldFlats=${soldFlats}&totalFlats=${totalFlats}&unsoldFlats=${unsoldFlats}&towerId=${towerID}`
+                                `/org-admin/society/towers/flats/new-flat?rera=${rera}&towerId=${towerID}`
                             )
                         }
                     >

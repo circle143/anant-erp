@@ -1,11 +1,11 @@
 import { configureStore } from "@reduxjs/toolkit";
-import counterReducer from "./slice/example.slice";
 import sidebarReducer from "./slice/sidebarSlice";
+import flatReducer from "./slice/flatSlice";
 export const store = configureStore({
-  reducer: {
-    counter: counterReducer,
-    sidebar: sidebarReducer,
-  },
+    reducer: {
+        sidebar: sidebarReducer,
+        flats: flatReducer,
+    },
 });
 export type RootState = ReturnType<typeof store.getState>;
 export type AppDispatch = typeof store.dispatch;

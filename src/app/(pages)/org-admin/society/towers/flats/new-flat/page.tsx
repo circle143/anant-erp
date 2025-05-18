@@ -27,9 +27,7 @@ const Page = () => {
     const searchParams = useSearchParams();
     const rera = searchParams.get("rera");
     const towerId = searchParams.get("towerId");
-    let totalFlats = searchParams.get("totalFlats");
-    let unsoldFlats = searchParams.get("unsoldFlats");
-    const soldFlats = searchParams.get("soldFlats");
+
     const [flatTypes, setFlatTypes] = useState<any[]>([]);
     const [loading, setLoading] = useState<boolean>(true);
     const [submitting, setSubmitting] = useState<boolean>(false);
@@ -92,14 +90,8 @@ const Page = () => {
 
         if (response?.error === false) {
             toast.success("Flat created successfully!");
-            const newUnsold = String(Number(unsoldFlats) + 1);
-            const newTotal = String(Number(totalFlats) + 1);
+
             resetForm();
-            console.log("newUnsold", newUnsold);
-            console.log("newTotal ", newTotal);
-            router.push(
-                `/org-admin/society/towers/flats?rera=${rera}&soldFlats=${soldFlats}&totalFlats=${newTotal}&unsoldFlats=${newUnsold}&towerId=${towerId}`
-            );
         } else {
             const errorMessage =
                 response?.response?.data?.message ||
@@ -114,7 +106,7 @@ const Page = () => {
         { name: "Towers", href: `/org-admin/society/towers?rera=${rera}` },
         {
             name: "Flats",
-            href: `/org-admin/society/towers/flats?rera=${rera}&soldFlats=${soldFlats}&totalFlats=${totalFlats}&unsoldFlats=${unsoldFlats}&towerId=${towerId}`,
+            href: `/org-admin/society/towers/flats?rera=${rera}&towerId=${towerId}`,
         },
         { name: "New Flat" },
     ];
