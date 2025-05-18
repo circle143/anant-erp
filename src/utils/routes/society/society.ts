@@ -52,4 +52,15 @@ export const society = {
 		},
 		requestMethod: "GET",
 	},
+	getSocietyById: {
+		getEndpoint: (societyId: string) => {
+			if (societyId.trim.length === 0)
+				throw new Error("Empty society id");
+			return getBasePath() + `/${societyId}`;
+		},
+		getReqBody: () => {
+			// no request body required
+		},
+		requestMethod: "GET",
+	},
 };
