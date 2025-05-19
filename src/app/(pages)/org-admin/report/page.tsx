@@ -363,7 +363,7 @@ const Page = () => {
               <MenuItem value="">Select Society</MenuItem>
               {societies.map((s) => (
                 <MenuItem key={s.reraNumber} value={s.reraNumber}>
-                  {s.name} {s.reraNumber}
+                  {s.name} (RERA: {s.reraNumber})
                 </MenuItem>
               ))}
             </Select>

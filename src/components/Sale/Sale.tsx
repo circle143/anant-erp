@@ -548,7 +548,7 @@ const Sale = () => {
                               key={society.reraNumber}
                               value={society.reraNumber}
                             >
-                              {society.name} {society.reraNumber}
+                              {society.name} (RERA: {society.reraNumber})
                             </MenuItem>
                           ))}
                         </Select>
