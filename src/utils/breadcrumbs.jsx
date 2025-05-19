@@ -55,3 +55,8 @@ export const sale = [
     { name: "Sale Form" },
 ];
 export const home = [{ name: "Home" }];
+export const society_edit = [
+  { name: "Home", href: "/org-admin" },
+  { name: "Societies", href: "/org-admin/society" },
+  { name: "Edit Society" },
+];

@@ -10,8 +10,9 @@ import {
   createSociety,
   updateSocietyDetails,
 } from "../../redux/action/org-admin";
-import { getUrl, uploadData } from "aws-amplify/storage";
+import { uploadData } from "aws-amplify/storage";
 import imageCompression from "browser-image-compression";
+import { useRouter, useSearchParams } from "next/navigation";
 
 const SUPPORTED_FORMATS = [
   "image/jpg",
@@ -112,6 +113,9 @@ const Society: React.FC<SocietyProps> = ({
 }) => {
   const [preview, setPreview] = useState<string | null>(null);
   const [loading, setLoading] = useState(false);
+  const router = useRouter();
+  const searchParams = useSearchParams();
+  const Rera = searchParams.get("rera") || "";
 
   useEffect(() => {
     if (initialData?.logo) {
@@ -128,7 +132,9 @@ const Society: React.FC<SocietyProps> = ({
       const data = await decodeAccessToken();
       let coverPhoto = initialData?.logo || "";
 
-      if (values.image) {
+      const isImageUpdated = values.image instanceof File;
+
+      if (isImageUpdated && values.image) {
         const compressedFile = await imageCompression(values.image, {
           maxSizeMB: 0.8,
           maxWidthOrHeight: 800,
@@ -157,10 +163,12 @@ const Society: React.FC<SocietyProps> = ({
       const response =
         mode === "edit"
           ? await updateSocietyDetails(
+              Rera,
               payload.rera,
               payload.name,
               payload.address,
-              payload.logo)
+              isImageUpdated ? payload.logo : undefined // only send logo if updated
+            )
           : await createSociety(
               payload.rera,
               payload.name,
@@ -179,12 +187,10 @@ const Society: React.FC<SocietyProps> = ({
       toast.success(
         `Society ${mode === "edit" ? "updated" : "created"} successfully!`
       );
-
       resetForm();
       setPreview(null);
-
       if (mode === "edit" && typeof onSuccess === "function") {
-        onSuccess(); // redirect after edit
+        onSuccess();
       }
     } catch (err) {
       console.error(err);
@@ -237,7 +243,7 @@ const Society: React.FC<SocietyProps> = ({
                 id="Rera"
                 name="Rera"
                 className={styles.form_control}
-                disabled={mode === "edit"}
+                // disabled={mode === "edit"} // Optional
               />
               <ErrorMessage
                 name="Rera"

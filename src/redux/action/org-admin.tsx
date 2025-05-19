@@ -1185,7 +1185,8 @@ export const deleteTower = async (
 };
 
 export const updateSocietyDetails = async (
-  reraNumber: string,
+  reraNumberinput: string,
+  reraNumberbody: string,
   name?: string,
   address?: string,
   coverPhoto?: string
@@ -1193,9 +1194,10 @@ export const updateSocietyDetails = async (
   try {
     const token = await getIdToken();
     const input: UpdateSocietyDetailsInput = {
-      reraNumber,
+      reraNumber: reraNumberinput,
     };
     const reqBody: UpdateSocietyDetailsRequestBodyInput = {
+      reraNumber: reraNumberbody,
       name,
       address,
       coverPhoto,
