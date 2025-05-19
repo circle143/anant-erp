@@ -18,6 +18,8 @@ import { formatIndianCurrencyWithDecimals } from "@/utils/formatIndianCurrencyWi
 import PaymentBreakdownModal from "@/components/payment-breakdown/payment_breakdown";
 import { useSelector } from "react-redux";
 import { RootState } from "@/redux/store";
+import { useDispatch } from "react-redux";
+import { setUnits } from "@/redux/slice/TowerFlat";
 
 const ITEMS_PER_PAGE = 25;
 
@@ -48,13 +50,12 @@ const Page = () => {
     index: number;
   } | null>(null);
   const [showDeletePopup, setShowDeletePopup] = useState(false);
-
+  const units = useSelector((state: RootState) => state.TowerFlats.units);
+  const dispatch = useDispatch();
   const fetchData = async (filter: string = "all") => {
     setLoading(true);
     if (!rera || !towerID) return;
-
     let response;
-
     if (filter === "all") {
       response = await getTowerFlats("", rera, towerID);
     } else if (filter === "sold") {
@@ -109,7 +110,8 @@ const Page = () => {
       })
     );
 
-    setAllData(updatedItems);
+    dispatch(setUnits(updatedItems));
+    // setAllData(updatedItems);
     setLoading(false);
   };
 
@@ -119,7 +121,7 @@ const Page = () => {
 
   // Apply search and pagination
   useEffect(() => {
-    let filteredData = [...allData];
+    let filteredData = [...units];
 
     // Apply search filter
     if (searchQuery) {
@@ -147,10 +149,10 @@ const Page = () => {
       startIndex + ITEMS_PER_PAGE
     );
     setDisplayedData(paginatedData);
-  }, [allData, searchQuery, currentPage]);
+  }, [units, searchQuery, currentPage]);
 
   const totalPages = Math.ceil(
-    allData.filter((item) =>
+    units.filter((item) =>
       searchQuery
         ? item.name?.toLowerCase().includes(searchQuery.toLowerCase()) ||
           item.saleDetail?.owners?.some((owner: any) =>
