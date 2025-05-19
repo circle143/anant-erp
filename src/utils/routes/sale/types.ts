@@ -22,6 +22,12 @@ export interface CustomerDetails {
 	companyName?: string;
 }
 
+export interface CompanyDetails {
+	name: string;
+	aadharNumber?: string;
+	panNumber?: string;
+}
+
 // add customers to flat
 export interface AddCustomerToFlatInput {
 	societyReraNumber: string;
@@ -29,7 +35,9 @@ export interface AddCustomerToFlatInput {
 }
 
 export interface AddCustomerToFlatRequestBodyInput {
-	details: CustomerDetails[];
+	type: string; // company or user. If user than details are required and if company than companyBuyer is required
+	details?: CustomerDetails[];
+	companyBuyer?: CompanyDetails;
 	optionalCharges: string[];
 	basicCost: number;
 }
