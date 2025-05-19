@@ -350,564 +350,357 @@ const Page = () => {
         };
     }
     return (
-        <div className={styles.reportContainer}>
-            <div className={styles.reportHeader}>
-                <CustomBreadcrumbs items={report} />
-                <FormControl fullWidth size="small">
-                    <Select
-                        id="society-select"
-                        value={society}
-                        onChange={handleSocietyChange}
-                        displayEmpty
-                    >
-                        <MenuItem value="">Select Society</MenuItem>
-                        {societies.map((s) => (
-                            <MenuItem key={s.reraNumber} value={s.reraNumber}>
-                                {s.name}
-                            </MenuItem>
-                        ))}
-                    </Select>
-                </FormControl>
-                {loadingSocieties && <Loader />}
-                <FormControl fullWidth size="small">
-                    <Select
-                        id="tower-select"
-                        value={tower}
-                        onChange={handleTowerChange}
-                        displayEmpty
-                        disabled={!society || loadingTowers}
-                    >
-                        <MenuItem value="">Select Tower</MenuItem>
-                        {towers.map((t) => (
-                            <MenuItem key={t.id} value={t.id}>
-                                {t.name}
-                            </MenuItem>
-                        ))}
-                    </Select>
-                </FormControl>
-                {loadingTowers && <Loader />}
-            </div>
-            <Box sx={{ bgcolor: "background.paper", width: "100%" }}>
-                <AppBar position="static" color="default">
-                    <Tabs
-                        value={tabIndex}
-                        onChange={handleTabChange}
-                        indicatorColor="secondary"
-                        textColor="inherit"
-                        variant="fullWidth"
-                        aria-label="full width tabs example"
-                    >
-                        <Tab label="Society Sales Report" {...a11yProps(0)} />
-                        <Tab label="Tower Sales Report" {...a11yProps(1)} />
-                    </Tabs>
-                </AppBar>
-
-                {/* Tab 1: Tower Sales Report */}
-                <TabPanel value={tabIndex} index={0} dir={theme.direction}>
-                    <div className={styles.tab2}>
-                        {!society ? (
-                            <Typography>
-                                Select a society to view the sales report
-                            </Typography>
-                        ) : loadingSocieties ? (
-                            <Loader />
-                        ) : societyReport && !societyReport.error ? (
-                            <div className={styles.cardsContainer}>
-                                <div className={styles.card}>
-                                    <div className={styles.label}>
-                                        Total Amount
-                                    </div>
-                                    <div className={styles.value}>
-                                        {formatIndianCurrencyWithDecimals(
-                                            societyReport.data.total
-                                        )}
-                                    </div>
-                                </div>
-                                <div className={styles.card}>
-                                    <div className={styles.label}>
-                                        Paid Amount
-                                    </div>
-                                    <div className={styles.value}>
-                                        {formatIndianCurrencyWithDecimals(
-                                            societyReport.data.paid
-                                        )}
-                                    </div>
-                                </div>
-                                <div className={styles.card}>
-                                    <div className={styles.label}>
-                                        Pending Amount
-                                    </div>
-                                    <div className={styles.value}>
-                                        {formatIndianCurrencyWithDecimals(
-                                            societyReport.data.pending
-                                        )}
-                                    </div>
-                                </div>
-                            </div>
-                        ) : (
-                            <Typography>
-                                No report found for the selected society
-                            </Typography>
-                        )}
-                    </div>
-                </TabPanel>
-
-                {/* Tab 2: Unsold Flats */}
-                <TabPanel value={tabIndex} index={1} dir={theme.direction}>
-                    <div className={styles.tab2}>
-                        {!tower ? (
-                            <Typography>
-                                Select a tower to view the sales report
-                            </Typography>
-                        ) : loadingTowers || loadingFlats ? (
-                            <Loader />
-                        ) : towerReport ? (
-                            <div className={styles.reportContainer}>
-                                {/* Overall Summary */}
-                                <div className={styles.summarySection}>
-                                    <h3 className={styles.sectionTitle}>
-                                        Overall Financial Summary
-                                    </h3>
-                                    <div className={styles.summaryCard}>
-                                        <div className={styles.summaryItem}>
-                                            <span>Total Value:</span>
-                                            <span>
-                                                {formatIndianCurrencyWithDecimals(
-                                                    towerReport.data.overall
-                                                        .total
-                                                )}
-                                            </span>
-                                        </div>
-                                        <div className={styles.summaryItem}>
-                                            <span>Amount Paid:</span>
-                                            <span className={styles.paid}>
-                                                {formatIndianCurrencyWithDecimals(
-                                                    towerReport.data.overall
-                                                        .paid
-                                                )}
-                                            </span>
-                                        </div>
-                                        <div className={styles.summaryItem}>
-                                            <span>Remaining Balance:</span>
-                                            <span className={styles.remaining}>
-                                                {formatIndianCurrencyWithDecimals(
-                                                    towerReport.data.overall
-                                                        .remaining
-                                                )}
-                                            </span>
-                                        </div>
-                                    </div>
-                                </div>
-
-                                {/* Payment Plan */}
-                                <div className={styles.summarySection}>
-                                    <h3 className={styles.sectionTitle}>
-                                        Payment Plan Summary
-                                    </h3>
-                                    <div className={styles.summaryCard}>
-                                        <div className={styles.summaryItem}>
-                                            <span>Plan Total:</span>
-                                            <span>
-                                                {formatIndianCurrencyWithDecimals(
-                                                    towerReport.data.paymentPlan
-                                                        .total
-                                                )}
-                                            </span>
-                                        </div>
-                                        <div className={styles.summaryItem}>
-                                            <span>Plan Paid:</span>
-                                            <span className={styles.paid}>
-                                                {formatIndianCurrencyWithDecimals(
-                                                    towerReport.data.paymentPlan
-                                                        .paid
-                                                )}
-                                            </span>
-                                        </div>
-                                        <div className={styles.summaryItem}>
-                                            <span>Plan Remaining:</span>
-                                            <span className={styles.remaining}>
-                                                {formatIndianCurrencyWithDecimals(
-                                                    towerReport.data.paymentPlan
-                                                        .remaining
-                                                )}
-                                            </span>
-                                        </div>
-                                    </div>
-                                </div>
-
-                                {/* Payment Breakdown */}
-                                <div className={styles.breakdownSection}>
-                                    <h3 className={styles.sectionTitle}>
-                                        Payment Breakdown Details
-                                    </h3>
-                                    {towerReport.data.paymentBreakdown.map(
-                                        (
-                                            plan: PaymentBreakdown,
-                                            index: number
-                                        ) => (
-                                            <div
-                                                key={plan.id}
-                                                className={styles.paymentPlan}
-                                            >
-                                                <div
-                                                    className={
-                                                        styles.planHeader
-                                                    }
-                                                >
-                                                    <h4
-                                                        className={
-                                                            styles.planTitle
-                                                        }
-                                                    >
-                                                        {plan.summary} (
-                                                        {plan.conditionType})
-                                                    </h4>
-                                                    <div
-                                                        className={
-                                                            styles.planStats
-                                                        }
-                                                    >
-                                                        <span>
-                                                            Total:{" "}
-                                                            {formatIndianCurrencyWithDecimals(
-                                                                plan.total
-                                                            )}
-                                                        </span>
-                                                        <span
-                                                            className={
-                                                                styles.paid
-                                                            }
-                                                        >
-                                                            Paid:{" "}
-                                                            {formatIndianCurrencyWithDecimals(
-                                                                plan.paid
-                                                            )}
-                                                        </span>
-                                                        <span
-                                                            className={
-                                                                styles.remaining
-                                                            }
-                                                        >
-                                                            Remaining:
-                                                            {formatIndianCurrencyWithDecimals(
-                                                                plan.remaining
-                                                            )}
-                                                        </span>
-                                                    </div>
-                                                </div>
-                                                <div>
-                                                    Amount: {plan.amount}%
-                                                </div>
-                                                <div>Scope: {plan.scope}</div>
-                                                {/* Paid Items */}
-                                                {plan.paidItems && (
-                                                    <div
-                                                        className={
-                                                            styles.flatSection
-                                                        }
-                                                    >
-                                                        <h5
-                                                            className={
-                                                                styles.subTitle
-                                                            }
-                                                        >
-                                                            Paid Flats
-                                                        </h5>
-                                                        {plan.paidItems.map(
-                                                            (item) => (
-                                                                <div
-                                                                    key={
-                                                                        item.flat_id
-                                                                    }
-                                                                    className={
-                                                                        styles.flatCard
-                                                                    }
-                                                                >
-                                                                    <div
-                                                                        className={
-                                                                            styles.flatHeader
-                                                                        }
-                                                                    >
-                                                                        <span
-                                                                            className={
-                                                                                styles.flatName
-                                                                            }
-                                                                        >
-                                                                            {
-                                                                                item
-                                                                                    .flatInfo
-                                                                                    .name
-                                                                            }
-                                                                        </span>
-                                                                        <span
-                                                                            className={
-                                                                                styles.ownerName
-                                                                            }
-                                                                        >
-                                                                            {
-                                                                                item
-                                                                                    .flatInfo
-                                                                                    .saleDetail
-                                                                                    .owners[0]
-                                                                                    .firstName
-                                                                            }{" "}
-                                                                            {
-                                                                                item
-                                                                                    .flatInfo
-                                                                                    .saleDetail
-                                                                                    .owners[0]
-                                                                                    .lastName
-                                                                            }
-                                                                        </span>
-                                                                        <span
-                                                                            className={
-                                                                                styles.paidAmount
-                                                                            }
-                                                                        >
-                                                                            {formatIndianCurrencyWithDecimals(
-                                                                                item.amount
-                                                                            )}
-                                                                        </span>
-                                                                    </div>
-                                                                    <div
-                                                                        className={
-                                                                            styles.priceBreakdown
-                                                                        }
-                                                                    >
-                                                                        <h6>
-                                                                            Price
-                                                                            Breakdown:
-                                                                        </h6>
-                                                                        <table>
-                                                                            <thead>
-                                                                                <tr>
-                                                                                    <th>
-                                                                                        Type
-                                                                                    </th>
-                                                                                    <th>
-                                                                                        Price/SqFt
-                                                                                    </th>
-                                                                                    <th>
-                                                                                        Total
-                                                                                    </th>
-                                                                                    <th>
-                                                                                        Super
-                                                                                        Area(SqFt)
-                                                                                    </th>
-                                                                                    <th>
-                                                                                        Summary
-                                                                                    </th>
-                                                                                </tr>
-                                                                            </thead>
-                                                                            <tbody>
-                                                                                {item.flatInfo.saleDetail.priceBreakdown.map(
-                                                                                    (
-                                                                                        component,
-                                                                                        idx
-                                                                                    ) => (
-                                                                                        <tr
-                                                                                            key={
-                                                                                                idx
-                                                                                            }
-                                                                                        >
-                                                                                            <td>
-                                                                                                {
-                                                                                                    component.type
-                                                                                                }
-                                                                                            </td>
-                                                                                            <td>
-                                                                                                {formatIndianCurrencyWithDecimals(
-                                                                                                    component.price
-                                                                                                )}
-                                                                                            </td>
-                                                                                            <td>
-                                                                                                {formatIndianCurrencyWithDecimals(
-                                                                                                    component.total
-                                                                                                )}
-                                                                                            </td>
-                                                                                            <td>
-                                                                                                {
-                                                                                                    component.superArea
-                                                                                                }
-                                                                                            </td>
-                                                                                            <td>
-                                                                                                {
-                                                                                                    component.summary
-                                                                                                }
-                                                                                            </td>
-                                                                                        </tr>
-                                                                                    )
-                                                                                )}
-                                                                            </tbody>
-                                                                        </table>
-                                                                    </div>
-                                                                </div>
-                                                            )
-                                                        )}
-                                                    </div>
-                                                )}
-
-                                                {/* Unpaid Items */}
-                                                {plan.unpaidItems && (
-                                                    <div
-                                                        className={
-                                                            styles.flatSection
-                                                        }
-                                                    >
-                                                        <h5
-                                                            className={
-                                                                styles.subTitle
-                                                            }
-                                                        >
-                                                            Unpaid Flats
-                                                        </h5>
-                                                        {plan.unpaidItems.map(
-                                                            (item) => (
-                                                                <div
-                                                                    key={
-                                                                        item.flat_id
-                                                                    }
-                                                                    className={
-                                                                        styles.flatCard
-                                                                    }
-                                                                >
-                                                                    <div
-                                                                        className={
-                                                                            styles.flatHeader
-                                                                        }
-                                                                    >
-                                                                        <span
-                                                                            className={
-                                                                                styles.flatName
-                                                                            }
-                                                                        >
-                                                                            {
-                                                                                item
-                                                                                    .flatInfo
-                                                                                    .name
-                                                                            }
-                                                                        </span>
-                                                                        <span
-                                                                            className={
-                                                                                styles.ownerName
-                                                                            }
-                                                                        >
-                                                                            {
-                                                                                item
-                                                                                    .flatInfo
-                                                                                    .saleDetail
-                                                                                    .owners[0]
-                                                                                    .firstName
-                                                                            }{" "}
-                                                                            {
-                                                                                item
-                                                                                    .flatInfo
-                                                                                    .saleDetail
-                                                                                    .owners[0]
-                                                                                    .lastName
-                                                                            }
-                                                                        </span>
-                                                                        <span
-                                                                            className={
-                                                                                styles.remaining
-                                                                            }
-                                                                        >
-                                                                            {formatIndianCurrencyWithDecimals(
-                                                                                item.amount
-                                                                            )}
-                                                                        </span>
-                                                                    </div>
-                                                                    <div
-                                                                        className={
-                                                                            styles.priceBreakdown
-                                                                        }
-                                                                    >
-                                                                        <h6>
-                                                                            Price
-                                                                            Breakdown:
-                                                                        </h6>
-                                                                        <table>
-                                                                            <thead>
-                                                                                <tr>
-                                                                                    <th>
-                                                                                        Type
-                                                                                    </th>
-                                                                                    <th>
-                                                                                        Price/SqFt
-                                                                                    </th>
-                                                                                    <th>
-                                                                                        Total
-                                                                                    </th>
-                                                                                    <th>
-                                                                                        Super
-                                                                                        Area(SqFt)
-                                                                                    </th>
-                                                                                    <th>
-                                                                                        Summary
-                                                                                    </th>
-                                                                                </tr>
-                                                                            </thead>
-                                                                            <tbody>
-                                                                                {item.flatInfo.saleDetail.priceBreakdown.map(
-                                                                                    (
-                                                                                        component,
-                                                                                        idx
-                                                                                    ) => (
-                                                                                        <tr
-                                                                                            key={
-                                                                                                idx
-                                                                                            }
-                                                                                        >
-                                                                                            <td>
-                                                                                                {
-                                                                                                    component.type
-                                                                                                }
-                                                                                            </td>
-                                                                                            <td>
-                                                                                                {formatIndianCurrencyWithDecimals(
-                                                                                                    component.price
-                                                                                                )}
-                                                                                            </td>
-                                                                                            <td>
-                                                                                                {formatIndianCurrencyWithDecimals(
-                                                                                                    component.total
-                                                                                                )}
-                                                                                            </td>
-                                                                                            <td>
-                                                                                                {
-                                                                                                    component.superArea
-                                                                                                }
-                                                                                            </td>
-                                                                                            <td>
-                                                                                                {
-                                                                                                    component.summary
-                                                                                                }
-                                                                                            </td>
-                                                                                        </tr>
-                                                                                    )
-                                                                                )}
-                                                                            </tbody>
-                                                                        </table>
-                                                                    </div>
-                                                                </div>
-                                                            )
-                                                        )}
-                                                    </div>
-                                                )}
-                                            </div>
-                                        )
-                                    )}
-                                </div>
-                            </div>
-                        ) : (
-                            <Typography>
-                                No report found for the selected tower
-                            </Typography>
-                        )}
-                    </div>
-                </TabPanel>
-            </Box>
+      <div className={styles.reportContainer}>
+        <div className={styles.reportHeader}>
+          <CustomBreadcrumbs items={report} />
+          <FormControl fullWidth size="small">
+            <Select
+              id="society-select"
+              value={society}
+              onChange={handleSocietyChange}
+              displayEmpty
+            >
+              <MenuItem value="">Select Society</MenuItem>
+              {societies.map((s) => (
+                <MenuItem key={s.reraNumber} value={s.reraNumber}>
+                  {s.name} {s.reraNumber}
+                </MenuItem>
+              ))}
+            </Select>
+          </FormControl>
+          {loadingSocieties && <Loader />}
+          <FormControl fullWidth size="small">
+            <Select
+              id="tower-select"
+              value={tower}
+              onChange={handleTowerChange}
+              displayEmpty
+              disabled={!society || loadingTowers}
+            >
+              <MenuItem value="">Select Tower</MenuItem>
+              {towers.map((t) => (
+                <MenuItem key={t.id} value={t.id}>
+                  {t.name}
+                </MenuItem>
+              ))}
+            </Select>
+          </FormControl>
+          {loadingTowers && <Loader />}
         </div>
+        <Box sx={{ bgcolor: "background.paper", width: "100%" }}>
+          <AppBar position="static" color="default">
+            <Tabs
+              value={tabIndex}
+              onChange={handleTabChange}
+              indicatorColor="secondary"
+              textColor="inherit"
+              variant="fullWidth"
+              aria-label="full width tabs example"
+            >
+              <Tab label="Society Sales Report" {...a11yProps(0)} />
+              <Tab label="Tower Sales Report" {...a11yProps(1)} />
+            </Tabs>
+          </AppBar>
+
+          {/* Tab 1: Tower Sales Report */}
+          <TabPanel value={tabIndex} index={0} dir={theme.direction}>
+            <div className={styles.tab2}>
+              {!society ? (
+                <Typography>
+                  Select a society to view the sales report
+                </Typography>
+              ) : loadingSocieties ? (
+                <Loader />
+              ) : societyReport && !societyReport.error ? (
+                <div className={styles.cardsContainer}>
+                  <div className={styles.card}>
+                    <div className={styles.label}>Total Amount</div>
+                    <div className={styles.value}>
+                      {formatIndianCurrencyWithDecimals(
+                        societyReport.data.total
+                      )}
+                    </div>
+                  </div>
+                  <div className={styles.card}>
+                    <div className={styles.label}>Paid Amount</div>
+                    <div className={styles.value}>
+                      {formatIndianCurrencyWithDecimals(
+                        societyReport.data.paid
+                      )}
+                    </div>
+                  </div>
+                  <div className={styles.card}>
+                    <div className={styles.label}>Pending Amount</div>
+                    <div className={styles.value}>
+                      {formatIndianCurrencyWithDecimals(
+                        societyReport.data.pending
+                      )}
+                    </div>
+                  </div>
+                </div>
+              ) : (
+                <Typography>
+                  No report found for the selected society
+                </Typography>
+              )}
+            </div>
+          </TabPanel>
+
+          {/* Tab 2: Unsold Flats */}
+          <TabPanel value={tabIndex} index={1} dir={theme.direction}>
+            <div className={styles.tab2}>
+              {!tower ? (
+                <Typography>Select a tower to view the sales report</Typography>
+              ) : loadingTowers || loadingFlats ? (
+                <Loader />
+              ) : towerReport ? (
+                <div className={styles.reportContainer}>
+                  {/* Overall Summary */}
+                  <div className={styles.summarySection}>
+                    <h3 className={styles.sectionTitle}>
+                      Overall Financial Summary
+                    </h3>
+                    <div className={styles.summaryCard}>
+                      <div className={styles.summaryItem}>
+                        <span>Total Value:</span>
+                        <span>
+                          {formatIndianCurrencyWithDecimals(
+                            towerReport.data.overall.total
+                          )}
+                        </span>
+                      </div>
+                      <div className={styles.summaryItem}>
+                        <span>Amount Paid:</span>
+                        <span className={styles.paid}>
+                          {formatIndianCurrencyWithDecimals(
+                            towerReport.data.overall.paid
+                          )}
+                        </span>
+                      </div>
+                      <div className={styles.summaryItem}>
+                        <span>Remaining Balance:</span>
+                        <span className={styles.remaining}>
+                          {formatIndianCurrencyWithDecimals(
+                            towerReport.data.overall.remaining
+                          )}
+                        </span>
+                      </div>
+                    </div>
+                  </div>
+
+                  {/* Payment Plan */}
+                  <div className={styles.summarySection}>
+                    <h3 className={styles.sectionTitle}>
+                      Payment Plan Summary
+                    </h3>
+                    <div className={styles.summaryCard}>
+                      <div className={styles.summaryItem}>
+                        <span>Plan Total:</span>
+                        <span>
+                          {formatIndianCurrencyWithDecimals(
+                            towerReport.data.paymentPlan.total
+                          )}
+                        </span>
+                      </div>
+                      <div className={styles.summaryItem}>
+                        <span>Plan Paid:</span>
+                        <span className={styles.paid}>
+                          {formatIndianCurrencyWithDecimals(
+                            towerReport.data.paymentPlan.paid
+                          )}
+                        </span>
+                      </div>
+                      <div className={styles.summaryItem}>
+                        <span>Plan Remaining:</span>
+                        <span className={styles.remaining}>
+                          {formatIndianCurrencyWithDecimals(
+                            towerReport.data.paymentPlan.remaining
+                          )}
+                        </span>
+                      </div>
+                    </div>
+                  </div>
+
+                  {/* Payment Breakdown */}
+                  <div className={styles.breakdownSection}>
+                    <h3 className={styles.sectionTitle}>
+                      Payment Breakdown Details
+                    </h3>
+                    {towerReport.data.paymentBreakdown.map(
+                      (plan: PaymentBreakdown, index: number) => (
+                        <div key={plan.id} className={styles.paymentPlan}>
+                          <div className={styles.planHeader}>
+                            <h4 className={styles.planTitle}>
+                              {plan.summary} ({plan.conditionType})
+                            </h4>
+                            <div className={styles.planStats}>
+                              <span>
+                                Total:{" "}
+                                {formatIndianCurrencyWithDecimals(plan.total)}
+                              </span>
+                              <span className={styles.paid}>
+                                Paid:{" "}
+                                {formatIndianCurrencyWithDecimals(plan.paid)}
+                              </span>
+                              <span className={styles.remaining}>
+                                Remaining:
+                                {formatIndianCurrencyWithDecimals(
+                                  plan.remaining
+                                )}
+                              </span>
+                            </div>
+                          </div>
+                          <div>Amount: {plan.amount}%</div>
+                          <div>Scope: {plan.scope}</div>
+                          {/* Paid Items */}
+                          {plan.paidItems && (
+                            <div className={styles.flatSection}>
+                              <h5 className={styles.subTitle}>Paid Flats</h5>
+                              {plan.paidItems.map((item) => (
+                                <div
+                                  key={item.flat_id}
+                                  className={styles.flatCard}
+                                >
+                                  <div className={styles.flatHeader}>
+                                    <span className={styles.flatName}>
+                                      {item.flatInfo.name}
+                                    </span>
+                                    <span className={styles.ownerName}>
+                                      {
+                                        item.flatInfo.saleDetail.owners[0]
+                                          .firstName
+                                      }{" "}
+                                      {
+                                        item.flatInfo.saleDetail.owners[0]
+                                          .lastName
+                                      }
+                                    </span>
+                                    <span className={styles.paidAmount}>
+                                      {formatIndianCurrencyWithDecimals(
+                                        item.amount
+                                      )}
+                                    </span>
+                                  </div>
+                                  <div className={styles.priceBreakdown}>
+                                    <h6>Price Breakdown:</h6>
+                                    <table>
+                                      <thead>
+                                        <tr>
+                                          <th>Type</th>
+                                          <th>Price/SqFt</th>
+                                          <th>Total</th>
+                                          <th>Super Area(SqFt)</th>
+                                          <th>Summary</th>
+                                        </tr>
+                                      </thead>
+                                      <tbody>
+                                        {item.flatInfo.saleDetail.priceBreakdown.map(
+                                          (component, idx) => (
+                                            <tr key={idx}>
+                                              <td>{component.type}</td>
+                                              <td>
+                                                {formatIndianCurrencyWithDecimals(
+                                                  component.price
+                                                )}
+                                              </td>
+                                              <td>
+                                                {formatIndianCurrencyWithDecimals(
+                                                  component.total
+                                                )}
+                                              </td>
+                                              <td>{component.superArea}</td>
+                                              <td>{component.summary}</td>
+                                            </tr>
+                                          )
+                                        )}
+                                      </tbody>
+                                    </table>
+                                  </div>
+                                </div>
+                              ))}
+                            </div>
+                          )}
+
+                          {/* Unpaid Items */}
+                          {plan.unpaidItems && (
+                            <div className={styles.flatSection}>
+                              <h5 className={styles.subTitle}>Unpaid Flats</h5>
+                              {plan.unpaidItems.map((item) => (
+                                <div
+                                  key={item.flat_id}
+                                  className={styles.flatCard}
+                                >
+                                  <div className={styles.flatHeader}>
+                                    <span className={styles.flatName}>
+                                      {item.flatInfo.name}
+                                    </span>
+                                    <span className={styles.ownerName}>
+                                      {
+                                        item.flatInfo.saleDetail.owners[0]
+                                          .firstName
+                                      }{" "}
+                                      {
+                                        item.flatInfo.saleDetail.owners[0]
+                                          .lastName
+                                      }
+                                    </span>
+                                    <span className={styles.remaining}>
+                                      {formatIndianCurrencyWithDecimals(
+                                        item.amount
+                                      )}
+                                    </span>
+                                  </div>
+                                  <div className={styles.priceBreakdown}>
+                                    <h6>Price Breakdown:</h6>
+                                    <table>
+                                      <thead>
+                                        <tr>
+                                          <th>Type</th>
+                                          <th>Price/SqFt</th>
+                                          <th>Total</th>
+                                          <th>Super Area(SqFt)</th>
+                                          <th>Summary</th>
+                                        </tr>
+                                      </thead>
+                                      <tbody>
+                                        {item.flatInfo.saleDetail.priceBreakdown.map(
+                                          (component, idx) => (
+                                            <tr key={idx}>
+                                              <td>{component.type}</td>
+                                              <td>
+                                                {formatIndianCurrencyWithDecimals(
+                                                  component.price
+                                                )}
+                                              </td>
+                                              <td>
+                                                {formatIndianCurrencyWithDecimals(
+                                                  component.total
+                                                )}
+                                              </td>
+                                              <td>{component.superArea}</td>
+                                              <td>{component.summary}</td>
+                                            </tr>
+                                          )
+                                        )}
+                                      </tbody>
+                                    </table>
+                                  </div>
+                                </div>
+                              ))}
+                            </div>
+                          )}
+                        </div>
+                      )
+                    )}
+                  </div>
+                </div>
+              ) : (
+                <Typography>No report found for the selected tower</Typography>
+              )}
+            </div>
+          </TabPanel>
+        </Box>
+      </div>
     );
 };
 

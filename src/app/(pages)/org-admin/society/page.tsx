@@ -139,10 +139,10 @@ const Page = () => {
                       </div>
                       <div className={styles.dropdown}>
                         <DropdownMenu
-                          soldFlats={org.soldFlats}
-                          totalFlats={org.totalFlats}
-                          unsoldFlats={org.unsoldFlats}
                           reraNumber={org.reraNumber}
+                          name={org.name}
+                          address={org.address}
+                          coverPhoto={org.coverPhoto}
                           fetchData={() => fetchData(null, false)}
                         />
                       </div>

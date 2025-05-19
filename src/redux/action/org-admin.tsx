@@ -3,6 +3,8 @@ import {
   CreateSocietyRequestBodyInput,
   GetAllSocitiesInput,
   DeleteSocietyInput,
+  UpdateSocietyDetailsInput,
+  UpdateSocietyDetailsRequestBodyInput,
 } from "@/utils/routes/society/types";
 import {
   GetSocietyFlats,
@@ -15,6 +17,7 @@ import {
 import {
   CreateTowerInput,
   CreateTowerRequestBodyInput,
+  DeleteTowerInput,
 } from "@/utils/routes/tower/types";
 import {
   GetAllFlatTypesInput,
@@ -1140,6 +1143,74 @@ export const getTowerSalesReport = async (
     return response.data;
   } catch (error: any) {
     console.error("Error :", error.response?.data || error.message);
+    return { error: true, message: error.message };
+  }
+};
+export const getSocietyById = async (societyReraNumber: string) => {
+  try {
+    const token = await getIdToken();
+
+    const url = society.getSocietyById.getEndpoint(societyReraNumber);
+    const response = await axios.get(createURL(url), {
+      headers: { Authorization: `Bearer ${token}` },
+    });
+    // console.log("response", response);
+    return response.data;
+  } catch (error: any) {
+    console.error("Error :", error.response?.data || error.message);
+    return { error: true, message: error.message };
+  }
+};
+
+export const deleteTower = async (
+  towerID: string,
+  societyReraNumber: string
+) => {
+  try {
+    const token = await getIdToken();
+    const input: DeleteTowerInput = {
+      towerID,
+      societyReraNumber,
+    };
+    const url = tower.deleteTower.getEndpoint(input);
+    const response = await axios.delete(createURL(url), {
+      headers: { Authorization: `Bearer ${token}` },
+    });
+
+    return response.data;
+  } catch (error: any) {
+    console.error("Error deleting:", error.response?.data || error.message);
+    return { error: true, message: error.message };
+  }
+};
+
+export const updateSocietyDetails = async (
+  reraNumber: string,
+  name?: string,
+  address?: string,
+  coverPhoto?: string
+) => {
+  try {
+    const token = await getIdToken();
+    const input: UpdateSocietyDetailsInput = {
+      reraNumber,
+    };
+    const reqBody: UpdateSocietyDetailsRequestBodyInput = {
+      name,
+      address,
+      coverPhoto,
+    };
+    const url = society.updateSocietyDetails.getEndpoint(input);
+    const response = await axios.patch(createURL(url), reqBody, {
+      headers: { Authorization: `Bearer ${token}` },
+    });
+
+    return response.data;
+  } catch (error: any) {
+    console.error(
+      "Error updating society:",
+      error.response?.data || error.message
+    );
     return { error: true, message: error.message };
   }
 };

@@ -80,35 +80,33 @@ const Page = () => {
     );
 
     return (
-        <div className={`container ${styles.container}`}>
-            <div className={styles.header}>
-                <h2>Tower List</h2>
+      <div className={`container ${styles.container}`}>
+        <div className={styles.header}>
+          <h2>Tower List</h2>
 
-                <button
-                    onClick={() =>
-                        router.push(
-                            `/org-admin/society/towers/new-tower?rera=${rera}`
-                        )
-                    }
-                >
-                    New Tower
-                </button>
-            </div>
-            <CustomBreadcrumbs items={tower} />
-            {loading ? (
-                <div className={styles.loading}>
-                    <Loader />
-                </div>
+          <button
+            onClick={() =>
+              router.push(`/org-admin/society/towers/new-tower?rera=${rera}`)
+            }
+          >
+            New Tower
+          </button>
+        </div>
+        <CustomBreadcrumbs items={tower} />
+        {loading ? (
+          <div className={styles.loading}>
+            <Loader />
+          </div>
+        ) : (
+          <>
+            {orgData.length === 0 ? (
+              <div className={styles.noData}>No data available</div>
             ) : (
-                <>
-                    {orgData.length === 0 ? (
-                        <div className={styles.noData}>No data available</div>
-                    ) : (
-                        <>
-                            <ul className={styles.orgList}>
-                                {orgData.map((org) => (
-                                    <li key={org.id} className={styles.orgItem}>
-                                        {/* <div className={styles.logoContainer}>
+              <>
+                <ul className={styles.orgList}>
+                  {orgData.map((org) => (
+                    <li key={org.id} className={styles.orgItem}>
+                      {/* <div className={styles.logoContainer}>
               {org.coverPhoto ? (
                 <img
                   src={org.coverPhoto}
@@ -119,66 +117,48 @@ const Page = () => {
                 <div className={styles.noLogo}>No Logo</div>
               )}
             </div> */}
-                                        <div className={styles.rightSection}>
-                                            <div className={styles.details}>
-                                                <div>
-                                                    <strong>Name:</strong>{" "}
-                                                    {org.name}
-                                                </div>
-                                                {/* <div>
+                      <div className={styles.rightSection}>
+                        <div className={styles.details}>
+                          <div>
+                            <strong>Name:</strong> {org.name}
+                          </div>
+                          {/* <div>
               <strong>GST:</strong> {org.gst || "N/A"}
             </div> */}
-                                                <div>
-                                                    {" "}
-                                                    <strong>
-                                                        Floor Count:
-                                                    </strong>{" "}
-                                                    {org.floorCount}
-                                                </div>
-                                                <div>
-                                                    {" "}
-                                                    <strong>
-                                                        Rera Number:
-                                                    </strong>{" "}
-                                                    {org.societyId}
-                                                </div>
-                                                <div>
-                                                    {" "}
-                                                    <strong>
-                                                        Paid Amount:
-                                                    </strong>{" "}
-                                                    {formatIndianCurrencyWithDecimals(
-                                                        org.paidAmount
-                                                    )}
-                                                </div>
-                                                <div>
-                                                    <strong>Remaining:</strong>{" "}
-                                                    {formatIndianCurrencyWithDecimals(
-                                                        org.remaining
-                                                    )}
-                                                </div>
-                                                <div>
-                                                    <strong>
-                                                        Total Amount:
-                                                    </strong>{" "}
-                                                    {formatIndianCurrencyWithDecimals(
-                                                        org.totalAmount
-                                                    )}
-                                                </div>
-                                                <div>
-                                                    <strong>Created At:</strong>{" "}
-                                                    {new Date(
-                                                        org.createdAt
-                                                    ).toLocaleString()}
-                                                </div>
-                                            </div>
-                                            <div className={styles.dropdown}>
-                                                <DropdownTower
-                                                    reraNumber={org.societyId}
-                                                    towerId={org.id}
-                                                />
-                                            </div>
-                                            {/* {editingId === org.id ? (
+                          <div>
+                            {" "}
+                            <strong>Floor Count:</strong> {org.floorCount}
+                          </div>
+                          <div>
+                            {" "}
+                            <strong>Rera Number:</strong> {org.societyId}
+                          </div>
+                          <div>
+                            {" "}
+                            <strong>Paid Amount:</strong>{" "}
+                            {formatIndianCurrencyWithDecimals(org.paidAmount)}
+                          </div>
+                          <div>
+                            <strong>Remaining:</strong>{" "}
+                            {formatIndianCurrencyWithDecimals(org.remaining)}
+                          </div>
+                          <div>
+                            <strong>Total Amount:</strong>{" "}
+                            {formatIndianCurrencyWithDecimals(org.totalAmount)}
+                          </div>
+                          <div>
+                            <strong>Created At:</strong>{" "}
+                            {new Date(org.createdAt).toLocaleString()}
+                          </div>
+                        </div>
+                        <div className={styles.dropdown}>
+                          <DropdownTower
+                            reraNumber={org.societyId}
+                            towerId={org.id}
+                            fetchData={() => fetchData(null, false)}
+                          />
+                        </div>
+                        {/* {editingId === org.id ? (
               <div className={styles.editButtons}>
                 <button
                   className={styles.updateButton}
@@ -201,31 +181,31 @@ const Page = () => {
                 Update Status
               </button>
             )} */}
-                                        </div>
-                                    </li>
-                                ))}
-                            </ul>
-                            <div className={styles.paginationControls}>
-                                <button
-                                    onClick={handlePrevious}
-                                    disabled={cursorStack.length <= 0}
-                                    className={styles.navButton}
-                                >
-                                    Previous
-                                </button>
-                                <button
-                                    onClick={handleNext}
-                                    disabled={!hasNextPage}
-                                    className={styles.navButton}
-                                >
-                                    Next
-                                </button>
-                            </div>
-                        </>
-                    )}
-                </>
+                      </div>
+                    </li>
+                  ))}
+                </ul>
+                <div className={styles.paginationControls}>
+                  <button
+                    onClick={handlePrevious}
+                    disabled={cursorStack.length <= 0}
+                    className={styles.navButton}
+                  >
+                    Previous
+                  </button>
+                  <button
+                    onClick={handleNext}
+                    disabled={!hasNextPage}
+                    className={styles.navButton}
+                  >
+                    Next
+                  </button>
+                </div>
+              </>
             )}
-        </div>
+          </>
+        )}
+      </div>
     );
 };
 

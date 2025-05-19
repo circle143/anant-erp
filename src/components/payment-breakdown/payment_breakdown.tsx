@@ -143,14 +143,14 @@ const PaymentBreakdownContent = ({
                                 <strong>Condition Type:</strong>{" "}
                                 {item.conditionType}
                             </p>
-                            {item.conditionValue && (
+                            {/* {item.conditionValue && (
                                 <p>
                                     <strong>Condition Value:</strong>{" "}
                                     {formatIndianCurrencyWithDecimals(
                                         item.conditionValue
                                     )}
                                 </p>
-                            )}
+                            )} */}
                             {item.due && (
                                 <p>
                                     <strong>Due Date: </strong>{" "}
