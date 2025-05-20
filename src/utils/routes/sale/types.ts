@@ -25,6 +25,7 @@ export interface CustomerDetails {
 export interface CompanyDetails {
 	name: string;
 	companyPan: string;
+	companyGST?: string;
 	aadharNumber?: string;
 	panNumber?: string;
 }
