@@ -124,8 +124,30 @@ const CustomerSchema = Yup.object()
 const CompanySchema = Yup.object()
   .shape({
     name: Yup.string().required("Company name is required"),
-    aadharNumber: Yup.string().nullable(),
-    panNumber: Yup.string().nullable(),
+    companyPan: Yup.string()
+      .required("Company PAN is required")
+      .matches(
+        /^[A-Z]{5}[0-9]{4}[A-Z]{1}$/,
+        "Invalid PAN format (Example: ABCDE1234F)"
+      ),
+    companyGST: Yup.string()
+      .nullable()
+      .matches(
+        /^[0-9]{2}[A-Z]{5}[0-9]{4}[A-Z]{1}[1-9A-Z]{1}Z[0-9A-Z]{1}$/,
+        "Invalid GST format (Example: 12ABCDE3456F7Z8)"
+      ),
+    aadharNumber: Yup.string()
+      .nullable()
+      .matches(
+        /^[2-9]{1}[0-9]{11}$/,
+        "Invalid Aadhar format (12 digits, cannot start with 0/1)"
+      ),
+    panNumber: Yup.string()
+      .nullable()
+      .matches(
+        /^[A-Z]{5}[0-9]{4}[A-Z]{1}$/,
+        "Invalid PAN format (Example: ABCDE1234F)"
+      ),
   })
   .test(
     "at-least-one-id",
@@ -134,30 +156,23 @@ const CompanySchema = Yup.object()
       return !!value.aadharNumber?.trim() || !!value.panNumber?.trim();
     }
   );
+
 const StepTwoSchema = Yup.object().shape({
   type: Yup.string().required("Customer type is required"),
-  customers: Yup.array()
-    .when("type", {
-      is: (value: string) => value === "user", // Check if type is 'user'
-      then: (schema) =>
-        schema
-          .of(CustomerSchema)
-          .min(1, "At least one customer is required")
-          .max(3, "Maximum 3 customers allowed"),
-    })
-    .when("type", {
-      is: (value: string) => value === "company",
-      then: (schema) => schema.nullable().notRequired(),
-    }),
-  companyBuyer: Yup.object()
-    .when("type", {
-      is: (value: string) => value === "company",
-      then: (schema) => CompanySchema,
-    })
-    .when("type", {
-      is: (value: string) => value === "user",
-      then: (schema) => schema.nullable().notRequired(),
-    }),
+  customers: Yup.array().when("type", {
+    is: (value: string) => value === "user",
+    then: (schema) =>
+      schema
+        .of(CustomerSchema)
+        .min(1, "At least one customer is required")
+        .max(3, "Maximum 3 customers allowed"),
+    otherwise: (schema) => schema.notRequired().nullable(),
+  }),
+  companyBuyer: Yup.object().when("type", {
+    is: (value: string) => value === "company",
+    then: () => CompanySchema, // Important: Return the schema directly
+    otherwise: (schema) => schema.notRequired().nullable(),
+  }),
 });
 
 const initialValues = {
@@ -194,6 +209,8 @@ const initialValues = {
   ],
   companyBuyer: {
     name: "",
+    companyPan: "",
+    companyGST: "",
     aadharNumber: "",
     panNumber: "",
   },
@@ -1740,7 +1757,37 @@ const Sale = () => {
                         }
                         helperText={<ErrorMessage name="companyBuyer.name" />}
                       />
-
+                      <InputLabel>Company PAN Number</InputLabel>
+                      <Field
+                        as={TextField}
+                        name="companyBuyer.companyPan"
+                        fullWidth
+                        inputProps={{
+                          maxLength: 10,
+                          style: { textTransform: "uppercase" },
+                        }}
+                        error={
+                          touched.companyBuyer?.companyPan &&
+                          !!errors.companyBuyer?.companyPan
+                        }
+                        helperText={
+                          <ErrorMessage name="companyBuyer.companyPan" />
+                        }
+                      />
+                      <InputLabel>Company GST</InputLabel>
+                      <Field
+                        as={TextField}
+                        name="companyBuyer.companyGST"
+                        // value={values.companyBuyer?.companyGST || ""}
+                        fullWidth
+                        error={
+                          touched.companyBuyer?.companyGST &&
+                          !!errors.companyBuyer?.companyGST
+                        }
+                        helperText={
+                          <ErrorMessage name="companyBuyer.companyGST" />
+                        }
+                      />
                       <InputLabel>Aadhar Number</InputLabel>
                       <Field
                         as={TextField}
@@ -1760,6 +1807,10 @@ const Sale = () => {
                         as={TextField}
                         name="companyBuyer.panNumber"
                         fullWidth
+                        inputProps={{
+                          maxLength: 10,
+                          style: { textTransform: "uppercase" },
+                        }}
                         error={
                           touched.companyBuyer?.panNumber &&
                           !!errors.companyBuyer?.panNumber
@@ -1781,8 +1832,6 @@ const Sale = () => {
                       {loading ? "Submitting..." : "Submit"}
                     </button>
                   </div>
-                  {/* <Button onClick={handlePrevious}>Back</Button>
-                  <Button type="submit">Submit</Button> */}
                 </>
               )}
             </Form>

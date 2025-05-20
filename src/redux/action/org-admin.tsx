@@ -1069,30 +1069,30 @@ export const getSocietySaleReport = async (societyReraNumber: string) => {
     return { error: true, message: error.message };
   }
 };
-export const addPaymentInstallmentToSale = async (
-  societyReraNumber: string,
-  paymentId: string,
-  saleId: string
-) => {
-  try {
-    const token = await getIdToken();
+// export const addPaymentInstallmentToSale = async (
+//   societyReraNumber: string,
+//   paymentId: string,
+//   saleId: string
+// ) => {
+//   try {
+//     const token = await getIdToken();
 
-    const input: AddPaymentInstallmentToSale = {
-      societyReraNumber,
-      paymentId,
-      saleId,
-    };
+//     const input: AddPaymentInstallmentToSale = {
+//       societyReraNumber,
+//       paymentId,
+//       saleId,
+//     };
 
-    const url = customer.addPaymentInstallmentToSale.getEndpoint(input);
-    const response = await axios.post(createURL(url), null, {
-      headers: { Authorization: `Bearer ${token}` },
-    });
-    return response.data;
-  } catch (error: any) {
-    console.error("Error :", error.response?.data || error.message);
-    return { error: true, message: error.message };
-  }
-};
+//     const url = customer.addPaymentInstallmentToSale.getEndpoint(input);
+//     const response = await axios.post(createURL(url), null, {
+//       headers: { Authorization: `Bearer ${token}` },
+//     });
+//     return response.data;
+//   } catch (error: any) {
+//     console.error("Error :", error.response?.data || error.message);
+//     return { error: true, message: error.message };
+//   }
+// };
 
 export const getSocietyFlatsByName = async (
   societyReraNumber: string,

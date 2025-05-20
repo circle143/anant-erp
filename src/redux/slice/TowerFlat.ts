@@ -76,8 +76,23 @@ const unitSlice = createSlice({
     clearUnits: (state) => {
       state.units = [];
     },
+    updatePaymentInUnit: (
+      state,
+      action: PayloadAction<{ saleId: string; amountPaid: string }>
+    ) => {
+      const { saleId, amountPaid } = action.payload;
+      const unit = state.units.find((unit) => unit.saleDetail?.id === saleId);
+      if (unit?.saleDetail) {
+        const paid = parseFloat(unit.saleDetail.paid || "0");
+        const remaining = parseFloat(unit.saleDetail.remaining || "0");
+        const amount = parseFloat(amountPaid);
+
+        unit.saleDetail.paid = (paid + amount).toString();
+        unit.saleDetail.remaining = (remaining - amount).toString();
+      }
+    },
   },
 });
 
-export const { setUnits, clearUnits } = unitSlice.actions;
+export const { setUnits, clearUnits, updatePaymentInUnit } = unitSlice.actions;
 export default unitSlice.reducer;

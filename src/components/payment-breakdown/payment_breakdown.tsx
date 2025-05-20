@@ -2,7 +2,7 @@
 import React, { useState, useCallback, useEffect } from "react";
 import {
   getSalePaymentBreakDown,
-  addPaymentInstallmentToSale,
+//   addPaymentInstallmentToSale,
 } from "@/redux/action/org-admin";
 import Box from "@mui/material/Box";
 import Modal from "@mui/material/Modal";
@@ -10,28 +10,29 @@ import styles from "./page.module.scss";
 import toast from "react-hot-toast";
 import Spinner from "react-bootstrap/Spinner";
 import { formatIndianCurrencyWithDecimals } from "@/utils/formatIndianCurrencyWithDecimals";
-import { useSelector } from "react-redux";
+import { useDispatch, useSelector } from "react-redux";
 import { RootState } from "@/redux/store";
-import { setUnits } from "@/redux/slice/TowerFlat";
+import { setUnits, updatePaymentInUnit } from "@/redux/slice/TowerFlat";
 const PaymentBreakdownContent = ({
   id,
   rera,
-  paid,
-  remaining,
-  totalPrice,
+
   handleClose,
 }: {
   id: string;
   rera: string;
-  paid: string | number;
-  remaining: string | number;
-  totalPrice: string | number;
+
   handleClose: () => void;
 }) => {
   const [response, setResponse] = useState<any>(null);
   const [loading, setLoading] = useState<boolean>(true);
   const [error, setError] = useState<string | null>(null);
+  const dispatch = useDispatch();
   const units = useSelector((state: RootState) => state.TowerFlats.units);
+  const matchingUnit = units.find((unit) => unit.saleDetail?.id === id);
+  const paid = matchingUnit?.saleDetail?.paid || "0";
+  const remaining = matchingUnit?.saleDetail?.remaining || "0";
+  const totalPrice = matchingUnit?.saleDetail?.totalPrice || "0";
   const fetchData = useCallback(async () => {
     try {
       setLoading(true);
@@ -56,24 +57,30 @@ const PaymentBreakdownContent = ({
     fetchData();
   }, [fetchData]);
 
-  const handleMarkAsPaid = async (index: number, paymentId: string) => {
-    const confirm = window.confirm(
-      "Are you sure you want to mark this installment as paid?"
-    );
-    if (!confirm) return;
+// const handleMarkAsPaid = async (index: number, paymentId: string) => {
+//   const confirm = window.confirm(
+//     "Are you sure you want to mark this installment as paid?"
+//   );
+//   if (!confirm) return;
 
-    try {
-      const res = await addPaymentInstallmentToSale(rera, paymentId, id);
-      if (res?.error) {
-        toast.error(res.message || "Failed to mark as paid");
-      } else {
-        toast.success("Installment marked as paid");
-        fetchData(); // Refresh data
-      }
-    } catch (err: any) {
-      toast.error(err.message || "Error processing request");
-    }
-  };
+//   try {
+//     const res = await addPaymentInstallmentToSale(rera, paymentId, id);
+//     if (res?.error) {
+//       toast.error(res.message || "Failed to mark as paid");
+//     } else {
+//       toast.success("Installment marked as paid");
+
+//       // ✅ Update Redux paid/remaining values
+//       const paidAmount = response.details[index].amountPaid;
+//       dispatch(updatePaymentInUnit({ saleId: id, amountPaid: paidAmount }));
+
+//       fetchData(); // Refresh breakdown data
+//     }
+//   } catch (err: any) {
+//     toast.error(err.message || "Error processing request");
+//   }
+// };
+
 
   if (loading)
     return (
@@ -169,14 +176,14 @@ const PaymentBreakdownContent = ({
                 <strong>Paid:</strong> {item.paid ? "Yes" : "No"}
               </p>
             </div>
-            {!item.paid && (
+            {/* {!item.paid && (
               <button
-                onClick={() => handleMarkAsPaid(index, item.id)}
+                // onClick={() => handleMarkAsPaid(index, item.id)}
                 className={styles.paidButton}
               >
                 Mark as Paid
               </button>
-            )}
+            )} */}
           </div>
         ))}
       </div>
@@ -212,9 +219,6 @@ const PaymentBreakdownModal: React.FC<PaymentBreakdownModalProps> = ({
           <PaymentBreakdownContent
             id={id}
             rera={rera}
-            paid={paid}
-            remaining={remaining}
-            totalPrice={totalPrice}
             handleClose={handleClose}
           />
         </Box>
