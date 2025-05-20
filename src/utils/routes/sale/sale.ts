@@ -5,8 +5,11 @@ import {
 	GetSalePaymentBreakDown,
 	GetSocietySalesReport,
 	GetTowerSalesReport,
+	UpdateCompanyCustomerDetailsReqBodyInput,
+	UpdateCustomerDetailsReqBodyInput,
 	UpdateCustomerInput,
 	UpdateCustomerRequestBodyInput,
+	UpdateSaleCustomerDetailsInput,
 } from "./types";
 
 function getBasePath(societyReraNumber: string) {
@@ -25,18 +28,18 @@ export const customer = {
 		},
 		requestMethod: "POST",
 	},
-	addPaymentInstallmentToSale: {
-		getEndpoint: (input: AddPaymentInstallmentToSale) => {
-			return (
-				getBasePath(input.societyReraNumber) +
-				`/${input.saleId}/add-payment-installment/${input.paymentId}`
-			);
-		},
-		getReqBody: () => {
-			// no req body
-		},
-		requestMethod: "POST",
-	},
+	// addPaymentInstallmentToSale: {
+	// 	getEndpoint: (input: AddPaymentInstallmentToSale) => {
+	// 		return (
+	// 			getBasePath(input.societyReraNumber) +
+	// 			`/${input.saleId}/add-payment-installment/${input.paymentId}`
+	// 		);
+	// 	},
+	// 	getReqBody: () => {
+	// 		// no req body
+	// 	},
+	// 	requestMethod: "POST",
+	// },
 	getSalePaymentBreakDown: {
 		getEndpoint: (input: GetSalePaymentBreakDown) => {
 			return (
@@ -69,5 +72,29 @@ export const customer = {
 			// no request body required
 		},
 		requestMethod: "GET",
+	},
+	updateSaleCustomerDetails: {
+		getEndpoint: (input: UpdateSaleCustomerDetailsInput) => {
+			return (
+				getBasePath(input.societyReraNumber) +
+				`/customer/${input.customerId}`
+			);
+		},
+		getReqBody: (input: UpdateCustomerDetailsReqBodyInput) => {
+			return input;
+		},
+		requestMethod: "PATCH",
+	},
+	updateSaleCompanyCustomerDetails: {
+		getEndpoint: (input: UpdateSaleCustomerDetailsInput) => {
+			return (
+				getBasePath(input.societyReraNumber) +
+				`/company-customer/${input.customerId}`
+			);
+		},
+		getReqBody: (input: UpdateCompanyCustomerDetailsReqBodyInput) => {
+			return input;
+		},
+		requestMethod: "PATCH",
 	},
 };

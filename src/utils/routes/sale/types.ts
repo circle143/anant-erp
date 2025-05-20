@@ -74,3 +74,17 @@ export interface GetTowerSalesReport {
 	societyReraNumber: string;
 	towerId: string;
 }
+
+// update sale customer details
+export interface UpdateSaleCustomerDetailsInput {
+	societyReraNumber: string;
+	customerId: string; // this will either be customer id or compnay-customer id
+}
+
+export interface UpdateCustomerDetailsReqBodyInput {
+	details: CustomerDetails;
+}
+
+export interface UpdateCompanyCustomerDetailsReqBodyInput {
+	details: CompanyDetails;
+}
