@@ -1,5 +1,4 @@
 export interface CustomerDetails {
-	level: number;
 	salutation: string;
 	firstName: string;
 	lastName: string;
