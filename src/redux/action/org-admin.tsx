@@ -44,6 +44,7 @@ import {
   GetSalePaymentBreakDown,
   AddPaymentInstallmentToSale,
   GetTowerSalesReport,
+  CompanyDetails,
 } from "@/utils/routes/sale/types";
 import {
   GetChargesInput,
@@ -517,11 +518,18 @@ export const updateOrganizationDetails = async (
 export const addCustomer = async (
   societyReraNumber: string,
   flatID: string,
-  customers: CustomerDetails[],
   optionalCharges: string[],
-  basicCost: number
+  basicCost: number,
+  type: string,
+  companyBuyer?: CompanyDetails,
+  customers?: CustomerDetails[],
 ) => {
   try {
+    console.log("customers", customers);
+    console.log("companyBuyer", companyBuyer);
+    console.log("optionalCharges", optionalCharges);
+    console.log("basicCost", basicCost);
+    console.log("type", type);
     const token = await getIdToken();
     const input: AddCustomerToFlatInput = {
       societyReraNumber,
@@ -529,7 +537,9 @@ export const addCustomer = async (
     };
 
     const reqBody: AddCustomerToFlatRequestBodyInput = {
+      type,
       details: customers,
+      companyBuyer,
       optionalCharges,
       basicCost: parseFloat(basicCost.toString()),
     };

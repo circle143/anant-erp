@@ -12,7 +12,7 @@ import {
 import InputLabel from "@mui/material/InputLabel";
 import FormHelperText from "@mui/material/FormHelperText";
 
-import { Button } from "@mui/material";
+import { Button, Tab, Tabs } from "@mui/material";
 import UploadFileIcon from "@mui/icons-material/UploadFile";
 import MenuItem from "@mui/material/MenuItem";
 import Select from "@mui/material/Select";
@@ -27,6 +27,7 @@ import { parsePhoneNumber } from "libphonenumber-js/min";
 import imageCompression from "browser-image-compression";
 import Checkbox from "@mui/material/Checkbox";
 import ListItemText from "@mui/material/ListItemText";
+import { CustomerDetails } from "@/utils/routes/sale/types";
 
 const StepOneSchema = Yup.object().shape({
   society: Yup.string().required("Society is required"),
@@ -120,12 +121,43 @@ const CustomerSchema = Yup.object()
       );
     }
   );
-
+const CompanySchema = Yup.object()
+  .shape({
+    name: Yup.string().required("Company name is required"),
+    aadharNumber: Yup.string().nullable(),
+    panNumber: Yup.string().nullable(),
+  })
+  .test(
+    "at-least-one-id",
+    "At least one of Aadhar Number or PAN Number is required",
+    function (value) {
+      return !!value.aadharNumber?.trim() || !!value.panNumber?.trim();
+    }
+  );
 const StepTwoSchema = Yup.object().shape({
+  type: Yup.string().required("Customer type is required"),
   customers: Yup.array()
-    .of(CustomerSchema)
-    .min(1, "At least one customer is required")
-    .max(3, "Maximum 3 customers allowed"),
+    .when("type", {
+      is: (value: string) => value === "user", // Check if type is 'user'
+      then: (schema) =>
+        schema
+          .of(CustomerSchema)
+          .min(1, "At least one customer is required")
+          .max(3, "Maximum 3 customers allowed"),
+    })
+    .when("type", {
+      is: (value: string) => value === "company",
+      then: (schema) => schema.nullable().notRequired(),
+    }),
+  companyBuyer: Yup.object()
+    .when("type", {
+      is: (value: string) => value === "company",
+      then: (schema) => CompanySchema,
+    })
+    .when("type", {
+      is: (value: string) => value === "user",
+      then: (schema) => schema.nullable().notRequired(),
+    }),
 });
 
 const initialValues = {
@@ -135,6 +167,7 @@ const initialValues = {
   seller: "",
   charges: [] as string[],
   basicCost: 0,
+  type: "user",
   customers: [
     {
       salutation: "",
@@ -159,6 +192,11 @@ const initialValues = {
       companyName: "",
     },
   ],
+  companyBuyer: {
+    name: "",
+    aadharNumber: "",
+    panNumber: "",
+  },
 };
 const fetchTowers = async (
   rera: string,
@@ -180,7 +218,20 @@ const fetchTowers = async (
 
   return newData;
 };
-
+function TabPanel(props: any) {
+  const { children, value, index, ...other } = props;
+  return (
+    <div
+      role="tabpanel"
+      hidden={value !== index}
+      id={`simple-tabpanel-${index}`}
+      aria-labelledby={`simple-tab-${index}`}
+      {...other}
+    >
+      {value === index && <Box sx={{ p: 3 }}>{children}</Box>}
+    </div>
+  );
+}
 const Sale = () => {
   const [skillOptions, setSkillOptions] = useState<SkillOption[]>([]);
   const [step, setStep] = useState(1);
@@ -193,6 +244,11 @@ const Sale = () => {
   const [loading, setLoading] = useState(false);
   const [selectedSocietyRera, setSelectedSocietyRera] = useState<string>("");
   const [flats, setFlats] = useState<{ id: string; name: string }[]>([]);
+  const [tabValue, setTabValue] = useState(0);
+
+  const handleTabChange = (event: React.SyntheticEvent, newValue: number) => {
+    setTabValue(newValue);
+  };
   useEffect(() => {
     const fetchAllSocieties = async (
       cursor: string | null = null,
@@ -357,98 +413,110 @@ const Sale = () => {
   const handleSubmit = async (values: any, { resetForm }: any) => {
     try {
       setLoading(true);
-      const { society, flat, customers } = values;
-
-      const updatedCustomers = await Promise.all(
-        customers.map(async (customer: any, index: number) => {
-          let photoPath = customer.photo;
-          const options = {
-            maxSizeMB: 0.8,
-            maxWidthOrHeight: 800, // Resize to 800x800 if larger
-            useWebWorker: true,
-          };
-          // If photo is a File object, upload it to S3
-          if (customer.photo instanceof File) {
-            const compressedFile = await imageCompression(
-              customer.photo,
-              options
-            );
-            const fileExt = customer.photo.name.split(".").pop();
-            const s3Key = `${society}/${flat}/customer${index}/profile.${fileExt}`;
-
-            const result = await uploadData({
-              path: s3Key,
-              data: compressedFile,
-              options: {
-                contentType: compressedFile.type,
-              },
-            }).result;
-
-            photoPath = result.path;
-            // Use the uploaded file's path
-          }
-          delete customer.photoPreview;
-          const formattedDOB = customer.dateOfBirth
-            ? new Date(customer.dateOfBirth).toISOString().slice(0, 10)
-            : "";
-
-          let formattedanniversaryDate = "";
-          if (customer.anniversaryDate) {
-            const date = new Date(customer.anniversaryDate);
-            formattedanniversaryDate = date.toISOString().slice(0, 10);
-          }
-
-          let formattedPhone = customer.phoneNumber;
-          try {
-            const phoneNumber = parsePhoneNumber(customer.phoneNumber, {
-              defaultCountry: "IN",
-            });
-
-            if (phoneNumber?.isValid()) {
-              formattedPhone = phoneNumber.number; // E.164 format
-            }
-          } catch (error) {
-            console.warn("Invalid phone number:", customer.phoneNumber);
-          }
-          return {
-            ...customer,
-            level: index, // add level
-            photo: photoPath,
-            dateOfBirth: formattedDOB,
-            anniversaryDate: formattedanniversaryDate,
-            phoneNumber: formattedPhone,
-          };
-        })
-      );
-
-      // Call your API to submit the updated customer data
-      // console.log("Updated Customers:", updatedCustomers);
-      const response = await addCustomer(
+      const {
         society,
         flat,
-        updatedCustomers,
-        values.charges,
-        values.basicCost
+        charges,
+        basicCost,
+        type,
+        companyBuyer,
+        customers,
+      } = values;
+
+      // Process customers only if type is 'user'
+      let processedCustomers: CustomerDetails[] | undefined;
+      if (type === "user") {
+        processedCustomers = await Promise.all(
+          customers.map(async (customer: any, index: number) => {
+            let photoPath = customer.photo;
+            const options = {
+              maxSizeMB: 0.8,
+              maxWidthOrHeight: 800,
+              useWebWorker: true,
+            };
+
+            // Handle image upload if exists
+            if (customer.photo instanceof File) {
+              const compressedFile = await imageCompression(
+                customer.photo,
+                options
+              );
+              const fileExt = customer.photo.name.split(".").pop();
+              const s3Key = `${society}/${flat}/customer${index}/profile.${fileExt}`;
+
+              const result = await uploadData({
+                path: s3Key,
+                data: compressedFile,
+                options: { contentType: compressedFile.type },
+              }).result;
+
+              photoPath = result.path;
+            }
+
+            // Cleanup temporary preview
+            delete customer.photoPreview;
+
+            // Format dates
+            const formattedDOB = customer.dateOfBirth
+              ? new Date(customer.dateOfBirth).toISOString().slice(0, 10)
+              : "";
+
+            let formattedAnniversary = "";
+            if (customer.anniversaryDate) {
+              formattedAnniversary = new Date(customer.anniversaryDate)
+                .toISOString()
+                .slice(0, 10);
+            }
+
+            // Format phone number
+            let formattedPhone = customer.phoneNumber;
+            try {
+              const phoneNumber = parsePhoneNumber(customer.phoneNumber, "IN");
+              if (phoneNumber?.isValid()) {
+                formattedPhone = phoneNumber.number;
+              }
+            } catch (error) {
+              console.warn("Invalid phone number:", customer.phoneNumber);
+            }
+
+            return {
+              ...customer,
+              level: index,
+              photo: photoPath,
+              dateOfBirth: formattedDOB,
+              anniversaryDate: formattedAnniversary,
+              phoneNumber: formattedPhone,
+            };
+          })
+        );
+      }
+
+      // Make API call with parameters in correct order
+      const response = await addCustomer(
+        society, // societyReraNumber: string
+        flat, // flatID: string
+        charges, // optionalCharges: string[]
+        parseFloat(basicCost.toString()), // basicCost: number
+        type, // type: string
+        type === "company" ? companyBuyer : undefined, // companyBuyer?
+        type === "user" ? processedCustomers : undefined // customers?
       );
-      // console.log("society", society);
-      // console.log(" updatedCustomers", updatedCustomers);
-      // console.log("flat", flat);
-      // console.log("values.charges", values.charges);
-      // console.log("values.basicCost", values.basicCost);
+
       if (response.error) {
-        toast.error(response.message || "Customer add failed");
+        toast.error(response.message || "Submission failed");
         setLoading(false);
         return;
       }
-      // console.log("Form values:", updatedCustomers, society, flat);
+
+      // Reset form on success
       toast.success("Form submitted successfully!");
       resetForm();
       setLoading(false);
-      setStep(step - 1);
+      setStep(1); // Return to first step
     } catch (error) {
       setLoading(false);
-      console.error("Form submission failed:", error);
-      toast.error("Something went wrong while submitting the form.");
+      console.error("Submission failed:", error);
+      toast.error("Something went wrong during submission");
     }
   };
 
@@ -513,24 +581,7 @@ const Sale = () => {
                         <label>
                           Society: <span style={{ color: "red" }}>*</span>
                         </label>
-                        {/* <Field
-                          as="select"
-                          name="society"
-                          className={styles.select}
-                          onChange={(e: any) =>
-                            handleSocietyChange(e, setFieldValue)
-                          }
-                        >
-                          <option value="">Select Society</option>
-                          {societies.map((society) => (
-                            <option
-                              key={society.reraNumber}
-                              value={society.reraNumber}
-                            >
-                              {society.name}
-                            </option>
-                          ))}
-                        </Field> */}
+
                         <Select
                           id="society-select"
                           value={values.society || ""}
@@ -563,21 +614,7 @@ const Sale = () => {
                         <label>
                           Tower: <span style={{ color: "red" }}>*</span>
                         </label>
-                        {/* <Field
-                          as="select"
-                          name="tower"
-                          className={styles.select}
-                          onChange={(e: any) =>
-                            handleTowerChange(e, setFieldValue)
-                          }
-                        >
-                          <option value="">Select Tower</option>
-                          {towers.map((tower) => (
-                            <option key={tower.id} value={tower.id}>
-                              {tower.name}
-                            </option>
-                          ))}
-                        </Field> */}
+
                         <Select
                           id="tower-select"
                           value={values.tower || ""}
@@ -607,18 +644,7 @@ const Sale = () => {
                         <label>
                           Flat: <span style={{ color: "red" }}>*</span>
                         </label>
-                        {/* <Field
-                          as="select"
-                          name="flat"
-                          className={styles.select}
-                        >
-                          <option value="">Select Flat</option>
-                          {flats.map((flat) => (
-                            <option key={flat.id} value={flat.id}>
-                              {flat.name}
-                            </option>
-                          ))}
-                        </Field> */}
+
                         <Select
                           id="flat-select"
                           value={values.flat || ""}
@@ -647,13 +673,7 @@ const Sale = () => {
                         <label>
                           Basic Cost : <span style={{ color: "red" }}>*</span>
                         </label>
-                        {/* <Field
-                          className={styles.select}
-                          name="basicCost"
-                          type="number"
-                          min="1"
-                          step="0.01"
-                        /> */}
+
                         <TextField
                           id="basic-cost"
                           type="number"
@@ -717,11 +737,6 @@ const Sale = () => {
                               key={option.id}
                               value={option.id}
                               className={styles.select}
-                              // style={getStyles(
-                              //   option.id,
-                              //   values.charges,
-                              //   useTheme()
-                              // )}
                             >
                               <Checkbox
                                 checked={values.charges.includes(option.id)}
@@ -747,1065 +762,1016 @@ const Sale = () => {
                   )}
                 </>
               )}
-
               {step === 2 && (
                 <>
-                  <FieldArray name="customers">
-                    {({ push, remove }) => (
-                      <>
-                        {values.customers.map((customer, index) => (
-                          <div key={index} className={styles.secondform}>
-                            <h4>Applicant {index + 1}</h4>
+                  <Box sx={{ borderBottom: 1, borderColor: "divider" }}>
+                    <Tabs
+                      value={tabValue}
+                      onChange={(e, newValue) => {
+                        setTabValue(newValue);
+                        setFieldValue(
+                          "type",
+                          newValue === 0 ? "user" : "company"
+                        );
+                      }}
+                    >
+                      <Tab label="Individual" />
+                      <Tab label="Company" />
+                    </Tabs>
+                  </Box>
 
-                            {/* Salutation */}
-                            <div>
-                              {/* <label>
-                                Salutation:
-                                <span style={{ color: "red" }}>*</span>
-                              </label> */}
-                              {/* <Field
-                                as="select"
-                                className={styles.select}
-                                name={`customers[${index}].salutation`}
-                              >
-                                <option value="">Select Salutation</option>
-                                <option value="Mr.">Mr.</option>
-                                <option value="Mrs.">Mrs.</option>
-                                <option value="Ms.">Ms.</option>
-                                <option value="Dr.">Dr.</option>
-                                <option value="Prof.">Prof.</option>
-                              </Field> */}
-                              <InputLabel id={`salutation-label-${index}`}>
-                                Salutation
-                              </InputLabel>
-                              <Select
-                                labelId={`salutation-label-${index}`}
-                                value={
-                                  values.customers?.[index]?.salutation || ""
-                                }
-                                onChange={(e: any) =>
-                                  setFieldValue(
-                                    `customers[${index}].salutation`,
-                                    e.target.value
-                                  )
-                                }
-                                error={
-                                  isCustomerError(errors.customers?.[index]) &&
-                                  touched.customers?.[index]?.salutation &&
-                                  Boolean(errors.customers?.[index]?.salutation)
-                                }
-                                displayEmpty
-                                fullWidth
-                                size="small"
-                              >
-                                <MenuItem value="">Select Salutation</MenuItem>
-                                <MenuItem value="Mr.">Mr.</MenuItem>
-                                <MenuItem value="Mrs.">Mrs.</MenuItem>
-                                <MenuItem value="Ms.">Ms.</MenuItem>
-                                <MenuItem value="Dr.">Dr.</MenuItem>
-                                <MenuItem value="Prof.">Prof.</MenuItem>
-                              </Select>
-                              <FormHelperText>
-                                {isCustomerError(errors.customers?.[index]) &&
-                                  touched.customers?.[index]?.salutation &&
-                                  errors.customers[index]?.salutation && (
-                                    <span className={styles.errorText}>
-                                      {errors.customers[index]?.salutation}
-                                    </span>
-                                  )}
-                              </FormHelperText>
-                              {/* <ErrorMessage
-                                name={`customers[${index}].salutation`}
-                                component="div"
-                                className="error"
-                              /> */}
-                            </div>
+                  <TabPanel value={tabValue} index={0}>
+                    <>
+                      <FieldArray name="customers">
+                        {({ push, remove }) => (
+                          <>
+                            {values.customers.map((customer, index) => (
+                              <div key={index} className={styles.secondform}>
+                                <h4>Applicant {index + 1}</h4>
 
-                            {/* Name Fields */}
-                            <div>
-                              {/* <label>
-                                First Name:
-                                <span style={{ color: "red" }}>*</span>
-                              </label> */}
-                              {/* <Field
-                                className={styles.select}
-                                name={`customers[${index}].firstName`}
-                              /> */}
-                              <TextField
-                                label="First Name"
-                                value={
-                                  values.customers?.[index]?.firstName || ""
-                                }
-                                onChange={(e: any) =>
-                                  setFieldValue(
-                                    `customers[${index}].firstName`,
-                                    e.target.value
-                                  )
-                                }
-                                error={
-                                  isCustomerError(errors.customers?.[index]) &&
-                                  touched.customers?.[index]?.firstName &&
-                                  Boolean(errors.customers[index]?.firstName)
-                                }
-                                helperText={
-                                  isCustomerError(errors.customers?.[index]) &&
-                                  touched.customers?.[index]?.firstName &&
-                                  errors.customers[index]?.firstName ? (
-                                    <span className={styles.errorText}>
-                                      {errors.customers[index]?.firstName}
-                                    </span>
-                                  ) : (
-                                    ""
-                                  )
-                                }
-                                fullWidth
-                                size="small"
-                              />
-                              {/* <ErrorMessage
-                                name={`customers[${index}].firstName`}
-                                component="div"
-                                className="error"
-                              /> */}
-                            </div>
-
-                            <div>
-                              {/* <label>Middle Name:</label> */}
-                              {/* <Field
-                                className={styles.select}
-                                name={`customers[${index}].middleName`}
-                              /> */}
-                              <TextField
-                                label="Middle Name"
-                                value={
-                                  values.customers?.[index]?.middleName || ""
-                                }
-                                onChange={(e: any) =>
-                                  setFieldValue(
-                                    `customers[${index}].middleName`,
-                                    e.target.value
-                                  )
-                                }
-                                error={
-                                  isCustomerError(errors.customers?.[index]) &&
-                                  touched.customers?.[index]?.middleName &&
-                                  Boolean(errors.customers[index]?.middleName)
-                                }
-                                helperText={
-                                  isCustomerError(errors.customers?.[index]) &&
-                                  touched.customers?.[index]?.middleName &&
-                                  errors.customers[index]?.middleName ? (
-                                    <span className={styles.errorText}>
-                                      {errors.customers[index]?.middleName}
-                                    </span>
-                                  ) : (
-                                    ""
-                                  )
-                                }
-                                fullWidth
-                                size="small"
-                              />
-                              {/* <ErrorMessage
-                                name={`customers[${index}].middleName`}
-                                component="div"
-                                className="error"
-                              /> */}
-                            </div>
-
-                            <div>
-                              {/* <label>
-                                Last Name:
-                                <span style={{ color: "red" }}>*</span>
-                              </label> */}
-                              {/* <Field
-                                className={styles.select}
-                                name={`customers[${index}].lastName`}
-                              /> */}
-                              <TextField
-                                label="Last Name"
-                                value={
-                                  values.customers?.[index]?.lastName || ""
-                                }
-                                onChange={(e: any) =>
-                                  setFieldValue(
-                                    `customers[${index}].lastName`,
-                                    e.target.value
-                                  )
-                                }
-                                error={
-                                  isCustomerError(errors.customers?.[index]) &&
-                                  touched.customers?.[index]?.lastName &&
-                                  Boolean(errors.customers[index]?.lastName)
-                                }
-                                helperText={
-                                  isCustomerError(errors.customers?.[index]) &&
-                                  touched.customers?.[index]?.lastName &&
-                                  errors.customers[index]?.lastName ? (
-                                    <span className={styles.errorText}>
-                                      {errors.customers[index]?.lastName}
-                                    </span>
-                                  ) : (
-                                    ""
-                                  )
-                                }
-                                fullWidth
-                                size="small"
-                              />
-                              {/* <ErrorMessage
-                                name={`customers[${index}].lastName`}
-                                component="div"
-                                className="error"
-                              /> */}
-                            </div>
-
-                            {/* Date of Birth */}
-                            <div>
-                              {/* <label>
-                                Date of Birth:{" "}
-                                <span style={{ color: "red" }}>*</span>
-                              </label> */}
-                              {/* <Field
-                                className={styles.select}
-                                name={`customers[${index}].dateOfBirth`}
-                                type="date"
-                                max={
-                                  new Date(
-                                    new Date().setFullYear(
-                                      new Date().getFullYear() - 18
-                                    )
-                                  )
-                                    .toISOString()
-                                    .split("T")[0]
-                                } // ensures it's in yyyy-mm-dd format
-                              /> */}
-                              <TextField
-                                label="Date of Birth"
-                                type="date"
-                                value={
-                                  values.customers?.[index]?.dateOfBirth || ""
-                                }
-                                onChange={(e: any) =>
-                                  setFieldValue(
-                                    `customers[${index}].dateOfBirth`,
-                                    e.target.value
-                                  )
-                                }
-                                error={
-                                  isCustomerError(errors.customers?.[index]) &&
-                                  touched.customers?.[index]?.dateOfBirth &&
-                                  Boolean(errors.customers[index]?.dateOfBirth)
-                                }
-                                helperText={
-                                  isCustomerError(errors.customers?.[index]) &&
-                                  touched.customers?.[index]?.dateOfBirth &&
-                                  errors.customers[index]?.dateOfBirth ? (
-                                    <span className={styles.errorText}>
-                                      {errors.customers[index]?.dateOfBirth}
-                                    </span>
-                                  ) : (
-                                    ""
-                                  )
-                                }
-                                slotProps={{
-                                  inputLabel: { shrink: true },
-                                  input: { inputProps: { max: maxDate } },
-                                }}
-                                fullWidth
-                                size="small"
-                              />
-                              {/* <ErrorMessage
-                                name={`customers[${index}].dateOfBirth`}
-                                component="div"
-                                className="error"
-                              /> */}
-                            </div>
-
-                            {/* Gender */}
-                            <div>
-                              {/* <label>
-                                Gender:<span style={{ color: "red" }}>*</span>
-                              </label> */}
-                              {/* <Field
-                                as="select"
-                                className={styles.select}
-                                name={`customers[${index}].gender`}
-                              >
-                                <option value="">Select Gender</option>
-                                <option value="Male">Male</option>
-                                <option value="Female">Female</option>
-                                <option value="Transgender">Transgender</option>
-                              </Field> */}
-                              <InputLabel id={`gender-label-${index}`}>
-                                Gender
-                              </InputLabel>
-                              <Select
-                                labelId={`gender-label-${index}`}
-                                value={values.customers?.[index]?.gender || ""}
-                                onChange={(e: any) =>
-                                  setFieldValue(
-                                    `customers[${index}].gender`,
-                                    e.target.value
-                                  )
-                                }
-                                error={
-                                  isCustomerError(errors.customers?.[index]) &&
-                                  touched.customers?.[index]?.gender &&
-                                  Boolean(errors.customers?.[index]?.gender)
-                                }
-                                displayEmpty
-                                fullWidth
-                                size="small"
-                              >
-                                <MenuItem value="">Select Gender</MenuItem>
-                                <MenuItem value="Male">Male</MenuItem>
-                                <MenuItem value="Female">Female</MenuItem>
-                                <MenuItem value="Transgender">
-                                  Transgender
-                                </MenuItem>
-                              </Select>
-                              <FormHelperText>
-                                {isCustomerError(errors.customers?.[index]) &&
-                                  touched.customers?.[index]?.gender &&
-                                  errors.customers[index]?.gender && (
-                                    <span className={styles.errorText}>
-                                      {errors.customers[index]?.gender}
-                                    </span>
-                                  )}
-                              </FormHelperText>
-                              {/* <ErrorMessage
-                                name={`customers[${index}].gender`}
-                                component="div"
-                                className="error"
-                              /> */}
-                            </div>
-
-                            {/* Photo Upload */}
-                            <div>
-                              {/* <label>
-                                Photo:<span style={{ color: "red" }}>*</span>
-                              </label> */}
-                              {/* <input
-                                type="file"
-                                className={styles.fileInput}
-                                name={`customers[${index}].photo`}
-                                accept="image/*"
-                                onChange={handleFileChange(index)}
-                              /> */}
-                              <InputLabel htmlFor={`customers[${index}].photo`}>
-                                Upload Photo
-                              </InputLabel>
-                              <Button
-                                variant="outlined"
-                                component="label"
-                                fullWidth
-                                startIcon={<UploadFileIcon />}
-                                size="small"
-                                color={
-                                  isCustomerError(errors.customers?.[index]) &&
-                                  touched.customers?.[index]?.photo &&
-                                  errors.customers?.[index]?.photo
-                                    ? "error"
-                                    : "primary"
-                                }
-                              >
-                                Upload Photo
-                                <input
-                                  id={`customers[${index}].photo`}
-                                  type="file"
-                                  hidden
-                                  name={`customers[${index}].photo`}
-                                  accept="image/*"
-                                  onChange={handleFileChange(index)}
-                                />
-                              </Button>
-                              {values.customers[index].photoPreview && (
+                                {/* Salutation */}
                                 <div>
-                                  <h5>Preview:</h5>
-                                  <img
-                                    src={values.customers[index].photoPreview}
-                                    alt="Preview"
-                                    className={styles.previewImage}
-                                    style={{
-                                      maxWidth: "200px",
-                                      maxHeight: "200px",
-                                    }}
+                                  <InputLabel id={`salutation-label-${index}`}>
+                                    Salutation
+                                  </InputLabel>
+                                  <Select
+                                    labelId={`salutation-label-${index}`}
+                                    value={
+                                      values.customers?.[index]?.salutation ||
+                                      ""
+                                    }
+                                    onChange={(e: any) =>
+                                      setFieldValue(
+                                        `customers[${index}].salutation`,
+                                        e.target.value
+                                      )
+                                    }
+                                    error={
+                                      isCustomerError(
+                                        errors.customers?.[index]
+                                      ) &&
+                                      touched.customers?.[index]?.salutation &&
+                                      Boolean(
+                                        errors.customers?.[index]?.salutation
+                                      )
+                                    }
+                                    displayEmpty
+                                    fullWidth
+                                    size="small"
+                                  >
+                                    <MenuItem value="">
+                                      Select Salutation
+                                    </MenuItem>
+                                    <MenuItem value="Mr.">Mr.</MenuItem>
+                                    <MenuItem value="Mrs.">Mrs.</MenuItem>
+                                    <MenuItem value="Ms.">Ms.</MenuItem>
+                                    <MenuItem value="Dr.">Dr.</MenuItem>
+                                    <MenuItem value="Prof.">Prof.</MenuItem>
+                                  </Select>
+                                  <FormHelperText>
+                                    {isCustomerError(
+                                      errors.customers?.[index]
+                                    ) &&
+                                      touched.customers?.[index]?.salutation &&
+                                      errors.customers[index]?.salutation && (
+                                        <span className={styles.errorText}>
+                                          {errors.customers[index]?.salutation}
+                                        </span>
+                                      )}
+                                  </FormHelperText>
+                                </div>
+
+                                {/* Name Fields */}
+                                <div>
+                                  <TextField
+                                    label="First Name"
+                                    value={
+                                      values.customers?.[index]?.firstName || ""
+                                    }
+                                    onChange={(e: any) =>
+                                      setFieldValue(
+                                        `customers[${index}].firstName`,
+                                        e.target.value
+                                      )
+                                    }
+                                    error={
+                                      isCustomerError(
+                                        errors.customers?.[index]
+                                      ) &&
+                                      touched.customers?.[index]?.firstName &&
+                                      Boolean(
+                                        errors.customers[index]?.firstName
+                                      )
+                                    }
+                                    helperText={
+                                      isCustomerError(
+                                        errors.customers?.[index]
+                                      ) &&
+                                      touched.customers?.[index]?.firstName &&
+                                      errors.customers[index]?.firstName ? (
+                                        <span className={styles.errorText}>
+                                          {errors.customers[index]?.firstName}
+                                        </span>
+                                      ) : (
+                                        ""
+                                      )
+                                    }
+                                    fullWidth
+                                    size="small"
                                   />
                                 </div>
-                              )}
 
-                              <FormHelperText>
-                                {isCustomerError(errors.customers?.[index]) &&
-                                  touched.customers?.[index]?.photo &&
-                                  errors.customers[index]?.photo && (
-                                    <span className={styles.errorText}>
-                                      {errors.customers[index]?.photo}
-                                    </span>
-                                  )}
-                              </FormHelperText>
-                            </div>
-
-                            {/* Marital Status */}
-                            <div>
-                              {/* <label>
-                                Marital Status:
-                                <span style={{ color: "red" }}>*</span>
-                              </label> */}
-                              {/* <Field
-                                as="select"
-                                className={styles.select}
-                                name={`customers[${index}].maritalStatus`}
-                              >
-                                <option value="">Select Marital Status</option>
-                                <option value="Single">Single</option>
-                                <option value="Married">Married</option>
-                              </Field> */}
-                              <InputLabel id={`marital-status-label-${index}`}>
-                                Marital Status
-                              </InputLabel>
-                              <Select
-                                labelId={`marital-status-label-${index}`}
-                                value={
-                                  values.customers?.[index]?.maritalStatus || ""
-                                }
-                                onChange={(e) =>
-                                  setFieldValue(
-                                    `customers[${index}].maritalStatus`,
-                                    e.target.value
-                                  )
-                                }
-                                error={
-                                  isCustomerError(errors.customers?.[index]) &&
-                                  touched.customers?.[index]?.maritalStatus &&
-                                  Boolean(
-                                    errors.customers?.[index]?.maritalStatus
-                                  )
-                                }
-                                displayEmpty
-                                fullWidth
-                                size="small"
-                              >
-                                <MenuItem value="">
-                                  Select Marital Status
-                                </MenuItem>
-                                <MenuItem value="Single">Single</MenuItem>
-                                <MenuItem value="Married">Married</MenuItem>
-                              </Select>
-                              <FormHelperText>
-                                {isCustomerError(errors.customers?.[index]) &&
-                                  touched.customers?.[index]?.maritalStatus &&
-                                  errors.customers[index]?.maritalStatus && (
-                                    <span className={styles.errorText}>
-                                      {errors.customers[index]?.maritalStatus}
-                                    </span>
-                                  )}
-                              </FormHelperText>
-
-                              {/* <ErrorMessage
-                                name={`customers[${index}].maritalStatus`}
-                                component="div"
-                                className="error"
-                              /> */}
-                            </div>
-
-                            {/* Nationality */}
-                            <div>
-                              {/* <label>
-                                Nationality:
-                                <span style={{ color: "red" }}>*</span>
-                              </label> */}
-                              {/* <Field
-                                as="select"
-                                className={styles.select}
-                                name={`customers[${index}].nationality`}
-                              >
-                                <option value="">Select Nationality</option>
-                                <option value="Resident">Resident</option>
-                                <option value="PIO">PIO</option>
-                                <option value="NRI">NRI</option>
-                                <option value="OCI">OCI</option>
-                              </Field> */}
-                              <InputLabel id={`nationality-label-${index}`}>
-                                Nationality
-                              </InputLabel>
-                              <Select
-                                labelId={`nationality-label-${index}`}
-                                value={
-                                  values.customers?.[index]?.nationality || ""
-                                }
-                                onChange={(e: any) =>
-                                  setFieldValue(
-                                    `customers[${index}].nationality`,
-                                    e.target.value
-                                  )
-                                }
-                                displayEmpty
-                                fullWidth
-                                size="small"
-                                error={
-                                  isCustomerError(errors.customers?.[index]) &&
-                                  touched.customers?.[index]?.nationality &&
-                                  Boolean(
-                                    errors.customers?.[index]?.nationality
-                                  )
-                                }
-                              >
-                                <MenuItem value="">Select Nationality</MenuItem>
-                                <MenuItem value="Resident">Resident</MenuItem>
-                                <MenuItem value="PIO">PIO</MenuItem>
-                                <MenuItem value="NRI">NRI</MenuItem>
-                                <MenuItem value="OCI">OCI</MenuItem>
-                              </Select>
-                              <FormHelperText>
-                                {isCustomerError(errors.customers?.[index]) &&
-                                  touched.customers?.[index]?.nationality &&
-                                  errors.customers[index]?.nationality && (
-                                    <span className={styles.errorText}>
-                                      {errors.customers[index]?.nationality}
-                                    </span>
-                                  )}
-                              </FormHelperText>
-
-                              {/* <ErrorMessage
-                                name={`customers[${index}].nationality`}
-                                component="div"
-                                className="error"
-                              /> */}
-                            </div>
-
-                            {/* Email & Phone */}
-                            <div>
-                              {/* <label>
-                                Email:<span style={{ color: "red" }}>*</span>
-                              </label> */}
-                              {/* <Field
-                                className={styles.select}
-                                name={`customers[${index}].email`}
-                                type="email"
-                              /> */}
-                              <TextField
-                                label="Email"
-                                type="email"
-                                value={values.customers?.[index]?.email || ""}
-                                onChange={(e: any) =>
-                                  setFieldValue(
-                                    `customers[${index}].email`,
-                                    e.target.value
-                                  )
-                                }
-                                error={
-                                  isCustomerError(errors.customers?.[index]) &&
-                                  touched.customers?.[index]?.email &&
-                                  Boolean(errors.customers?.[index]?.email)
-                                }
-                                helperText={
-                                  isCustomerError(errors.customers?.[index]) &&
-                                  touched.customers?.[index]?.email &&
-                                  errors.customers[index]?.email ? (
-                                    <span className={styles.errorText}>
-                                      {errors.customers[index]?.email}
-                                    </span>
-                                  ) : (
-                                    ""
-                                  )
-                                }
-                                fullWidth
-                                size="small"
-                              />
-                              {/* <ErrorMessage
-                                name={`customers[${index}].email`}
-                                component="div"
-                                className="error"
-                              /> */}
-                            </div>
-
-                            <div>
-                              {/* <label>
-                                Phone Number:
-                                <span style={{ color: "red" }}>*</span>
-                              </label> */}
-                              {/* <Field
-                                className={styles.select}
-                                name={`customers[${index}].phoneNumber`}
-                              /> */}
-                              <TextField
-                                label="Phone Number"
-                                type="tel"
-                                name={`customers[${index}].phoneNumber`}
-                                value={
-                                  values.customers?.[index]?.phoneNumber || ""
-                                }
-                                onChange={(e) =>
-                                  setFieldValue(
-                                    `customers[${index}].phoneNumber`,
-                                    e.target.value
-                                  )
-                                }
-                                error={
-                                  isCustomerError(errors.customers?.[index]) &&
-                                  touched.customers?.[index]?.phoneNumber &&
-                                  Boolean(
-                                    errors.customers?.[index]?.phoneNumber
-                                  )
-                                }
-                                helperText={
-                                  isCustomerError(errors.customers?.[index]) &&
-                                  touched.customers?.[index]?.phoneNumber &&
-                                  errors.customers?.[index]?.phoneNumber ? (
-                                    <span className={styles.errorText}>
-                                      {errors.customers[index]?.phoneNumber}
-                                    </span>
-                                  ) : (
-                                    ""
-                                  )
-                                }
-                                fullWidth
-                                size="small"
-                              />
-
-                              {/* <ErrorMessage
-                                name={`customers[${index}].phoneNumber`}
-                                component="div"
-                                className="error"
-                              /> */}
-                            </div>
-
-                            {/* Additional Fields */}
-                            <div>
-                              {/* <label>Number of Children:</label> */}
-                              {/* <Field
-                                type="number"
-                                className={styles.select}
-                                name={`customers[${index}].numberOfChildren`}
-                              /> */}
-                              <TextField
-                                label="Number of Children"
-                                type="number"
-                                name={`customers[${index}].numberOfChildren`}
-                                value={
-                                  values.customers?.[index]?.numberOfChildren ||
-                                  ""
-                                }
-                                onChange={(e) =>
-                                  setFieldValue(
-                                    `customers[${index}].numberOfChildren`,
-                                    e.target.value
-                                  )
-                                }
-                                error={
-                                  isCustomerError(errors.customers?.[index]) &&
-                                  touched.customers?.[index]
-                                    ?.numberOfChildren &&
-                                  Boolean(
-                                    errors.customers?.[index]?.numberOfChildren
-                                  )
-                                }
-                                helperText={
-                                  isCustomerError(errors.customers?.[index]) &&
-                                  touched.customers?.[index]
-                                    ?.numberOfChildren &&
-                                  errors.customers?.[index]
-                                    ?.numberOfChildren ? (
-                                    <span className={styles.errorText}>
-                                      {
-                                        errors.customers[index]
-                                          ?.numberOfChildren
-                                      }
-                                    </span>
-                                  ) : (
-                                    ""
-                                  )
-                                }
-                                fullWidth
-                                size="small"
-                              />
-
-                              {/* <ErrorMessage
-                                name={`customers[${index}].numberOfChildren`}
-                                component="div"
-                                className="error"
-                              /> */}
-                            </div>
-
-                            <div>
-                              {/* <label>Anniversary Date:</label> */}
-                              {/* <Field
-                                type="date"
-                                className={styles.select}
-                                name={`customers[${index}].anniversaryDate`}
-                                max={new Date().toISOString().split("T")[0]} // disable future dates
-                              /> */}
-                              <TextField
-                                label="Anniversary Date"
-                                type="date"
-                                name={`customers[${index}].anniversaryDate`}
-                                value={
-                                  values.customers?.[index]?.anniversaryDate ||
-                                  ""
-                                }
-                                onChange={(e) =>
-                                  setFieldValue(
-                                    `customers[${index}].anniversaryDate`,
-                                    e.target.value
-                                  )
-                                }
-                                error={
-                                  isCustomerError(errors.customers?.[index]) &&
-                                  touched.customers?.[index]?.anniversaryDate &&
-                                  Boolean(
-                                    errors.customers[index]?.anniversaryDate
-                                  )
-                                }
-                                helperText={
-                                  isCustomerError(errors.customers?.[index]) &&
-                                  touched.customers?.[index]?.anniversaryDate &&
-                                  errors.customers[index]?.anniversaryDate ? (
-                                    <span className={styles.errorText}>
-                                      {errors.customers[index]?.anniversaryDate}
-                                    </span>
-                                  ) : (
-                                    ""
-                                  )
-                                }
-                                slotProps={{
-                                  inputLabel: { shrink: true }, // ✅ replaces deprecated InputLabelProps
-                                  input: {
-                                    inputProps: {
-                                      max: new Date()
-                                        .toISOString()
-                                        .split("T")[0], // disables future dates
-                                    },
-                                  },
-                                }}
-                                fullWidth
-                                size="small"
-                              />
-
-                              {/* <ErrorMessage
-                                name={`customers[${index}].anniversaryDate`}
-                                component="div"
-                                className="error"
-                              /> */}
-                            </div>
-
-                            <div>
-                              {/* <label>Aadhar Number:</label> */}
-                              <TextField
-                                label="Aadhar Number"
-                                type="number"
-                                name={`customers[${index}].aadharNumber`}
-                                value={
-                                  values.customers?.[index]?.aadharNumber || ""
-                                }
-                                onChange={(e) =>
-                                  setFieldValue(
-                                    `customers[${index}].aadharNumber`,
-                                    e.target.value
-                                  )
-                                }
-                                error={
-                                  isCustomerError(errors.customers?.[index]) &&
-                                  touched.customers?.[index]?.aadharNumber &&
-                                  Boolean(errors.customers[index]?.aadharNumber)
-                                }
-                                helperText={
-                                  isCustomerError(errors.customers?.[index]) &&
-                                  touched.customers?.[index]?.aadharNumber &&
-                                  errors.customers[index]?.aadharNumber ? (
-                                    <span className={styles.errorText}>
-                                      {errors.customers[index]?.aadharNumber}
-                                    </span>
-                                  ) : (
-                                    ""
-                                  )
-                                }
-                                fullWidth
-                                size="small"
-                              />
-
-                              {/* <ErrorMessage
-                                name={`customers[${index}].aadharNumber`}
-                                component="div"
-                                className="error"
-                              /> */}
-                            </div>
-
-                            <div>
-                              {/* <label>PAN Number:</label> */}
-                              <TextField
-                                label="PAN Number"
-                                type="text"
-                                name={`customers[${index}].panNumber`}
-                                value={
-                                  values.customers?.[index]?.panNumber || ""
-                                }
-                                onChange={(e) =>
-                                  setFieldValue(
-                                    `customers[${index}].panNumber`,
-                                    e.target.value
-                                  )
-                                }
-                                error={
-                                  isCustomerError(errors.customers?.[index]) &&
-                                  touched.customers?.[index]?.panNumber &&
-                                  Boolean(errors.customers[index]?.panNumber)
-                                }
-                                helperText={
-                                  isCustomerError(errors.customers?.[index]) &&
-                                  touched.customers?.[index]?.panNumber &&
-                                  errors.customers[index]?.panNumber ? (
-                                    <span className={styles.errorText}>
-                                      {errors.customers[index]?.panNumber}
-                                    </span>
-                                  ) : (
-                                    ""
-                                  )
-                                }
-                                fullWidth
-                                size="small"
-                              />
-
-                              {/* <ErrorMessage
-                                name={`customers[${index}].panNumber`}
-                                component="div"
-                                className="error"
-                              /> */}
-                            </div>
-
-                            <div>
-                              {/* <label>Passport Number:</label> */}
-                              {/* <Field
-                                className={styles.select}
-                                name={`customers[${index}].passportNumber`}
-                              />
-                              <ErrorMessage
-                                name={`customers[${index}].passportNumber`}
-                                component="div"
-                                className="error"
-                              />
-                              {errors.customers?.[index] && (
-                                <div className="error">
-                                  {typeof errors.customers[index] === "string"
-                                    ? errors.customers[index]
-                                    : ""}
+                                <div>
+                                  <TextField
+                                    label="Middle Name"
+                                    value={
+                                      values.customers?.[index]?.middleName ||
+                                      ""
+                                    }
+                                    onChange={(e: any) =>
+                                      setFieldValue(
+                                        `customers[${index}].middleName`,
+                                        e.target.value
+                                      )
+                                    }
+                                    error={
+                                      isCustomerError(
+                                        errors.customers?.[index]
+                                      ) &&
+                                      touched.customers?.[index]?.middleName &&
+                                      Boolean(
+                                        errors.customers[index]?.middleName
+                                      )
+                                    }
+                                    helperText={
+                                      isCustomerError(
+                                        errors.customers?.[index]
+                                      ) &&
+                                      touched.customers?.[index]?.middleName &&
+                                      errors.customers[index]?.middleName ? (
+                                        <span className={styles.errorText}>
+                                          {errors.customers[index]?.middleName}
+                                        </span>
+                                      ) : (
+                                        ""
+                                      )
+                                    }
+                                    fullWidth
+                                    size="small"
+                                  />
                                 </div>
-                              )} */}
-                              <TextField
-                                label="Passport Number"
-                                type="text"
-                                name={`customers[${index}].passportNumber`}
-                                value={
-                                  values.customers?.[index]?.passportNumber ||
-                                  ""
-                                }
-                                onChange={(e) =>
-                                  setFieldValue(
-                                    `customers[${index}].passportNumber`,
-                                    e.target.value
-                                  )
-                                }
-                                error={
-                                  isCustomerError(errors.customers?.[index]) &&
-                                  touched.customers?.[index]?.passportNumber &&
-                                  Boolean(
-                                    errors.customers[index]?.passportNumber
-                                  )
-                                }
-                                helperText={
-                                  touched.customers?.[index]?.passportNumber &&
-                                  typeof errors.customers?.[index] ===
-                                    "object" &&
-                                  errors.customers[index]?.passportNumber ? (
-                                    <span className={styles.errorText}>
-                                      {errors.customers[index].passportNumber}
-                                    </span>
-                                  ) : typeof errors.customers?.[index] ===
-                                    "string" ? (
-                                    <span className={styles.errorText}>
-                                      {errors.customers[index] as string}
-                                    </span>
-                                  ) : (
-                                    ""
-                                  )
-                                }
-                                fullWidth
-                                size="small"
-                              />
-                            </div>
 
-                            <div>
-                              {/* <label>Profession:</label> */}
-                              <TextField
-                                label="Profession"
-                                type="text"
-                                name={`customers[${index}].profession`}
-                                value={
-                                  values.customers?.[index]?.profession || ""
-                                }
-                                onChange={(e) =>
-                                  setFieldValue(
-                                    `customers[${index}].profession`,
-                                    e.target.value
-                                  )
-                                }
-                                error={
-                                  isCustomerError(errors.customers?.[index]) &&
-                                  touched.customers?.[index]?.profession &&
-                                  Boolean(errors.customers[index]?.profession)
-                                }
-                                helperText={
-                                  touched.customers?.[index]?.profession &&
-                                  typeof errors.customers?.[index] ===
-                                    "object" &&
-                                  errors.customers[index]?.profession ? (
-                                    <span className={styles.errorText}>
-                                      {errors.customers[index].profession}
-                                    </span>
-                                  ) : (
-                                    ""
-                                  )
-                                }
-                                fullWidth
-                                size="small"
-                              />
+                                <div>
+                                  <TextField
+                                    label="Last Name"
+                                    value={
+                                      values.customers?.[index]?.lastName || ""
+                                    }
+                                    onChange={(e: any) =>
+                                      setFieldValue(
+                                        `customers[${index}].lastName`,
+                                        e.target.value
+                                      )
+                                    }
+                                    error={
+                                      isCustomerError(
+                                        errors.customers?.[index]
+                                      ) &&
+                                      touched.customers?.[index]?.lastName &&
+                                      Boolean(errors.customers[index]?.lastName)
+                                    }
+                                    helperText={
+                                      isCustomerError(
+                                        errors.customers?.[index]
+                                      ) &&
+                                      touched.customers?.[index]?.lastName &&
+                                      errors.customers[index]?.lastName ? (
+                                        <span className={styles.errorText}>
+                                          {errors.customers[index]?.lastName}
+                                        </span>
+                                      ) : (
+                                        ""
+                                      )
+                                    }
+                                    fullWidth
+                                    size="small"
+                                  />
+                                </div>
 
-                              {/* <ErrorMessage
-                                name={`customers[${index}].profession`}
-                                component="div"
-                                className="error"
-                              /> */}
-                            </div>
+                                {/* Date of Birth */}
+                                <div>
+                                  <TextField
+                                    label="Date of Birth"
+                                    type="date"
+                                    value={
+                                      values.customers?.[index]?.dateOfBirth ||
+                                      ""
+                                    }
+                                    onChange={(e: any) =>
+                                      setFieldValue(
+                                        `customers[${index}].dateOfBirth`,
+                                        e.target.value
+                                      )
+                                    }
+                                    error={
+                                      isCustomerError(
+                                        errors.customers?.[index]
+                                      ) &&
+                                      touched.customers?.[index]?.dateOfBirth &&
+                                      Boolean(
+                                        errors.customers[index]?.dateOfBirth
+                                      )
+                                    }
+                                    helperText={
+                                      isCustomerError(
+                                        errors.customers?.[index]
+                                      ) &&
+                                      touched.customers?.[index]?.dateOfBirth &&
+                                      errors.customers[index]?.dateOfBirth ? (
+                                        <span className={styles.errorText}>
+                                          {errors.customers[index]?.dateOfBirth}
+                                        </span>
+                                      ) : (
+                                        ""
+                                      )
+                                    }
+                                    slotProps={{
+                                      inputLabel: { shrink: true },
+                                      input: { inputProps: { max: maxDate } },
+                                    }}
+                                    fullWidth
+                                    size="small"
+                                  />
+                                </div>
 
-                            <div>
-                              {/* <label>Designation:</label> */}
-                              <TextField
-                                label="Designation"
-                                type="text"
-                                name={`customers[${index}].designation`}
-                                value={
-                                  values.customers?.[index]?.designation || ""
-                                }
-                                onChange={(e) =>
-                                  setFieldValue(
-                                    `customers[${index}].designation`,
-                                    e.target.value
-                                  )
-                                }
-                                error={
-                                  isCustomerError(errors.customers?.[index]) &&
-                                  touched.customers?.[index]?.designation &&
-                                  Boolean(errors.customers[index]?.designation)
-                                }
-                                helperText={
-                                  touched.customers?.[index]?.designation &&
-                                  typeof errors.customers?.[index] ===
-                                    "object" &&
-                                  errors.customers[index]?.designation ? (
-                                    <span className={styles.errorText}>
-                                      {errors.customers[index].designation}
-                                    </span>
-                                  ) : (
-                                    ""
-                                  )
-                                }
-                                fullWidth
-                                size="small"
-                              />
+                                {/* Gender */}
+                                <div>
+                                  <InputLabel id={`gender-label-${index}`}>
+                                    Gender
+                                  </InputLabel>
+                                  <Select
+                                    labelId={`gender-label-${index}`}
+                                    value={
+                                      values.customers?.[index]?.gender || ""
+                                    }
+                                    onChange={(e: any) =>
+                                      setFieldValue(
+                                        `customers[${index}].gender`,
+                                        e.target.value
+                                      )
+                                    }
+                                    error={
+                                      isCustomerError(
+                                        errors.customers?.[index]
+                                      ) &&
+                                      touched.customers?.[index]?.gender &&
+                                      Boolean(errors.customers?.[index]?.gender)
+                                    }
+                                    displayEmpty
+                                    fullWidth
+                                    size="small"
+                                  >
+                                    <MenuItem value="">Select Gender</MenuItem>
+                                    <MenuItem value="Male">Male</MenuItem>
+                                    <MenuItem value="Female">Female</MenuItem>
+                                    <MenuItem value="Transgender">
+                                      Transgender
+                                    </MenuItem>
+                                  </Select>
+                                  <FormHelperText>
+                                    {isCustomerError(
+                                      errors.customers?.[index]
+                                    ) &&
+                                      touched.customers?.[index]?.gender &&
+                                      errors.customers[index]?.gender && (
+                                        <span className={styles.errorText}>
+                                          {errors.customers[index]?.gender}
+                                        </span>
+                                      )}
+                                  </FormHelperText>
+                                </div>
 
-                              {/* <ErrorMessage
-                                name={`customers[${index}].designation`}
-                                component="div"
-                                className="error"
-                              /> */}
-                            </div>
+                                {/* Photo Upload */}
+                                <div>
+                                  <InputLabel
+                                    htmlFor={`customers[${index}].photo`}
+                                  >
+                                    Upload Photo
+                                  </InputLabel>
+                                  <Button
+                                    variant="outlined"
+                                    component="label"
+                                    fullWidth
+                                    startIcon={<UploadFileIcon />}
+                                    size="small"
+                                    color={
+                                      isCustomerError(
+                                        errors.customers?.[index]
+                                      ) &&
+                                      touched.customers?.[index]?.photo &&
+                                      errors.customers?.[index]?.photo
+                                        ? "error"
+                                        : "primary"
+                                    }
+                                  >
+                                    Upload Photo
+                                    <input
+                                      id={`customers[${index}].photo`}
+                                      type="file"
+                                      hidden
+                                      name={`customers[${index}].photo`}
+                                      accept="image/*"
+                                      onChange={handleFileChange(index)}
+                                    />
+                                  </Button>
+                                  {values.customers[index].photoPreview && (
+                                    <div>
+                                      <h5>Preview:</h5>
+                                      <img
+                                        src={
+                                          values.customers[index].photoPreview
+                                        }
+                                        alt="Preview"
+                                        className={styles.previewImage}
+                                        style={{
+                                          maxWidth: "200px",
+                                          maxHeight: "200px",
+                                        }}
+                                      />
+                                    </div>
+                                  )}
 
-                            <div>
-                              {/* <label>Company Name:</label> */}
-                              <TextField
-                                label="Company Name"
-                                type="text"
-                                name={`customers[${index}].companyName`}
-                                value={
-                                  values.customers?.[index]?.companyName || ""
-                                }
-                                onChange={(e) =>
-                                  setFieldValue(
-                                    `customers[${index}].companyName`,
-                                    e.target.value
-                                  )
-                                }
-                                error={
-                                  isCustomerError(errors.customers?.[index]) &&
-                                  touched.customers?.[index]?.companyName &&
-                                  Boolean(errors.customers[index]?.companyName)
-                                }
-                                helperText={
-                                  touched.customers?.[index]?.companyName &&
-                                  typeof errors.customers?.[index] ===
-                                    "object" &&
-                                  errors.customers[index]?.companyName ? (
-                                    <span className={styles.errorText}>
-                                      {errors.customers[index].companyName}
-                                    </span>
-                                  ) : (
-                                    ""
-                                  )
-                                }
-                                fullWidth
-                                size="small"
-                              />
+                                  <FormHelperText>
+                                    {isCustomerError(
+                                      errors.customers?.[index]
+                                    ) &&
+                                      touched.customers?.[index]?.photo &&
+                                      errors.customers[index]?.photo && (
+                                        <span className={styles.errorText}>
+                                          {errors.customers[index]?.photo}
+                                        </span>
+                                      )}
+                                  </FormHelperText>
+                                </div>
 
-                              {/* <ErrorMessage
-                                name={`customers[${index}].companyName`}
-                                component="div"
-                                className="error"
-                              /> */}
-                            </div>
+                                {/* Marital Status */}
+                                <div>
+                                  <InputLabel
+                                    id={`marital-status-label-${index}`}
+                                  >
+                                    Marital Status
+                                  </InputLabel>
+                                  <Select
+                                    labelId={`marital-status-label-${index}`}
+                                    value={
+                                      values.customers?.[index]
+                                        ?.maritalStatus || ""
+                                    }
+                                    onChange={(e) =>
+                                      setFieldValue(
+                                        `customers[${index}].maritalStatus`,
+                                        e.target.value
+                                      )
+                                    }
+                                    error={
+                                      isCustomerError(
+                                        errors.customers?.[index]
+                                      ) &&
+                                      touched.customers?.[index]
+                                        ?.maritalStatus &&
+                                      Boolean(
+                                        errors.customers?.[index]?.maritalStatus
+                                      )
+                                    }
+                                    displayEmpty
+                                    fullWidth
+                                    size="small"
+                                  >
+                                    <MenuItem value="">
+                                      Select Marital Status
+                                    </MenuItem>
+                                    <MenuItem value="Single">Single</MenuItem>
+                                    <MenuItem value="Married">Married</MenuItem>
+                                  </Select>
+                                  <FormHelperText>
+                                    {isCustomerError(
+                                      errors.customers?.[index]
+                                    ) &&
+                                      touched.customers?.[index]
+                                        ?.maritalStatus &&
+                                      errors.customers[index]
+                                        ?.maritalStatus && (
+                                        <span className={styles.errorText}>
+                                          {
+                                            errors.customers[index]
+                                              ?.maritalStatus
+                                          }
+                                        </span>
+                                      )}
+                                  </FormHelperText>
+                                </div>
 
-                            {/* Remove Button */}
-                            {values.customers.length > 1 && (
+                                {/* Nationality */}
+                                <div>
+                                  <InputLabel id={`nationality-label-${index}`}>
+                                    Nationality
+                                  </InputLabel>
+                                  <Select
+                                    labelId={`nationality-label-${index}`}
+                                    value={
+                                      values.customers?.[index]?.nationality ||
+                                      ""
+                                    }
+                                    onChange={(e: any) =>
+                                      setFieldValue(
+                                        `customers[${index}].nationality`,
+                                        e.target.value
+                                      )
+                                    }
+                                    displayEmpty
+                                    fullWidth
+                                    size="small"
+                                    error={
+                                      isCustomerError(
+                                        errors.customers?.[index]
+                                      ) &&
+                                      touched.customers?.[index]?.nationality &&
+                                      Boolean(
+                                        errors.customers?.[index]?.nationality
+                                      )
+                                    }
+                                  >
+                                    <MenuItem value="">
+                                      Select Nationality
+                                    </MenuItem>
+                                    <MenuItem value="Resident">
+                                      Resident
+                                    </MenuItem>
+                                    <MenuItem value="PIO">PIO</MenuItem>
+                                    <MenuItem value="NRI">NRI</MenuItem>
+                                    <MenuItem value="OCI">OCI</MenuItem>
+                                  </Select>
+                                  <FormHelperText>
+                                    {isCustomerError(
+                                      errors.customers?.[index]
+                                    ) &&
+                                      touched.customers?.[index]?.nationality &&
+                                      errors.customers[index]?.nationality && (
+                                        <span className={styles.errorText}>
+                                          {errors.customers[index]?.nationality}
+                                        </span>
+                                      )}
+                                  </FormHelperText>
+                                </div>
+
+                                {/* Email & Phone */}
+                                <div>
+                                  <TextField
+                                    label="Email"
+                                    type="email"
+                                    value={
+                                      values.customers?.[index]?.email || ""
+                                    }
+                                    onChange={(e: any) =>
+                                      setFieldValue(
+                                        `customers[${index}].email`,
+                                        e.target.value
+                                      )
+                                    }
+                                    error={
+                                      isCustomerError(
+                                        errors.customers?.[index]
+                                      ) &&
+                                      touched.customers?.[index]?.email &&
+                                      Boolean(errors.customers?.[index]?.email)
+                                    }
+                                    helperText={
+                                      isCustomerError(
+                                        errors.customers?.[index]
+                                      ) &&
+                                      touched.customers?.[index]?.email &&
+                                      errors.customers[index]?.email ? (
+                                        <span className={styles.errorText}>
+                                          {errors.customers[index]?.email}
+                                        </span>
+                                      ) : (
+                                        ""
+                                      )
+                                    }
+                                    fullWidth
+                                    size="small"
+                                  />
+                                </div>
+
+                                <div>
+                                  <TextField
+                                    label="Phone Number"
+                                    type="tel"
+                                    name={`customers[${index}].phoneNumber`}
+                                    value={
+                                      values.customers?.[index]?.phoneNumber ||
+                                      ""
+                                    }
+                                    onChange={(e) =>
+                                      setFieldValue(
+                                        `customers[${index}].phoneNumber`,
+                                        e.target.value
+                                      )
+                                    }
+                                    error={
+                                      isCustomerError(
+                                        errors.customers?.[index]
+                                      ) &&
+                                      touched.customers?.[index]?.phoneNumber &&
+                                      Boolean(
+                                        errors.customers?.[index]?.phoneNumber
+                                      )
+                                    }
+                                    helperText={
+                                      isCustomerError(
+                                        errors.customers?.[index]
+                                      ) &&
+                                      touched.customers?.[index]?.phoneNumber &&
+                                      errors.customers?.[index]?.phoneNumber ? (
+                                        <span className={styles.errorText}>
+                                          {errors.customers[index]?.phoneNumber}
+                                        </span>
+                                      ) : (
+                                        ""
+                                      )
+                                    }
+                                    fullWidth
+                                    size="small"
+                                  />
+                                </div>
+
+                                {/* Additional Fields */}
+                                <div>
+                                  <TextField
+                                    label="Number of Children"
+                                    type="number"
+                                    name={`customers[${index}].numberOfChildren`}
+                                    value={
+                                      values.customers?.[index]
+                                        ?.numberOfChildren || ""
+                                    }
+                                    onChange={(e) =>
+                                      setFieldValue(
+                                        `customers[${index}].numberOfChildren`,
+                                        e.target.value
+                                      )
+                                    }
+                                    error={
+                                      isCustomerError(
+                                        errors.customers?.[index]
+                                      ) &&
+                                      touched.customers?.[index]
+                                        ?.numberOfChildren &&
+                                      Boolean(
+                                        errors.customers?.[index]
+                                          ?.numberOfChildren
+                                      )
+                                    }
+                                    helperText={
+                                      isCustomerError(
+                                        errors.customers?.[index]
+                                      ) &&
+                                      touched.customers?.[index]
+                                        ?.numberOfChildren &&
+                                      errors.customers?.[index]
+                                        ?.numberOfChildren ? (
+                                        <span className={styles.errorText}>
+                                          {
+                                            errors.customers[index]
+                                              ?.numberOfChildren
+                                          }
+                                        </span>
+                                      ) : (
+                                        ""
+                                      )
+                                    }
+                                    fullWidth
+                                    size="small"
+                                  />
+                                </div>
+
+                                <div>
+                                  <TextField
+                                    label="Anniversary Date"
+                                    type="date"
+                                    name={`customers[${index}].anniversaryDate`}
+                                    value={
+                                      values.customers?.[index]
+                                        ?.anniversaryDate || ""
+                                    }
+                                    onChange={(e) =>
+                                      setFieldValue(
+                                        `customers[${index}].anniversaryDate`,
+                                        e.target.value
+                                      )
+                                    }
+                                    error={
+                                      isCustomerError(
+                                        errors.customers?.[index]
+                                      ) &&
+                                      touched.customers?.[index]
+                                        ?.anniversaryDate &&
+                                      Boolean(
+                                        errors.customers[index]?.anniversaryDate
+                                      )
+                                    }
+                                    helperText={
+                                      isCustomerError(
+                                        errors.customers?.[index]
+                                      ) &&
+                                      touched.customers?.[index]
+                                        ?.anniversaryDate &&
+                                      errors.customers[index]
+                                        ?.anniversaryDate ? (
+                                        <span className={styles.errorText}>
+                                          {
+                                            errors.customers[index]
+                                              ?.anniversaryDate
+                                          }
+                                        </span>
+                                      ) : (
+                                        ""
+                                      )
+                                    }
+                                    slotProps={{
+                                      inputLabel: { shrink: true }, // ✅ replaces deprecated InputLabelProps
+                                      input: {
+                                        inputProps: {
+                                          max: new Date()
+                                            .toISOString()
+                                            .split("T")[0], // disables future dates
+                                        },
+                                      },
+                                    }}
+                                    fullWidth
+                                    size="small"
+                                  />
+                                </div>
+
+                                <div>
+                                  {/* <label>Aadhar Number:</label> */}
+                                  <TextField
+                                    label="Aadhar Number"
+                                    type="number"
+                                    name={`customers[${index}].aadharNumber`}
+                                    value={
+                                      values.customers?.[index]?.aadharNumber ||
+                                      ""
+                                    }
+                                    onChange={(e) =>
+                                      setFieldValue(
+                                        `customers[${index}].aadharNumber`,
+                                        e.target.value
+                                      )
+                                    }
+                                    error={
+                                      isCustomerError(
+                                        errors.customers?.[index]
+                                      ) &&
+                                      touched.customers?.[index]
+                                        ?.aadharNumber &&
+                                      Boolean(
+                                        errors.customers[index]?.aadharNumber
+                                      )
+                                    }
+                                    helperText={
+                                      isCustomerError(
+                                        errors.customers?.[index]
+                                      ) &&
+                                      touched.customers?.[index]
+                                        ?.aadharNumber &&
+                                      errors.customers[index]?.aadharNumber ? (
+                                        <span className={styles.errorText}>
+                                          {
+                                            errors.customers[index]
+                                              ?.aadharNumber
+                                          }
+                                        </span>
+                                      ) : (
+                                        ""
+                                      )
+                                    }
+                                    fullWidth
+                                    size="small"
+                                  />
+                                </div>
+
+                                <div>
+                                  {/* <label>PAN Number:</label> */}
+                                  <TextField
+                                    label="PAN Number"
+                                    type="text"
+                                    name={`customers[${index}].panNumber`}
+                                    value={
+                                      values.customers?.[index]?.panNumber || ""
+                                    }
+                                    onChange={(e) =>
+                                      setFieldValue(
+                                        `customers[${index}].panNumber`,
+                                        e.target.value
+                                      )
+                                    }
+                                    error={
+                                      isCustomerError(
+                                        errors.customers?.[index]
+                                      ) &&
+                                      touched.customers?.[index]?.panNumber &&
+                                      Boolean(
+                                        errors.customers[index]?.panNumber
+                                      )
+                                    }
+                                    helperText={
+                                      isCustomerError(
+                                        errors.customers?.[index]
+                                      ) &&
+                                      touched.customers?.[index]?.panNumber &&
+                                      errors.customers[index]?.panNumber ? (
+                                        <span className={styles.errorText}>
+                                          {errors.customers[index]?.panNumber}
+                                        </span>
+                                      ) : (
+                                        ""
+                                      )
+                                    }
+                                    fullWidth
+                                    size="small"
+                                  />
+                                </div>
+
+                                <div>
+                                  <TextField
+                                    label="Passport Number"
+                                    type="text"
+                                    name={`customers[${index}].passportNumber`}
+                                    value={
+                                      values.customers?.[index]
+                                        ?.passportNumber || ""
+                                    }
+                                    onChange={(e) =>
+                                      setFieldValue(
+                                        `customers[${index}].passportNumber`,
+                                        e.target.value
+                                      )
+                                    }
+                                    error={
+                                      isCustomerError(
+                                        errors.customers?.[index]
+                                      ) &&
+                                      touched.customers?.[index]
+                                        ?.passportNumber &&
+                                      Boolean(
+                                        errors.customers[index]?.passportNumber
+                                      )
+                                    }
+                                    helperText={
+                                      touched.customers?.[index]
+                                        ?.passportNumber &&
+                                      typeof errors.customers?.[index] ===
+                                        "object" &&
+                                      errors.customers[index]
+                                        ?.passportNumber ? (
+                                        <span className={styles.errorText}>
+                                          {
+                                            errors.customers[index]
+                                              .passportNumber
+                                          }
+                                        </span>
+                                      ) : typeof errors.customers?.[index] ===
+                                        "string" ? (
+                                        <span className={styles.errorText}>
+                                          {errors.customers[index] as string}
+                                        </span>
+                                      ) : (
+                                        ""
+                                      )
+                                    }
+                                    fullWidth
+                                    size="small"
+                                  />
+                                </div>
+
+                                <div>
+                                  <TextField
+                                    label="Profession"
+                                    type="text"
+                                    name={`customers[${index}].profession`}
+                                    value={
+                                      values.customers?.[index]?.profession ||
+                                      ""
+                                    }
+                                    onChange={(e) =>
+                                      setFieldValue(
+                                        `customers[${index}].profession`,
+                                        e.target.value
+                                      )
+                                    }
+                                    error={
+                                      isCustomerError(
+                                        errors.customers?.[index]
+                                      ) &&
+                                      touched.customers?.[index]?.profession &&
+                                      Boolean(
+                                        errors.customers[index]?.profession
+                                      )
+                                    }
+                                    helperText={
+                                      touched.customers?.[index]?.profession &&
+                                      typeof errors.customers?.[index] ===
+                                        "object" &&
+                                      errors.customers[index]?.profession ? (
+                                        <span className={styles.errorText}>
+                                          {errors.customers[index].profession}
+                                        </span>
+                                      ) : (
+                                        ""
+                                      )
+                                    }
+                                    fullWidth
+                                    size="small"
+                                  />
+                                </div>
+
+                                <div>
+                                  <TextField
+                                    label="Designation"
+                                    type="text"
+                                    name={`customers[${index}].designation`}
+                                    value={
+                                      values.customers?.[index]?.designation ||
+                                      ""
+                                    }
+                                    onChange={(e) =>
+                                      setFieldValue(
+                                        `customers[${index}].designation`,
+                                        e.target.value
+                                      )
+                                    }
+                                    error={
+                                      isCustomerError(
+                                        errors.customers?.[index]
+                                      ) &&
+                                      touched.customers?.[index]?.designation &&
+                                      Boolean(
+                                        errors.customers[index]?.designation
+                                      )
+                                    }
+                                    helperText={
+                                      touched.customers?.[index]?.designation &&
+                                      typeof errors.customers?.[index] ===
+                                        "object" &&
+                                      errors.customers[index]?.designation ? (
+                                        <span className={styles.errorText}>
+                                          {errors.customers[index].designation}
+                                        </span>
+                                      ) : (
+                                        ""
+                                      )
+                                    }
+                                    fullWidth
+                                    size="small"
+                                  />
+                                </div>
+
+                                <div>
+                                  <TextField
+                                    label="Company Name"
+                                    type="text"
+                                    name={`customers[${index}].companyName`}
+                                    value={
+                                      values.customers?.[index]?.companyName ||
+                                      ""
+                                    }
+                                    onChange={(e) =>
+                                      setFieldValue(
+                                        `customers[${index}].companyName`,
+                                        e.target.value
+                                      )
+                                    }
+                                    error={
+                                      isCustomerError(
+                                        errors.customers?.[index]
+                                      ) &&
+                                      touched.customers?.[index]?.companyName &&
+                                      Boolean(
+                                        errors.customers[index]?.companyName
+                                      )
+                                    }
+                                    helperText={
+                                      touched.customers?.[index]?.companyName &&
+                                      typeof errors.customers?.[index] ===
+                                        "object" &&
+                                      errors.customers[index]?.companyName ? (
+                                        <span className={styles.errorText}>
+                                          {errors.customers[index].companyName}
+                                        </span>
+                                      ) : (
+                                        ""
+                                      )
+                                    }
+                                    fullWidth
+                                    size="small"
+                                  />
+                                </div>
+
+                                {values.customers.length > 1 && (
+                                  <button
+                                    type="button"
+                                    onClick={() => remove(index)}
+                                  >
+                                    Remove Customer
+                                  </button>
+                                )}
+                              </div>
+                            ))}
+
+                            {/* Add Button */}
+                            {values.customers.length < 3 && (
                               <button
                                 type="button"
-                                onClick={() => remove(index)}
+                                onClick={() =>
+                                  push({
+                                    salutation: "",
+                                    firstName: "",
+                                    middleName: "",
+                                    lastName: "",
+                                    dateOfBirth: "",
+                                    gender: "",
+                                    photo: "",
+                                    maritalStatus: "",
+                                    nationality: "",
+                                    email: "",
+                                    phoneNumber: "",
+                                    numberOfChildren: 0,
+                                    anniversaryDate: "",
+                                    aadharNumber: "",
+                                    panNumber: "",
+                                    passportNumber: "",
+                                    profession: "",
+                                    designation: "",
+                                    companyName: "",
+                                  })
+                                }
                               >
-                                Remove Customer
+                                Add Customer
                               </button>
                             )}
-                          </div>
-                        ))}
-
-                        {/* Add Button */}
-                        {values.customers.length < 3 && (
-                          <button
-                            type="button"
-                            onClick={() =>
-                              push({
-                                salutation: "",
-                                firstName: "",
-                                middleName: "",
-                                lastName: "",
-                                dateOfBirth: "",
-                                gender: "",
-                                photo: "",
-                                maritalStatus: "",
-                                nationality: "",
-                                email: "",
-                                phoneNumber: "",
-                                numberOfChildren: 0,
-                                anniversaryDate: "",
-                                aadharNumber: "",
-                                panNumber: "",
-                                passportNumber: "",
-                                profession: "",
-                                designation: "",
-                                companyName: "",
-                              })
-                            }
-                          >
-                            Add Customer
-                          </button>
+                          </>
                         )}
-                      </>
-                    )}
-                  </FieldArray>
+                      </FieldArray>
+                    </>
+                  </TabPanel>
+
+                  <TabPanel value={tabValue} index={1}>
+                    {/* New company form */}
+                    <Box sx={{ mt: 2 }}>
+                      <InputLabel>Company Name *</InputLabel>
+                      <Field
+                        as={TextField}
+                        name="companyBuyer.name"
+                        fullWidth
+                        error={
+                          touched.companyBuyer?.name &&
+                          !!errors.companyBuyer?.name
+                        }
+                        helperText={<ErrorMessage name="companyBuyer.name" />}
+                      />
+
+                      <InputLabel>Aadhar Number</InputLabel>
+                      <Field
+                        as={TextField}
+                        name="companyBuyer.aadharNumber"
+                        fullWidth
+                        error={
+                          touched.companyBuyer?.aadharNumber &&
+                          !!errors.companyBuyer?.aadharNumber
+                        }
+                        helperText={
+                          <ErrorMessage name="companyBuyer.aadharNumber" />
+                        }
+                      />
+
+                      <InputLabel>PAN Number</InputLabel>
+                      <Field
+                        as={TextField}
+                        name="companyBuyer.panNumber"
+                        fullWidth
+                        error={
+                          touched.companyBuyer?.panNumber &&
+                          !!errors.companyBuyer?.panNumber
+                        }
+                        helperText={
+                          <ErrorMessage name="companyBuyer.panNumber" />
+                        }
+                      />
+                    </Box>
+                  </TabPanel>
+
+                  {/* Navigation buttons */}
                   <div className={styles.buttonGroup}>
                     <button type="button" onClick={handlePrevious}>
                       Previous
@@ -1815,6 +1781,8 @@ const Sale = () => {
                       {loading ? "Submitting..." : "Submit"}
                     </button>
                   </div>
+                  {/* <Button onClick={handlePrevious}>Back</Button>
+                  <Button type="submit">Submit</Button> */}
                 </>
               )}
             </Form>
@@ -1824,5 +1792,4 @@ const Sale = () => {
     </div>
   );
 };
-
 export default Sale;
