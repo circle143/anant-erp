@@ -102,9 +102,24 @@ const CustomerSchema = Yup.object()
     numberOfChildren: Yup.number().nullable(),
     anniversaryDate: Yup.date().nullable(),
 
-    aadharNumber: Yup.string().nullable(),
-    panNumber: Yup.string().nullable(),
-    passportNumber: Yup.string().nullable(),
+    aadharNumber: Yup.string()
+      .nullable()
+      .matches(
+        /^[2-9]{1}[0-9]{11}$/,
+        "Invalid Aadhar format (12 digits, cannot start with 0/1)"
+      ),
+    panNumber: Yup.string()
+      .nullable()
+      .matches(
+        /^[A-Z]{5}[0-9]{4}[A-Z]{1}$/,
+        "Invalid PAN format (Example: ABCDE1234F)"
+      ),
+    passportNumber: Yup.string()
+      .nullable()
+      .matches(
+        /^[A-PR-WYa-pr-wy][0-9]{7}$/,
+        "Invalid Passport format (Example: A1234567)"
+      ),
 
     profession: Yup.string().nullable(),
     designation: Yup.string().nullable(),
@@ -249,6 +264,15 @@ function TabPanel(props: any) {
     </div>
   );
 }
+type CompanyBuyerErrors =
+  | string
+  | {
+      name?: string;
+      companyPan?: string;
+      companyGST?: string;
+      aadharNumber?: string;
+      panNumber?: string;
+    };
 const Sale = () => {
   const [skillOptions, setSkillOptions] = useState<SkillOption[]>([]);
   const [step, setStep] = useState(1);
@@ -498,7 +522,6 @@ const Sale = () => {
 
             return {
               ...customer,
-              level: index,
               photo: photoPath,
               dateOfBirth: formattedDOB,
               anniversaryDate: formattedAnniversary,
@@ -781,9 +804,13 @@ const Sale = () => {
               )}
               {step === 2 && (
                 <>
-                  <Box sx={{ borderBottom: 1, borderColor: "divider" }}>
+                  <Box>
                     <Tabs
                       value={tabValue}
+                      variant="fullWidth"
+                      // indicatorColor="secondary"
+                    
+                      textColor="inherit"
                       onChange={(e, newValue) => {
                         setTabValue(newValue);
                         setFieldValue(
@@ -1819,6 +1846,15 @@ const Sale = () => {
                           <ErrorMessage name="companyBuyer.panNumber" />
                         }
                       />
+                      {errors.companyBuyer &&
+                        typeof errors.companyBuyer === "string" && (
+                          <FormHelperText
+                            error
+                            sx={{ mt: 2, fontSize: "0.875rem" }}
+                          >
+                            {errors.companyBuyer as string}
+                          </FormHelperText>
+                        )}
                     </Box>
                   </TabPanel>
 
