@@ -43,17 +43,6 @@ export interface AddCustomerToFlatRequestBodyInput {
 	basicCost: number;
 }
 
-// update customer
-export interface UpdateCustomerInput {
-	societyReraNumber: string;
-	flatID: string;
-	customerID: string;
-}
-
-export interface UpdateCustomerRequestBodyInput {
-	details: CustomerDetails;
-}
-
 // get sale payment breakdown
 export interface GetSalePaymentBreakDown {
 	societyReraNumber: string;
@@ -87,4 +76,10 @@ export interface UpdateCustomerDetailsReqBodyInput {
 
 export interface UpdateCompanyCustomerDetailsReqBodyInput {
 	details: CompanyDetails;
+}
+
+// clear sale record
+export interface ClearSaleRecord {
+	societyReraNumber: string;
+	saleId: string;
 }

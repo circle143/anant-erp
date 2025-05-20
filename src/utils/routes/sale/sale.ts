@@ -2,13 +2,12 @@ import {
 	AddCustomerToFlatInput,
 	AddCustomerToFlatRequestBodyInput,
 	AddPaymentInstallmentToSale,
+	ClearSaleRecord,
 	GetSalePaymentBreakDown,
 	GetSocietySalesReport,
 	GetTowerSalesReport,
 	UpdateCompanyCustomerDetailsReqBodyInput,
 	UpdateCustomerDetailsReqBodyInput,
-	UpdateCustomerInput,
-	UpdateCustomerRequestBodyInput,
 	UpdateSaleCustomerDetailsInput,
 } from "./types";
 
@@ -96,5 +95,14 @@ export const customer = {
 			return input;
 		},
 		requestMethod: "PATCH",
+	},
+	clearSaleRecord: {
+		getEndpoint: (input: ClearSaleRecord) => {
+			return getBasePath(input.societyReraNumber) + `/${input.saleId}`;
+		},
+		getReqBody: () => {
+			// no req body
+		},
+		requestMethod: "DELETE",
 	},
 };
