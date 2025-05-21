@@ -41,6 +41,7 @@ export interface AddCustomerToFlatRequestBodyInput {
 	companyBuyer?: CompanyDetails;
 	optionalCharges: string[];
 	basicCost: number;
+	brokerId: string;
 }
 
 // get sale payment breakdown
