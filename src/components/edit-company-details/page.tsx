@@ -1,6 +1,6 @@
 "use client";
 
-import React from "react";
+import React, { useEffect } from "react";
 import { useSelector } from "react-redux";
 import { RootState } from "@/redux/store";
 import { Formik, Form, Field, ErrorMessage } from "formik";
@@ -66,9 +66,28 @@ const EditCompany: React.FC<Props> = ({ reraNumber, id }) => {
     .map((unit) => unit.saleDetail?.companyCustomer)
     .find((customer) => customer?.id === id);
 
-  if (!companyCustomer) {
-    return <div>No company data found for ID: {id}</div>;
-  }
+if (!companyCustomer) {
+  return (
+    <Box textAlign="center" mt={5}>
+      <h3>No company data found for ID: {id}</h3>
+      <p>
+        The company you are trying to edit does not exist or is no longer
+        available.
+      </p>
+      <Button
+        variant="contained"
+        color="primary"
+        onClick={() =>
+          router.push(`/org-admin/society/flats?rera=${reraNumber}`)
+        }
+        sx={{ mt: 2 }}
+      >
+        Go Back to Flats Page
+      </Button>
+    </Box>
+  );
+}
+
 
   const initialValues = {
     name: companyCustomer.name || "",
@@ -95,16 +114,14 @@ const EditCompany: React.FC<Props> = ({ reraNumber, id }) => {
         toast.success("Company details updated successfully", {
           id: "updateCompany",
         });
-        router.push(
-          `/org-admin/society/flats?rera=${reraNumber}`
-        );
+
+        router.push(`/org-admin/society/flats?rera=${reraNumber}`);
       }
     } catch (error: any) {
       toast.error("An unexpected error occurred", { id: "updateCompany" });
       console.error("Unexpected submit error:", error);
     }
   };
-
   return (
     <Box maxWidth="600px" mx="auto">
       <h2>Edit Company Details</h2>
