@@ -45,6 +45,10 @@ import {
   AddPaymentInstallmentToSale,
   GetTowerSalesReport,
   CompanyDetails,
+  UpdateSaleCustomerDetailsInput,
+  UpdateCustomerDetailsReqBodyInput,
+  UpdateCompanyCustomerDetailsReqBodyInput,
+  ClearSaleRecord,
 } from "@/utils/routes/sale/types";
 import {
   GetChargesInput,
@@ -522,14 +526,9 @@ export const addCustomer = async (
   basicCost: number,
   type: string,
   companyBuyer?: CompanyDetails,
-  customers?: CustomerDetails[],
+  customers?: CustomerDetails[]
 ) => {
   try {
-    console.log("customers", customers);
-    console.log("companyBuyer", companyBuyer);
-    console.log("optionalCharges", optionalCharges);
-    console.log("basicCost", basicCost);
-    console.log("type", type);
     const token = await getIdToken();
     const input: AddCustomerToFlatInput = {
       societyReraNumber,
@@ -1221,6 +1220,86 @@ export const updateSocietyDetails = async (
   } catch (error: any) {
     console.error(
       "Error updating society:",
+      error.response?.data || error.message
+    );
+    return { error: true, message: error.message };
+  }
+};
+export const updateSaleCustomerDetails = async (
+  societyReraNumber: string,
+  customerId: string,
+  details: CustomerDetails
+) => {
+  try {
+    const token = await getIdToken();
+    const input: UpdateSaleCustomerDetailsInput = {
+      societyReraNumber,
+      customerId,
+    };
+
+    const reqBody: UpdateCustomerDetailsReqBodyInput = { details };
+
+    const url = customer.updateSaleCustomerDetails.getEndpoint(input);
+
+    const response = await axios.patch(createURL(url), reqBody, {
+      headers: { Authorization: `Bearer ${token}` },
+    });
+
+    return response.data;
+  } catch (error: any) {
+    console.error(
+      "Error adding customer:",
+      error.response?.data || error.message
+    );
+    return { error: true, message: error.message };
+  }
+};
+
+export const updateSaleCompanyCustomerDetails = async (
+  societyReraNumber: string,
+  customerId: string,
+  details: CompanyDetails
+) => {
+  try {
+    const token = await getIdToken();
+    const input: UpdateSaleCustomerDetailsInput = {
+      societyReraNumber,
+      customerId,
+    };
+    const reqBody: UpdateCompanyCustomerDetailsReqBodyInput = { details };
+    const url = customer.updateSaleCompanyCustomerDetails.getEndpoint(input);
+    const response = await axios.patch(createURL(url), reqBody, {
+      headers: { Authorization: `Bearer ${token}` },
+    });
+    return response.data;
+  } catch (error: any) {
+    console.error(
+      "Error adding customer:",
+      error.response?.data || error.message
+    );
+    return { error: true, message: error.message };
+  }
+};
+
+export const clearSaleRecord = async (
+  societyReraNumber: string,
+  saleId: string
+) => {
+  try {
+    const token = await getIdToken();
+    const input: ClearSaleRecord = {
+      societyReraNumber,
+      saleId,
+    };
+    const url = customer.clearSaleRecord.getEndpoint(input);
+    const response = await axios.delete(createURL(url), {
+      headers: { Authorization: `Bearer ${token}` },
+    });
+
+    return response.data;
+  } catch (error: any) {
+    console.error(
+      "Error deleting flattype:",
       error.response?.data || error.message
     );
     return { error: true, message: error.message };

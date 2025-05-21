@@ -146,11 +146,12 @@
   display: flex;
   gap: 1em;
   .cancelButton {
-    padding: 0.4rem 1rem;
+    margin: 10px 0;
+    padding: 6px 12px;
     background-color: #e74c3c;
     border: none;
     border-radius: 4px;
-    font-size: 0.85rem;
+    // font-size: 0.85rem;
     cursor: pointer;
     white-space: nowrap;
     transition: background-color 0.3s ease;
