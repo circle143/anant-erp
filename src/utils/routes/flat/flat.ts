@@ -5,6 +5,8 @@ import {
 	GetSocietyFlats,
 	GetSocietyFlatsByName,
 	GetTowerFlats,
+	UpdateFlatInput,
+	UpdateFlatRequestBodyInput,
 } from "./types";
 
 function getBasePath(societyReraNumber: string) {
@@ -20,6 +22,15 @@ export const flat = {
 			return input;
 		},
 		requestMethod: "POST",
+	},
+	updateFlatDetails: {
+		getEndpoint: (input: UpdateFlatInput) => {
+			return getBasePath(input.societyReraNumber) + `/${input.flatId}`;
+		},
+		getReqBody: (input: UpdateFlatRequestBodyInput) => {
+			return input;
+		},
+		requestMethod: "PATCH",
 	},
 	deleteFlat: {
 		getEndpoint: (input: DeleteFlatInput) => {
