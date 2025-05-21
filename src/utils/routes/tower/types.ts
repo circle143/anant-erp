@@ -16,6 +16,7 @@ export interface UpdateTowerInput {
 
 export interface UpdateTowerRequestBodyInput {
 	floorCount: number;
+	name: string;
 }
 
 // delete tower
