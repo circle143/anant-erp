@@ -35,3 +35,17 @@ export interface GetSocietyFlatsByName {
 	cursor?: string;
 	name: string;
 }
+
+// update flat details
+export interface UpdateFlatInput {
+	societyReraNumber: string;
+	flatId: string;
+}
+
+export interface UpdateFlatRequestBodyInput {
+	tower: string; // tower id
+	flatType: string; // flat type id
+	name: string;
+	floorNumber: number;
+	facing: string; // Park/Road or Default
+}
