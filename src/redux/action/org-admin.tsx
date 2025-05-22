@@ -525,6 +525,7 @@ export const addCustomer = async (
   optionalCharges: string[],
   basicCost: number,
   type: string,
+   brokerId: string,
   companyBuyer?: CompanyDetails,
   customers?: CustomerDetails[]
 ) => {
@@ -541,6 +542,7 @@ export const addCustomer = async (
       companyBuyer,
       optionalCharges,
       basicCost: parseFloat(basicCost.toString()),
+      brokerId,
     };
 
     const url = customer.addCustomerToFlat.getEndpoint(input);

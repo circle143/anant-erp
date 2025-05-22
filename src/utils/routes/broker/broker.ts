@@ -18,6 +18,7 @@ export const broker = {
 		},
 		requestMethod: "POST",
 	},
+	
 	updateBrokerDetails: {
 		getEndpoint: (input: BrokerByIdRouteInput) => {
 			return getBasePath(input.societyRera) + `/${input.brokerId}`;
