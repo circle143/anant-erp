@@ -132,19 +132,23 @@ const Page = () => {
   useEffect(() => {
     fetchData(null, false, selectedFilter, searchTerm);
   }, [rera, selectedFilter]);
-  const handleEditSale = (
-    reraNumber: string,
-    id: string,
-    type: "user" | "company"
-  ) => {
-    const query = new URLSearchParams({
-      reraNumber,
-      id,
-      type,
-    }).toString();
+ const handleEditSale = (
+   reraNumber: string,
+   applicantId: string,
+   type: "user" | "company",
+   flatId?: string,
+   ownerIndex?: number,
+ ) => {
+   const query = new URLSearchParams({
+     reraNumber,
+     id: applicantId,
+     flatId: flatId || "",
+     ownerIndex: ownerIndex !== undefined ? ownerIndex.toString() : "",
+     type,
+   }).toString();
 
-    router.push(`/org-admin/society/flats/edit-sale-details?${query}`);
-  };
+   router.push(`/org-admin/society/flats/edit-sale-details?${query}`);
+ };
 
   const debouncedSearchChange = useCallback(
     debounce((value: string) => {
@@ -503,7 +507,9 @@ const Page = () => {
                                               handleEditSale(
                                                 rera,
                                                 owner.id,
-                                                "user"
+                                                "user",
+                                                org.saleDetail?.flatId ?? "",
+                                                i,
                                               )
                                             }
                                           >
