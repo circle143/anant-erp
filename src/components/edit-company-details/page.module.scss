@@ -1,0 +1,90 @@
+.headerContainer {
+  margin-top: 2em;
+
+  h2 {
+    font-size: 1.8rem;
+    font-weight: 600;
+    margin-bottom: 1rem;
+    text-align: center;
+    color: var(--color-secondary);
+  }
+}
+
+.formContainer {
+  display: flex;
+  flex-direction: column;
+  gap: 1.5rem;
+  padding: 2rem;
+  background-color: var(--color-background);
+  border-radius: 12px;
+  box-shadow: 0 4px 12px rgba(10, 102, 194, 0.1); // subtle primary shadow
+  font-family: "Roboto", sans-serif;
+
+  .MuiInputLabel-root {
+    font-weight: 500;
+    color: var(--color-secondary);
+    margin-bottom: 0.25rem;
+  }
+
+  .MuiTextField-root {
+    background-color: #fff;
+    border-radius: 8px;
+
+    &:focus-within {
+      box-shadow: 0 0 0 2px var(--color-primary);
+    }
+  }
+
+  .MuiFormHelperText-root {
+    margin-top: 0.25rem;
+    font-size: 0.85rem;
+    color: var(--color-accent);
+  }
+
+  button[type="submit"] {
+    align-self: flex-start;
+    padding: 0.6rem 2rem;
+    font-weight: 600;
+    border-radius: 8px;
+    background-color: var(--color-accent);
+    color: #fff;
+    transition: background-color 0.3s ease;
+
+    &:hover {
+      background-color: var(--color-hover);
+    }
+  }
+
+  @media (max-width: 600px) {
+    padding: 1rem;
+    gap: 1rem;
+
+    h2 {
+      font-size: 1.5rem;
+    }
+
+    button[type="submit"] {
+      width: 100%;
+    }
+  }
+}
+
+.errorContainer {
+ 
+  max-width: 600px;
+  margin: 0 auto;
+   margin-top: 2em;
+  background-color: #fff4f4;
+  padding: 2rem;
+  border-radius: 8px;
+  border: 1px solid #ffcaca;
+
+  h3 {
+    margin-bottom: 0.5rem;
+    color: #b00020;
+  }
+
+  p {
+    color: #5a5a5a;
+  }
+}

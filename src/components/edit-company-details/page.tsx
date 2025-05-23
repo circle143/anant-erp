@@ -1,6 +1,6 @@
 "use client";
 
-import React, { useEffect } from "react";
+import React from "react";
 import { useSelector } from "react-redux";
 import { RootState } from "@/redux/store";
 import { Formik, Form, Field, ErrorMessage } from "formik";
@@ -19,7 +19,9 @@ import { updateSaleCompanyCustomerDetails } from "@/redux/action/org-admin";
 
 interface Props {
   reraNumber: string;
-  id: string; // companyCustomer ID
+  id: string;
+  route: "towers" | "society";
+  towerId?: string;
 }
 
 const CompanySchema = Yup.object()
@@ -58,36 +60,44 @@ const CompanySchema = Yup.object()
     }
   );
 
-const EditCompany: React.FC<Props> = ({ reraNumber, id }) => {
+const EditCompany: React.FC<Props> = ({ reraNumber, id, route , towerId}) => {
   const router = useRouter();
-  const units = useSelector((state: RootState) => state.Society.units);
+
+  const units = useSelector((state: RootState) =>
+    route === "towers" ? state.TowerFlats.units : state.Society.units
+  );
 
   const companyCustomer = units
     .map((unit) => unit.saleDetail?.companyCustomer)
     .find((customer) => customer?.id === id);
 
-if (!companyCustomer) {
-  return (
-    <Box textAlign="center" mt={5}>
-      <h3>No company data found for ID: {id}</h3>
-      <p>
-        The company you are trying to edit does not exist or is no longer
-        available.
-      </p>
-      <Button
-        variant="contained"
-        color="primary"
-        onClick={() =>
-          router.push(`/org-admin/society/flats?rera=${reraNumber}`)
-        }
-        sx={{ mt: 2 }}
-      >
-        Go Back to Flats Page
-      </Button>
-    </Box>
-  );
-}
-
+  if (!companyCustomer) {
+    return (
+      <Box>
+        <div className={styles.errorContainer}>
+          <h3>No company data found for ID: {id}</h3>
+          <p>
+            The company you are trying to edit does not exist or is no longer
+            available.
+          </p>
+          <Button
+            variant="contained"
+            color="primary"
+            onClick={() =>
+              router.push(
+                route === "towers"
+                  ? `/org-admin/society/towers/flats?rera=${reraNumber}&towerId=${towerId}`
+                  : `/org-admin/society/flats?rera=${reraNumber}`
+              )
+            }
+            sx={{ mt: 2 }}
+          >
+            Go Back to Flats Page
+          </Button>
+        </div>
+      </Box>
+    );
+  }
 
   const initialValues = {
     name: companyCustomer.name || "",
@@ -115,16 +125,24 @@ if (!companyCustomer) {
           id: "updateCompany",
         });
 
-        router.push(`/org-admin/society/flats?rera=${reraNumber}`);
+        // Redirect based on route
+        router.push(
+          route === "towers"
+            ? `/org-admin/society/towers/flats?rera=${reraNumber}`
+            : `/org-admin/society/flats?rera=${reraNumber}`
+        );
       }
-    } catch (error: any) {
+    } catch (error) {
       toast.error("An unexpected error occurred", { id: "updateCompany" });
       console.error("Unexpected submit error:", error);
     }
   };
+
   return (
     <Box maxWidth="600px" mx="auto">
-      <h2>Edit Company Details</h2>
+      <div className={styles.headerContainer}>
+        <h2>Edit Company Details</h2>
+      </div>
       <Formik
         initialValues={initialValues}
         validationSchema={CompanySchema}
@@ -132,70 +150,75 @@ if (!companyCustomer) {
         enableReinitialize
       >
         {({ touched, errors }) => (
-          <Form noValidate>
-            <InputLabel>Company Name *</InputLabel>
-            <Field
-              as={TextField}
-              name="name"
-              fullWidth
-              error={touched.name && !!errors.name}
-              helperText={<ErrorMessage name="name" />}
-              margin="dense"
-            />
-
-            <InputLabel>Company PAN Number *</InputLabel>
-            <Field
-              as={TextField}
-              name="companyPan"
-              fullWidth
-              inputProps={{
-                maxLength: 10,
-                style: { textTransform: "uppercase" },
-              }}
-              error={touched.companyPan && !!errors.companyPan}
-              helperText={<ErrorMessage name="companyPan" />}
-              margin="dense"
-            />
-
-            <InputLabel>Company GST</InputLabel>
-            <Field
-              as={TextField}
-              name="companyGST"
-              fullWidth
-              error={touched.companyGST && !!errors.companyGST}
-              helperText={<ErrorMessage name="companyGST" />}
-              margin="dense"
-            />
-
-            <InputLabel>Aadhar Number</InputLabel>
-            <Field
-              as={TextField}
-              name="aadharNumber"
-              fullWidth
-              error={touched.aadharNumber && !!errors.aadharNumber}
-              helperText={<ErrorMessage name="aadharNumber" />}
-              margin="dense"
-            />
-
-            <InputLabel>PAN Number</InputLabel>
-            <Field
-              as={TextField}
-              name="panNumber"
-              fullWidth
-              inputProps={{
-                maxLength: 10,
-                style: { textTransform: "uppercase" },
-              }}
-              error={touched.panNumber && !!errors.panNumber}
-              helperText={<ErrorMessage name="panNumber" />}
-              margin="dense"
-            />
-
-            {typeof errors === "string" && (
-              <FormHelperText error sx={{ mt: 2 }}>
-                {errors}
-              </FormHelperText>
-            )}
+          <Form noValidate className={styles.formContainer}>
+            <div>
+              <InputLabel>Company Name *</InputLabel>
+              <Field
+                as={TextField}
+                name="name"
+                fullWidth
+                error={touched.name && !!errors.name}
+                helperText={<ErrorMessage name="name" />}
+                margin="dense"
+              />
+            </div>
+            <div>
+              <InputLabel>Company PAN Number *</InputLabel>
+              <Field
+                as={TextField}
+                name="companyPan"
+                fullWidth
+                inputProps={{
+                  maxLength: 10,
+                  style: { textTransform: "uppercase" },
+                }}
+                error={touched.companyPan && !!errors.companyPan}
+                helperText={<ErrorMessage name="companyPan" />}
+                margin="dense"
+              />
+            </div>
+            <div>
+              <InputLabel>Company GST</InputLabel>
+              <Field
+                as={TextField}
+                name="companyGST"
+                fullWidth
+                error={touched.companyGST && !!errors.companyGST}
+                helperText={<ErrorMessage name="companyGST" />}
+                margin="dense"
+              />
+            </div>
+            <div>
+              <InputLabel>Aadhar Number</InputLabel>
+              <Field
+                as={TextField}
+                name="aadharNumber"
+                fullWidth
+                error={touched.aadharNumber && !!errors.aadharNumber}
+                helperText={<ErrorMessage name="aadharNumber" />}
+                margin="dense"
+              />
+            </div>
+            <div>
+              <InputLabel>PAN Number</InputLabel>
+              <Field
+                as={TextField}
+                name="panNumber"
+                fullWidth
+                inputProps={{
+                  maxLength: 10,
+                  style: { textTransform: "uppercase" },
+                }}
+                error={touched.panNumber && !!errors.panNumber}
+                helperText={<ErrorMessage name="panNumber" />}
+                margin="dense"
+              />
+              {typeof errors === "string" && (
+                <FormHelperText error sx={{ mt: 2 }}>
+                  {errors}
+                </FormHelperText>
+              )}
+            </div>
 
             <Button
               type="submit"

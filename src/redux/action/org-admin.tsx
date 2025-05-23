@@ -73,6 +73,12 @@ import { getIdToken } from "@/utils/get_user_tokens";
 import { flatType } from "@/utils/routes/flat-type/flat_type";
 import { sum } from "lodash";
 import { paymentPlans } from "@/utils/routes/payment-plans/payment_plans";
+import {
+  BrokerByIdRouteInput,
+  BrokerDetailsReqBodyInput,
+  BrokerRouteInput,
+} from "@/utils/routes/broker/types";
+import { broker } from "@/utils/routes/broker/broker";
 
 const apiUrl = process.env.NEXT_PUBLIC_API_URL as string;
 
@@ -525,7 +531,7 @@ export const addCustomer = async (
   optionalCharges: string[],
   basicCost: number,
   type: string,
-   brokerId: string,
+  brokerId: string,
   companyBuyer?: CompanyDetails,
   customers?: CustomerDetails[]
 ) => {
@@ -1302,6 +1308,91 @@ export const clearSaleRecord = async (
   } catch (error: any) {
     console.error(
       "Error deleting flattype:",
+      error.response?.data || error.message
+    );
+    return { error: true, message: error.message };
+  }
+};
+export const addBroker = async (
+  societyRera: string,
+  name: string,
+  panNumber: string,
+  aadharNumber: string,
+  cursor?: string
+) => {
+  try {
+    const token = await getIdToken();
+    const reqBody: BrokerDetailsReqBodyInput = {
+      name,
+      panNumber,
+      aadharNumber,
+    };
+    const input: BrokerRouteInput = {
+      societyRera,
+      cursor,
+    };
+    const url = broker.addBroker.getEndpoint(input);
+    const response = await axios.post(createURL(url), reqBody, {
+      headers: { Authorization: `Bearer ${token}` },
+    });
+    return response.data;
+  } catch (error: any) {
+    console.error(
+      "Error adding broker:",
+      error.response?.data || error.message
+    );
+    return { error: true, message: error.message };
+  }
+};
+export const updateBrokerDetails = async (
+  societyRera: string,
+  brokerId: string,
+  name: string,
+  panNumber: string,
+  aadharNumber: string
+) => {
+  try {
+    const token = await getIdToken();
+    const input: BrokerByIdRouteInput = {
+      societyRera,
+      brokerId,
+    };
+    const reqBody: BrokerDetailsReqBodyInput = {
+      name,
+      panNumber,
+      aadharNumber,
+    };
+    const url = broker.updateBrokerDetails.getEndpoint(input);
+    const response = await axios.patch(createURL(url), reqBody, {
+      headers: { Authorization: `Bearer ${token}` },
+    });
+    return response.data;
+  } catch (error: any) {
+    console.error(
+      "Error updating broker:",
+      error.response?.data || error.message
+    );
+    return { error: true, message: error.message };
+  }
+};
+export const getAllSocietyBrokers = async (
+  societyRera: string,
+  cursor: string | null = null
+) => {
+  try {
+    const token = await getIdToken();
+    const input: BrokerRouteInput = {
+      societyRera,
+      cursor:cursor ?? "",
+    };
+    const url = broker.getAllSocietyBrokers.getEndpoint(input);
+    const response = await axios.get(createURL(url), {
+      headers: { Authorization: `Bearer ${token}` },
+    });
+    return response.data;
+  } catch (error: any) {
+    console.error(
+      "Error fetching data:",
       error.response?.data || error.message
     );
     return { error: true, message: error.message };

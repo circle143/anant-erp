@@ -2,7 +2,7 @@ export interface CustomerDetails {
   salutation: string;
   firstName: string;
   lastName: string;
-  dateOfBirth: Date; // ISO string representation of time.Time
+  dateOfBirth: string; // ISO string representation of time.Time
   gender: string;
   maritalStatus: string;
   nationality: string;
@@ -11,7 +11,7 @@ export interface CustomerDetails {
   photo?: string;
   middleName?: string;
   numberOfChildren?: number;
-  anniversaryDate?: Date; // ISO string representation of time.Time
+  anniversaryDate?: string; // ISO string representation of time.Time
   aadharNumber?: string;
   panNumber?: string;
   passportNumber?: string;

@@ -105,6 +105,9 @@ const DropdownMenu = ({
             Sale Report
           </div>
           <div onClick={handleEdit}>Edit</div>
+          <div onClick={() => handleRedirect(reraNumber, "broker")}>
+            Broker
+          </div>
           {/* <div onClick={handleDelete}>Delete</div> */}
         </div>
       )}

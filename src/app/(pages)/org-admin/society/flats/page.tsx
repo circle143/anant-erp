@@ -235,6 +235,10 @@ const Page = () => {
       toast.error("Missing sale ID or RERA number.");
       return;
     }
+     const confirmed = window.confirm(
+       "Are you sure you want to delete this sale record?"
+     );
+     if (!confirmed) return;
     const result = await clearSaleRecord(reraNumber, saleId);
     if (result?.error) {
       toast.error(`Failed to delete sale: ${result.message}`);
@@ -391,7 +395,7 @@ const Page = () => {
                                             )
                                           }
                                         >
-                                          Edit Applicant's Details
+                                          Edit Company's Details
                                         </button>
                                       )}
                                   </div>

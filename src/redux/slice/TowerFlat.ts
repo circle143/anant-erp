@@ -34,12 +34,23 @@ interface PriceBreakdown {
   superArea: string;
   total: string;
 }
-
+interface companyCustomer {
+  id: string;
+  name: string;
+  createdAt: string;
+  updatedAt: string;
+  aadharNumber: string;
+  companyGst: string;
+  companyPan: string;
+  panNumber: string;
+  saleId: string;
+}
 interface SaleDetail {
   id: string;
   flatId: string;
   orgId: string;
-  owners: Owner[];
+  owners?: Owner[];
+  companyCustomer?: companyCustomer;
   totalPrice: string;
   priceBreakdown: PriceBreakdown[];
   paid: string;

@@ -13,6 +13,8 @@ const page = () => {
   const id = searchParams.get("id");
   const flatId = searchParams.get("flatId");
   const ownerIndex = searchParams.get("ownerIndex");
+  
+  const towerId = searchParams.get("towerId");
   if (!type || !reraNumber || !id) {
     return <div>Invalid URL parameters</div>;
   }
@@ -25,10 +27,16 @@ const page = () => {
           id={id}
           flatId={flatId ?? undefined}
           ownerIndex={ownerIndex ? parseInt(ownerIndex, 10) : undefined}
-          route="society"
+          route="towers"
+          towerId={towerId ?? undefined}
         />
       ) : (
-        <EditCompany reraNumber={reraNumber} id={id} route="society" />
+        <EditCompany
+          reraNumber={reraNumber}
+          id={id}
+          route="towers"
+          towerId={towerId ?? undefined}
+        />
       )}
     </div>
   );

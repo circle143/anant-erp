@@ -501,7 +501,14 @@ const Sale = () => {
             const formattedDOB = customer.dateOfBirth
               ? new Date(customer.dateOfBirth).toISOString().slice(0, 10)
               : "";
+            console.log("Formatted DOB:", formattedDOB);
+            console.log("Type of formattedDOB:", typeof formattedDOB);
 
+            console.log("Customer DOB:", customer.dateOfBirth);
+            console.log(
+              "Type of customer.dateOfBirth:",
+              typeof customer.dateOfBirth
+            );
             let formattedAnniversary = "";
             if (customer.anniversaryDate) {
               formattedAnniversary = new Date(customer.anniversaryDate)
@@ -532,21 +539,21 @@ const Sale = () => {
       }
 
       // Make API call with parameters in correct order
-      const response = await addCustomer(
-        society, // societyReraNumber: string
-        flat, // flatID: string
-        charges, // optionalCharges: string[]
-        parseFloat(basicCost.toString()), // basicCost: number
-        type, // type: string
-        type === "company" ? companyBuyer : undefined, // companyBuyer?
-        type === "user" ? processedCustomers : undefined // customers?
-      );
+      // const response = await addCustomer(
+      //   society, // societyReraNumber: string
+      //   flat, // flatID: string
+      //   charges, // optionalCharges: string[]
+      //   parseFloat(basicCost.toString()), // basicCost: number
+      //   type, // type: string
+      //   type === "company" ? companyBuyer : undefined, // companyBuyer?
+      //   type === "user" ? processedCustomers : undefined // customers?
+      // );
 
-      if (response.error) {
-        toast.error(response.message || "Submission failed");
-        setLoading(false);
-        return;
-      }
+      // if (response.error) {
+      //   toast.error(response.message || "Submission failed");
+      //   setLoading(false);
+      //   return;
+      // }
 
       // Reset form on success
       toast.success("Form submitted successfully!");
@@ -809,7 +816,7 @@ const Sale = () => {
                       value={tabValue}
                       variant="fullWidth"
                       // indicatorColor="secondary"
-                    
+
                       textColor="inherit"
                       onChange={(e, newValue) => {
                         setTabValue(newValue);
