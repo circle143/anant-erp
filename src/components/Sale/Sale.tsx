@@ -7,6 +7,7 @@ import {
   getTowers,
   getAllTowerUnsoldFlats,
   getAllOtherOptionalCharges,
+  getAllSocietyBrokers,
   addCustomer,
 } from "@/redux/action/org-admin";
 import InputLabel from "@mui/material/InputLabel";
@@ -282,6 +283,7 @@ const Sale = () => {
   const [towers, setTowers] = useState<
     { id: string; name: string; societyId: string }[]
   >([]);
+  const [brokers, setBrokers] = useState<{ id: string; name: string }[]>([]);
   const [loading, setLoading] = useState(false);
   const [selectedSocietyRera, setSelectedSocietyRera] = useState<string>("");
   const [flats, setFlats] = useState<{ id: string; name: string }[]>([]);
