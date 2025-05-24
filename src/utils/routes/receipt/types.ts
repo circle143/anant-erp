@@ -22,7 +22,7 @@ export interface AddSaleReceiptRequestBody {
 	transactionNumber?: string;
 }
 
-export interface ClearSaleReceiptInput {
+export interface ReceiptIdInput {
 	societyRera: string;
 	receiptId: string;
 }

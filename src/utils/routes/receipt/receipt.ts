@@ -1,7 +1,7 @@
 import {
 	AddSaleReceiptInput,
 	AddSaleReceiptRequestBody,
-	ClearSaleReceiptInput,
+	ReceiptIdInput,
 	ClearSaleReceiptRequestBody,
 } from "./types";
 
@@ -20,12 +20,21 @@ export const receipt = {
 		requestMethod: "POST",
 	},
 	clearSaleReceipt: {
-		getEndpoint: (input: ClearSaleReceiptInput) => {
+		getEndpoint: (input: ReceiptIdInput) => {
 			return getBasePath(input.societyRera) + `/${input.receiptId}/clear`;
 		},
 		getReqBody: (input: ClearSaleReceiptRequestBody) => {
 			return input;
 		},
 		requestMethod: "POST",
+	},
+	getReciptById: {
+		getEndpoint: (input: ReceiptIdInput) => {
+			return getBasePath(input.societyRera) + `/${input.receiptId}`;
+		},
+		getReqBody: () => {
+			// no req body
+		},
+		requestMethod: "GET",
 	},
 };
