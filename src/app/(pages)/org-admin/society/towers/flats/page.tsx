@@ -367,6 +367,25 @@ const Page = () => {
 
                             {expandedOwnerIndex === index && (
                               <div className={styles.ownerCards}>
+                                <div className={styles.ownerCard}>
+                                  <h4>Broker Details:</h4>
+                                  <p>
+                                    <strong>Name:</strong>{" "}
+                                    {org.saleDetail.broker.name ||
+                                      "Not Available"}
+                                  </p>
+                                  <p>
+                                    <strong>Aadhar Number:</strong>{" "}
+                                    {org.saleDetail.broker.aadharNumber ||
+                                      "Not Available"}
+                                  </p>
+                                  <p>
+                                    <strong>PAN:</strong>{" "}
+                                    {org.saleDetail.broker.panNumber ||
+                                      "Not Available"}
+                                  </p>
+                                </div>
+
                                 {org.saleDetail?.companyCustomer ? (
                                   <div className={styles.ownerCard}>
                                     <h4>Company</h4>

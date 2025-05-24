@@ -132,23 +132,23 @@ const Page = () => {
   useEffect(() => {
     fetchData(null, false, selectedFilter, searchTerm);
   }, [rera, selectedFilter]);
- const handleEditSale = (
-   reraNumber: string,
-   applicantId: string,
-   type: "user" | "company",
-   flatId?: string,
-   ownerIndex?: number,
- ) => {
-   const query = new URLSearchParams({
-     reraNumber,
-     id: applicantId,
-     flatId: flatId || "",
-     ownerIndex: ownerIndex !== undefined ? ownerIndex.toString() : "",
-     type,
-   }).toString();
+  const handleEditSale = (
+    reraNumber: string,
+    applicantId: string,
+    type: "user" | "company",
+    flatId?: string,
+    ownerIndex?: number
+  ) => {
+    const query = new URLSearchParams({
+      reraNumber,
+      id: applicantId,
+      flatId: flatId || "",
+      ownerIndex: ownerIndex !== undefined ? ownerIndex.toString() : "",
+      type,
+    }).toString();
 
-   router.push(`/org-admin/society/flats/edit-sale-details?${query}`);
- };
+    router.push(`/org-admin/society/flats/edit-sale-details?${query}`);
+  };
 
   const debouncedSearchChange = useCallback(
     debounce((value: string) => {
@@ -235,10 +235,10 @@ const Page = () => {
       toast.error("Missing sale ID or RERA number.");
       return;
     }
-     const confirmed = window.confirm(
-       "Are you sure you want to delete this sale record?"
-     );
-     if (!confirmed) return;
+    const confirmed = window.confirm(
+      "Are you sure you want to delete this sale record?"
+    );
+    if (!confirmed) return;
     const result = await clearSaleRecord(reraNumber, saleId);
     if (result?.error) {
       toast.error(`Failed to delete sale: ${result.message}`);
@@ -343,6 +343,24 @@ const Page = () => {
 
                             {expandedOwnerIndex === index && (
                               <div className={styles.ownerCards}>
+                                <div className={styles.ownerCard}>
+                                  <h4>Broker Details:</h4>
+                                  <p>
+                                    <strong>Name:</strong>{" "}
+                                    {org.saleDetail.broker.name ||
+                                      "Not Available"}
+                                  </p>
+                                  <p>
+                                    <strong>Aadhar Number:</strong>{" "}
+                                    {org.saleDetail.broker.aadharNumber ||
+                                      "Not Available"}
+                                  </p>
+                                  <p>
+                                    <strong>PAN:</strong>{" "}
+                                    {org.saleDetail.broker.panNumber ||
+                                      "Not Available"}
+                                  </p>
+                                </div>
                                 {org.saleDetail?.companyCustomer ? (
                                   <div className={styles.ownerCard}>
                                     <h4>Company</h4>
@@ -390,7 +408,8 @@ const Page = () => {
                                           onClick={() =>
                                             handleEditSale(
                                               rera,
-                                              org.saleDetail?.companyCustomer?.id ?? "",
+                                              org.saleDetail?.companyCustomer
+                                                ?.id ?? "",
                                               "company"
                                             )
                                           }
@@ -513,7 +532,7 @@ const Page = () => {
                                                 owner.id,
                                                 "user",
                                                 org.saleDetail?.flatId ?? "",
-                                                i,
+                                                i
                                               )
                                             }
                                           >
