@@ -1,0 +1,72 @@
+@use "../../../../../../styles/abstract/media-queries" as ab;
+
+.container {
+  max-width: 50em;
+  margin: 2rem auto;
+  background-color: var(--color-background);
+  padding: clamp(1.5em, 2vi, 2em);
+  border-radius: 8px;
+  box-shadow: 0 4px 10px rgba(0, 0, 0, 0.05);
+
+  h1 {
+    color: var(--color-primary);
+    font-size: clamp(1.5rem, 2vi, 2rem);
+    margin-bottom: 1.5rem;
+    text-align: center;
+  }
+
+  .form {
+    display: flex;
+    flex-direction: column;
+    gap: 1.5rem;
+  }
+
+  .formGroup {
+    display: flex;
+    flex-direction: column;
+
+    label {
+      font-weight: 600;
+      margin-bottom: 0.5rem;
+      color: var(--color-secondary);
+    }
+
+    .form_control {
+      padding: 0.75rem 1rem;
+      border: 1px solid #ccc;
+      border-radius: 6px;
+      font-size: clamp(0.9rem, 1vi, 1rem);
+      outline: none;
+      transition: border 0.3s;
+      width: 100%;
+      color: black;
+      &:focus {
+        border-color: var(--color-primary);
+        box-shadow: 0 0 0 3px rgba(10, 102, 194, 0.1);
+      }
+    }
+
+    .text_danger {
+      color: var(--color-accent);
+      font-size: 0.875rem;
+      margin-top: 0.25rem;
+    }
+  }
+
+  button {
+    // outline: 2px solid red;
+    width: clamp(7em, 10vi, 10em);
+    padding: 0.75rem 1.5rem;
+    font-size: 1rem;
+    font-weight: 600;
+    background-color: var(--color-accent);
+    color: white;
+    border: none;
+    border-radius: 6px;
+    cursor: pointer;
+    transition: background-color 0.3s;
+    &:hover {
+      background-color: var(--color-hover);
+    }
+  }
+}

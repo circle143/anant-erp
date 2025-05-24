@@ -34,6 +34,7 @@ interface PriceBreakdown {
   superArea: string;
   total: string;
 }
+
 interface companyCustomer {
   id: string;
   name: string;

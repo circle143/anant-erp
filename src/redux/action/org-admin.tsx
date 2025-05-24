@@ -45,6 +45,10 @@ import {
   AddPaymentInstallmentToSale,
   GetTowerSalesReport,
   CompanyDetails,
+  UpdateSaleCustomerDetailsInput,
+  UpdateCustomerDetailsReqBodyInput,
+  UpdateCompanyCustomerDetailsReqBodyInput,
+  ClearSaleRecord,
 } from "@/utils/routes/sale/types";
 import {
   GetChargesInput,
@@ -69,6 +73,12 @@ import { getIdToken } from "@/utils/get_user_tokens";
 import { flatType } from "@/utils/routes/flat-type/flat_type";
 import { sum } from "lodash";
 import { paymentPlans } from "@/utils/routes/payment-plans/payment_plans";
+import {
+  BrokerByIdRouteInput,
+  BrokerDetailsReqBodyInput,
+  BrokerRouteInput,
+} from "@/utils/routes/broker/types";
+import { broker } from "@/utils/routes/broker/broker";
 
 const apiUrl = process.env.NEXT_PUBLIC_API_URL as string;
 
@@ -521,15 +531,11 @@ export const addCustomer = async (
   optionalCharges: string[],
   basicCost: number,
   type: string,
+  brokerId: string,
   companyBuyer?: CompanyDetails,
-  customers?: CustomerDetails[],
+  customers?: CustomerDetails[]
 ) => {
   try {
-    console.log("customers", customers);
-    console.log("companyBuyer", companyBuyer);
-    console.log("optionalCharges", optionalCharges);
-    console.log("basicCost", basicCost);
-    console.log("type", type);
     const token = await getIdToken();
     const input: AddCustomerToFlatInput = {
       societyReraNumber,
@@ -542,6 +548,7 @@ export const addCustomer = async (
       companyBuyer,
       optionalCharges,
       basicCost: parseFloat(basicCost.toString()),
+      brokerId,
     };
 
     const url = customer.addCustomerToFlat.getEndpoint(input);
@@ -1221,6 +1228,171 @@ export const updateSocietyDetails = async (
   } catch (error: any) {
     console.error(
       "Error updating society:",
+      error.response?.data || error.message
+    );
+    return { error: true, message: error.message };
+  }
+};
+export const updateSaleCustomerDetails = async (
+  societyReraNumber: string,
+  customerId: string,
+  details: CustomerDetails
+) => {
+  try {
+    const token = await getIdToken();
+    const input: UpdateSaleCustomerDetailsInput = {
+      societyReraNumber,
+      customerId,
+    };
+
+    const reqBody: UpdateCustomerDetailsReqBodyInput = { details };
+
+    const url = customer.updateSaleCustomerDetails.getEndpoint(input);
+
+    const response = await axios.patch(createURL(url), reqBody, {
+      headers: { Authorization: `Bearer ${token}` },
+    });
+
+    return response.data;
+  } catch (error: any) {
+    console.error(
+      "Error adding customer:",
+      error.response?.data || error.message
+    );
+    return { error: true, message: error.message };
+  }
+};
+
+export const updateSaleCompanyCustomerDetails = async (
+  societyReraNumber: string,
+  customerId: string,
+  details: CompanyDetails
+) => {
+  try {
+    const token = await getIdToken();
+    const input: UpdateSaleCustomerDetailsInput = {
+      societyReraNumber,
+      customerId,
+    };
+    const reqBody: UpdateCompanyCustomerDetailsReqBodyInput = { details };
+    const url = customer.updateSaleCompanyCustomerDetails.getEndpoint(input);
+    const response = await axios.patch(createURL(url), reqBody, {
+      headers: { Authorization: `Bearer ${token}` },
+    });
+    return response.data;
+  } catch (error: any) {
+    console.error(
+      "Error adding customer:",
+      error.response?.data || error.message
+    );
+    return { error: true, message: error.message };
+  }
+};
+
+export const clearSaleRecord = async (
+  societyReraNumber: string,
+  saleId: string
+) => {
+  try {
+    const token = await getIdToken();
+    const input: ClearSaleRecord = {
+      societyReraNumber,
+      saleId,
+    };
+    const url = customer.clearSaleRecord.getEndpoint(input);
+    const response = await axios.delete(createURL(url), {
+      headers: { Authorization: `Bearer ${token}` },
+    });
+
+    return response.data;
+  } catch (error: any) {
+    console.error(
+      "Error deleting flattype:",
+      error.response?.data || error.message
+    );
+    return { error: true, message: error.message };
+  }
+};
+export const addBroker = async (
+  societyRera: string,
+  name: string,
+  panNumber: string,
+  aadharNumber: string,
+  cursor?: string
+) => {
+  try {
+    const token = await getIdToken();
+    const reqBody: BrokerDetailsReqBodyInput = {
+      name,
+      panNumber,
+      aadharNumber,
+    };
+    const input: BrokerRouteInput = {
+      societyRera,
+      cursor,
+    };
+    const url = broker.addBroker.getEndpoint(input);
+    const response = await axios.post(createURL(url), reqBody, {
+      headers: { Authorization: `Bearer ${token}` },
+    });
+    return response.data;
+  } catch (error: any) {
+    console.error(
+      "Error adding broker:",
+      error.response?.data || error.message
+    );
+    return { error: true, message: error.message };
+  }
+};
+export const updateBrokerDetails = async (
+  societyRera: string,
+  brokerId: string,
+  name: string,
+  panNumber: string,
+  aadharNumber: string
+) => {
+  try {
+    const token = await getIdToken();
+    const input: BrokerByIdRouteInput = {
+      societyRera,
+      brokerId,
+    };
+    const reqBody: BrokerDetailsReqBodyInput = {
+      name,
+      panNumber,
+      aadharNumber,
+    };
+    const url = broker.updateBrokerDetails.getEndpoint(input);
+    const response = await axios.patch(createURL(url), reqBody, {
+      headers: { Authorization: `Bearer ${token}` },
+    });
+    return response.data;
+  } catch (error: any) {
+    console.error(
+      "Error updating broker:",
+      error.response?.data || error.message
+    );
+    return { error: true, message: error.message };
+  }
+};
+export const getAllSocietyBrokers = async (
+  societyRera: string,
+  cursor: string | null = null
+) => {
+  try {
+    const token = await getIdToken();
+    const input: BrokerRouteInput = {
+      societyRera,
+      cursor:cursor ?? "",
+    };
+    const url = broker.getAllSocietyBrokers.getEndpoint(input);
+    const response = await axios.get(createURL(url), {
+      headers: { Authorization: `Bearer ${token}` },
+    });
+    return response.data;
+  } catch (error: any) {
+    console.error(
+      "Error fetching data:",
       error.response?.data || error.message
     );
     return { error: true, message: error.message };

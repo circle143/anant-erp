@@ -6,6 +6,7 @@ import {
   getAllSocietyUnsoldFlats,
   deleteFlat,
   getSocietyFlatsByName,
+  clearSaleRecord,
 } from "@/redux/action/org-admin";
 import { toast } from "react-hot-toast";
 import styles from "./page.module.scss";
@@ -19,6 +20,9 @@ import CustomBreadcrumbs from "@/components/Breadcrumbs/Breadcrumbs";
 import { society_flats } from "@/utils/breadcrumbs";
 import { useSelector } from "react-redux";
 import { RootState } from "@/redux/store";
+import { useDispatch } from "react-redux";
+import { setUnits } from "@/redux/slice/SocietyFlat";
+
 const Page = () => {
   const [orgData, setOrgData] = useState<any[]>([]);
   const [cursor, setCursor] = useState<string | null>(null);
@@ -32,6 +36,7 @@ const Page = () => {
     rera ? state.flats.societyFlats[rera] : null
   );
   const router = useRouter();
+  const units = useSelector((state: RootState) => state.Society.units);
   const [expandedOwnerIndex, setExpandedOwnerIndex] = useState<number | null>(
     null
   );
@@ -43,6 +48,7 @@ const Page = () => {
     name: string;
     index: number;
   } | null>(null);
+  const dispatch = useDispatch();
   const [showDeletePopup, setShowDeletePopup] = useState(false);
   const [searchTerm, setSearchTerm] = useState<string>("");
   const [isSearchMode, setIsSearchMode] = useState<boolean>(false);
@@ -112,6 +118,7 @@ const Page = () => {
     );
 
     setOrgData(updatedItems);
+    dispatch(setUnits(updatedItems));
     setHasNextPage(response.data.pageInfo.nextPage);
     setCursor(response.data.pageInfo.cursor);
 
@@ -125,6 +132,24 @@ const Page = () => {
   useEffect(() => {
     fetchData(null, false, selectedFilter, searchTerm);
   }, [rera, selectedFilter]);
+  const handleEditSale = (
+    reraNumber: string,
+    applicantId: string,
+    type: "user" | "company",
+    flatId?: string,
+    ownerIndex?: number
+  ) => {
+    const query = new URLSearchParams({
+      reraNumber,
+      id: applicantId,
+      flatId: flatId || "",
+      ownerIndex: ownerIndex !== undefined ? ownerIndex.toString() : "",
+      type,
+    }).toString();
+
+    router.push(`/org-admin/society/flats/edit-sale-details?${query}`);
+  };
+
   const debouncedSearchChange = useCallback(
     debounce((value: string) => {
       setCursor(null);
@@ -205,6 +230,23 @@ const Page = () => {
     const url = `${path}?id=${id}&rera=${rera}`;
     router.push(url);
   };
+  const handleDeleteSale = async (saleId: string, reraNumber: string) => {
+    if (!saleId || !reraNumber) {
+      toast.error("Missing sale ID or RERA number.");
+      return;
+    }
+    const confirmed = window.confirm(
+      "Are you sure you want to delete this sale record?"
+    );
+    if (!confirmed) return;
+    const result = await clearSaleRecord(reraNumber, saleId);
+    if (result?.error) {
+      toast.error(`Failed to delete sale: ${result.message}`);
+    } else {
+      toast.success("Sale record deleted successfully.");
+      fetchData(null, false, selectedFilter, searchTerm);
+    }
+  };
 
   return (
     <div className={`container ${styles.container}`}>
@@ -249,12 +291,12 @@ const Page = () => {
         </div>
       ) : (
         <>
-          {orgData.length === 0 ? (
+          {units.length === 0 ? (
             <div className={styles.noData}>No data available</div>
           ) : (
             <>
               <ul className={styles.orgList}>
-                {orgData.map((org, index) => (
+                {units.map((org, index) => (
                   <li key={org.id} className={styles.orgItem}>
                     <div className={styles.rightSection}>
                       <div className={styles.details}>
@@ -278,104 +320,227 @@ const Page = () => {
 
                         {org.saleDetail && (
                           <div className={styles.ownerDetails}>
-                            <button
-                              className={styles.toggleButton}
-                              onClick={() => toggleOwnerDetails(index)}
-                            >
-                              {expandedOwnerIndex === index
-                                ? "Hide Owner Details"
-                                : "Show Owner Details"}
-                            </button>
+                            <div className={styles.editButtons}>
+                              <button
+                                className={styles.toggleButton}
+                                onClick={() => toggleOwnerDetails(index)}
+                              >
+                                {expandedOwnerIndex === index
+                                  ? "Hide Owner Details"
+                                  : "Show Owner Details"}
+                              </button>
+                              {org.saleDetail?.id && rera && (
+                                <button
+                                  className={styles.cancelButton}
+                                  onClick={() =>
+                                    handleDeleteSale(org.saleDetail!.id, rera)
+                                  }
+                                >
+                                  Delete Sale
+                                </button>
+                              )}
+                            </div>
 
                             {expandedOwnerIndex === index && (
                               <div className={styles.ownerCards}>
-                                {org.saleDetail?.owners?.map(
-                                  (owner: any, i: number) => (
-                                    <div key={i} className={styles.ownerCard}>
-                                      <h4>Applicant {i + 1}</h4>
-                                      <div className={styles.imgContainer}>
-                                        {owner.photo ? (
-                                          <img
-                                            src={owner.photo}
-                                            alt={`Owner ${i + 1}`}
-                                            className={styles.ownerImage}
-                                          />
-                                        ) : (
-                                          <div className={styles.noLogo}>
-                                            No Logo
-                                          </div>
+                                <div className={styles.ownerCard}>
+                                  <h4>Broker Details:</h4>
+                                  <p>
+                                    <strong>Name:</strong>{" "}
+                                    {org.saleDetail.broker.name ||
+                                      "Not Available"}
+                                  </p>
+                                  <p>
+                                    <strong>Aadhar Number:</strong>{" "}
+                                    {org.saleDetail.broker.aadharNumber ||
+                                      "Not Available"}
+                                  </p>
+                                  <p>
+                                    <strong>PAN:</strong>{" "}
+                                    {org.saleDetail.broker.panNumber ||
+                                      "Not Available"}
+                                  </p>
+                                </div>
+                                {org.saleDetail?.companyCustomer ? (
+                                  <div className={styles.ownerCard}>
+                                    <h4>Company</h4>
+                                    <p>
+                                      <strong>Company Name:</strong>{" "}
+                                      {org.saleDetail.companyCustomer.name ||
+                                        "Not Available"}
+                                    </p>
+                                    <p>
+                                      <strong>Company GST:</strong>{" "}
+                                      {org.saleDetail.companyCustomer
+                                        .companyGst || "Not Available"}
+                                    </p>
+                                    <p>
+                                      <strong>Company PAN:</strong>{" "}
+                                      {org.saleDetail.companyCustomer
+                                        .companyPan || "Not Available"}
+                                    </p>
+                                    <p>
+                                      <strong>PAN:</strong>{" "}
+                                      {org.saleDetail.companyCustomer
+                                        .panNumber || "Not Available"}
+                                    </p>
+                                    <p>
+                                      <strong>Sale Date:</strong>{" "}
+                                      {org.saleDetail?.companyCustomer
+                                        ?.createdAt
+                                        ? new Date(
+                                            org.saleDetail.companyCustomer.createdAt
+                                          ).toLocaleString("en-IN", {
+                                            timeZone: "Asia/Kolkata",
+                                            day: "2-digit",
+                                            month: "2-digit",
+                                            year: "numeric",
+                                            hour: "2-digit",
+                                            minute: "2-digit",
+                                            hour12: true,
+                                          })
+                                        : "Not Available"}
+                                    </p>
+                                    {rera &&
+                                      org.saleDetail?.companyCustomer?.id && (
+                                        <button
+                                          className={styles.toggleButton}
+                                          onClick={() =>
+                                            handleEditSale(
+                                              rera,
+                                              org.saleDetail?.companyCustomer
+                                                ?.id ?? "",
+                                              "company"
+                                            )
+                                          }
+                                        >
+                                          Edit Company's Details
+                                        </button>
+                                      )}
+                                  </div>
+                                ) : (
+                                  org.saleDetail?.owners?.map(
+                                    (owner: any, i: number) => (
+                                      <div key={i} className={styles.ownerCard}>
+                                        <h4>Applicant {i + 1}</h4>
+                                        <div className={styles.imgContainer}>
+                                          {owner.photo ? (
+                                            <img
+                                              src={owner.photo}
+                                              alt={`Owner ${i + 1}`}
+                                              className={styles.ownerImage}
+                                            />
+                                          ) : (
+                                            <div className={styles.noLogo}>
+                                              No Logo
+                                            </div>
+                                          )}
+                                        </div>
+                                        <p>
+                                          <strong>Full Name:</strong>{" "}
+                                          {[
+                                            owner.salutation,
+                                            owner.firstName,
+                                            owner.middleName,
+                                            owner.lastName,
+                                          ]
+                                            .filter(Boolean)
+                                            .join(" ") || "Not Available"}
+                                        </p>
+                                        <p>
+                                          <strong>Email:</strong>{" "}
+                                          {owner.email || "Not Available"}
+                                        </p>
+                                        <p>
+                                          <strong>Phone:</strong>{" "}
+                                          {owner.phoneNumber || "Not Available"}
+                                        </p>
+                                        <p>
+                                          <strong>Gender:</strong>{" "}
+                                          {owner.gender || "Not Available"}
+                                        </p>
+                                        <p>
+                                          <strong>DOB:</strong>{" "}
+                                          {owner.dateOfBirth
+                                            ? new Date(
+                                                owner.dateOfBirth
+                                              ).toLocaleDateString()
+                                            : "Not Available"}
+                                        </p>
+                                        <p>
+                                          <strong>Nationality:</strong>{" "}
+                                          {owner.nationality || "Not Available"}
+                                        </p>
+                                        <p>
+                                          <strong>Marital Status:</strong>{" "}
+                                          {owner.maritalStatus ||
+                                            "Not Available"}
+                                        </p>
+                                        <p>
+                                          <strong>Number of Children:</strong>{" "}
+                                          {owner.numberOfChildren ??
+                                            "Not Available"}
+                                        </p>
+                                        <p>
+                                          <strong>Profession:</strong>{" "}
+                                          {owner.profession || "Not Available"}
+                                        </p>
+                                        <p>
+                                          <strong>Designation:</strong>{" "}
+                                          {owner.designation || "Not Available"}
+                                        </p>
+                                        <p>
+                                          <strong>Company Name:</strong>{" "}
+                                          {owner.companyName || "Not Available"}
+                                        </p>
+                                        <p>
+                                          <strong>Passport Number:</strong>{" "}
+                                          {owner.passportNumber ||
+                                            "Not Available"}
+                                        </p>
+                                        <p>
+                                          <strong>PAN Number:</strong>{" "}
+                                          {owner.panNumber || "Not Available"}
+                                        </p>
+                                        <p>
+                                          <strong>Aadhar Number:</strong>{" "}
+                                          {owner.aadharNumber ||
+                                            "Not Available"}
+                                        </p>
+                                        <p>
+                                          <strong>Sale Date:</strong>{" "}
+                                          {owner.createdAt
+                                            ? new Date(
+                                                owner.createdAt
+                                              ).toLocaleString("en-IN", {
+                                                timeZone: "Asia/Kolkata",
+                                                day: "2-digit",
+                                                month: "2-digit",
+                                                year: "numeric",
+                                                hour: "2-digit",
+                                                minute: "2-digit",
+                                                hour12: true,
+                                              })
+                                            : "Not Available"}
+                                        </p>
+                                        {rera && owner.id && (
+                                          <button
+                                            className={styles.toggleButton}
+                                            onClick={() =>
+                                              handleEditSale(
+                                                rera,
+                                                owner.id,
+                                                "user",
+                                                org.saleDetail?.flatId ?? "",
+                                                i
+                                              )
+                                            }
+                                          >
+                                            Edit Applicant's Details
+                                          </button>
                                         )}
                                       </div>
-                                      <p>
-                                        <strong>Full Name:</strong>{" "}
-                                        {[
-                                          owner.salutation,
-                                          owner.firstName,
-                                          owner.middleName,
-                                          owner.lastName,
-                                        ]
-                                          .filter(Boolean)
-                                          .join(" ") || "Not Available"}
-                                      </p>
-                                      <p>
-                                        <strong>Email:</strong>{" "}
-                                        {owner.email || "Not Available"}
-                                      </p>
-                                      <p>
-                                        <strong>Phone:</strong>{" "}
-                                        {owner.phoneNumber || "Not Available"}
-                                      </p>
-                                      <p>
-                                        <strong>Gender:</strong>{" "}
-                                        {owner.gender || "Not Available"}
-                                      </p>
-                                      <p>
-                                        <strong>DOB:</strong>{" "}
-                                        {owner.dateOfBirth
-                                          ? new Date(
-                                              owner.dateOfBirth
-                                            ).toLocaleDateString()
-                                          : "Not Available"}
-                                      </p>
-                                      <p>
-                                        <strong>Nationality:</strong>{" "}
-                                        {owner.nationality || "Not Available"}
-                                      </p>
-                                      <p>
-                                        <strong>Marital Status:</strong>{" "}
-                                        {owner.maritalStatus || "Not Available"}
-                                      </p>
-                                      <p>
-                                        <strong>Number of Children:</strong>{" "}
-                                        {owner.numberOfChildren ??
-                                          "Not Available"}
-                                      </p>
-                                      <p>
-                                        <strong>Profession:</strong>{" "}
-                                        {owner.profession || "Not Available"}
-                                      </p>
-                                      <p>
-                                        <strong>Designation:</strong>{" "}
-                                        {owner.designation || "Not Available"}
-                                      </p>
-                                      <p>
-                                        <strong>Company Name:</strong>{" "}
-                                        {owner.companyName || "Not Available"}
-                                      </p>
-                                      <p>
-                                        <strong>Passport Number:</strong>{" "}
-                                        {owner.passportNumber ||
-                                          "Not Available"}
-                                      </p>
-                                      <p>
-                                        <strong>PAN Number:</strong>{" "}
-                                        {owner.panNumber || "Not Available"}
-                                      </p>
-                                      <p>
-                                        <strong>Aadhar Number:</strong>{" "}
-                                        {owner.aadharNumber || "Not Available"}
-                                      </p>
-                                    </div>
+                                    )
                                   )
                                 )}
 

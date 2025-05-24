@@ -6,6 +6,7 @@ import {
   getAllTowerSoldFlats,
   getAllTowerUnsoldFlats,
   deleteFlat,
+  clearSaleRecord,
 } from "@/redux/action/org-admin";
 import toast from "react-hot-toast";
 import styles from "./page.module.scss";
@@ -114,7 +115,6 @@ const Page = () => {
     // setAllData(updatedItems);
     setLoading(false);
   };
-
   useEffect(() => {
     fetchData(selectedFilter);
   }, [rera, towerID, selectedFilter]);
@@ -219,14 +219,48 @@ const Page = () => {
     const value = e.target.value;
     debouncedFilterChange(value);
   };
+  const handleEditSale = (
+    reraNumber: string,
+    applicantId: string,
+    type: "user" | "company",
+    towerID: string,
+    flatId?: string,
+    ownerIndex?: number
+  ) => {
+    const query = new URLSearchParams({
+      reraNumber,
+      id: applicantId,
+      flatId: flatId || "",
+      ownerIndex: ownerIndex !== undefined ? ownerIndex.toString() : "",
+      type,
+      towerId: towerID,
+    }).toString();
 
+    router.push(`/org-admin/society/towers/flats/edit-sale-details?${query}`);
+  };
   const flat = [
     { name: "Home", href: "/org-admin" },
     { name: "Societies", href: "/org-admin/society" },
     { name: "Towers", href: `/org-admin/society/towers?rera=${rera}` },
     { name: "Flats" },
   ];
-
+  const handleDeleteSale = async (saleId: string, reraNumber: string) => {
+    if (!saleId || !reraNumber) {
+      toast.error("Missing sale ID or RERA number.");
+      return;
+    }
+    const confirmed = window.confirm(
+      "Are you sure you want to delete this sale record?"
+    );
+    if (!confirmed) return;
+    const result = await clearSaleRecord(reraNumber, saleId);
+    if (result?.error) {
+      toast.error(`Failed to delete sale: ${result.message}`);
+    } else {
+      toast.success("Sale record deleted successfully.");
+      fetchData(selectedFilter);
+    }
+  };
   return (
     <div className={`container ${styles.container}`}>
       <div className={styles.header}>
@@ -310,104 +344,230 @@ const Page = () => {
 
                         {org.saleDetail && (
                           <div className={styles.ownerDetails}>
-                            <button
-                              className={styles.toggleButton}
-                              onClick={() => toggleOwnerDetails(index)}
-                            >
-                              {expandedOwnerIndex === index
-                                ? "Hide Owner Details"
-                                : "Show Owner Details"}
-                            </button>
+                            <div className={styles.editButtons}>
+                              <button
+                                className={styles.toggleButton}
+                                onClick={() => toggleOwnerDetails(index)}
+                              >
+                                {expandedOwnerIndex === index
+                                  ? "Hide Owner Details"
+                                  : "Show Owner Details"}
+                              </button>
+                              {org.saleDetail?.id && rera && (
+                                <button
+                                  className={styles.cancelButton}
+                                  onClick={() =>
+                                    handleDeleteSale(org.saleDetail!.id, rera)
+                                  }
+                                >
+                                  Delete Sale
+                                </button>
+                              )}
+                            </div>
 
                             {expandedOwnerIndex === index && (
                               <div className={styles.ownerCards}>
-                                {org.saleDetail?.owners?.map(
-                                  (owner: any, i: number) => (
-                                    <div key={i} className={styles.ownerCard}>
-                                      <h4>Applicant {i + 1}</h4>
-                                      <div className={styles.imgContainer}>
-                                        {owner.photo ? (
-                                          <img
-                                            src={owner.photo}
-                                            alt={`Owner ${i + 1}`}
-                                            className={styles.ownerImage}
-                                          />
-                                        ) : (
-                                          <div className={styles.noLogo}>
-                                            No Logo
-                                          </div>
+                                <div className={styles.ownerCard}>
+                                  <h4>Broker Details:</h4>
+                                  <p>
+                                    <strong>Name:</strong>{" "}
+                                    {org.saleDetail.broker.name ||
+                                      "Not Available"}
+                                  </p>
+                                  <p>
+                                    <strong>Aadhar Number:</strong>{" "}
+                                    {org.saleDetail.broker.aadharNumber ||
+                                      "Not Available"}
+                                  </p>
+                                  <p>
+                                    <strong>PAN:</strong>{" "}
+                                    {org.saleDetail.broker.panNumber ||
+                                      "Not Available"}
+                                  </p>
+                                </div>
+
+                                {org.saleDetail?.companyCustomer ? (
+                                  <div className={styles.ownerCard}>
+                                    <h4>Company</h4>
+                                    <p>
+                                      <strong>Company Name:</strong>{" "}
+                                      {org.saleDetail.companyCustomer.name ||
+                                        "Not Available"}
+                                    </p>
+                                    <p>
+                                      <strong>Company GST:</strong>{" "}
+                                      {org.saleDetail.companyCustomer
+                                        .companyGst || "Not Available"}
+                                    </p>
+                                    <p>
+                                      <strong>Company PAN:</strong>{" "}
+                                      {org.saleDetail.companyCustomer
+                                        .companyPan || "Not Available"}
+                                    </p>
+                                    <p>
+                                      <strong>PAN:</strong>{" "}
+                                      {org.saleDetail.companyCustomer
+                                        .panNumber || "Not Available"}
+                                    </p>
+                                    <p>
+                                      <strong>Sale Date:</strong>{" "}
+                                      {org.saleDetail?.companyCustomer
+                                        ?.createdAt
+                                        ? new Date(
+                                            org.saleDetail.companyCustomer.createdAt
+                                          ).toLocaleString("en-IN", {
+                                            timeZone: "Asia/Kolkata",
+                                            day: "2-digit",
+                                            month: "2-digit",
+                                            year: "numeric",
+                                            hour: "2-digit",
+                                            minute: "2-digit",
+                                            hour12: true,
+                                          })
+                                        : "Not Available"}
+                                    </p>
+                                    {rera &&
+                                      towerID &&
+                                      org.saleDetail?.companyCustomer?.id && (
+                                        <button
+                                          className={styles.toggleButton}
+                                          onClick={() =>
+                                            handleEditSale(
+                                              rera,
+                                              org.saleDetail.companyCustomer.id,
+                                              "company",
+                                              towerID
+                                            )
+                                          }
+                                        >
+                                          Edit Company's Details
+                                        </button>
+                                      )}
+                                  </div>
+                                ) : (
+                                  org.saleDetail?.owners?.map(
+                                    (owner: any, i: number) => (
+                                      <div key={i} className={styles.ownerCard}>
+                                        <h4>Applicant {i + 1}</h4>
+                                        <div className={styles.imgContainer}>
+                                          {owner.photo ? (
+                                            <img
+                                              src={owner.photo}
+                                              alt={`Owner ${i + 1}`}
+                                              className={styles.ownerImage}
+                                            />
+                                          ) : (
+                                            <div className={styles.noLogo}>
+                                              No Logo
+                                            </div>
+                                          )}
+                                        </div>
+                                        <p>
+                                          <strong>Full Name:</strong>{" "}
+                                          {[
+                                            owner.salutation,
+                                            owner.firstName,
+                                            owner.middleName,
+                                            owner.lastName,
+                                          ]
+                                            .filter(Boolean)
+                                            .join(" ") || "Not Available"}
+                                        </p>
+                                        <p>
+                                          <strong>Email:</strong>{" "}
+                                          {owner.email || "Not Available"}
+                                        </p>
+                                        <p>
+                                          <strong>Phone:</strong>{" "}
+                                          {owner.phoneNumber || "Not Available"}
+                                        </p>
+                                        <p>
+                                          <strong>Gender:</strong>{" "}
+                                          {owner.gender || "Not Available"}
+                                        </p>
+                                        <p>
+                                          <strong>DOB:</strong>{" "}
+                                          {owner.dateOfBirth
+                                            ? new Date(
+                                                owner.dateOfBirth
+                                              ).toLocaleDateString()
+                                            : "Not Available"}
+                                        </p>
+                                        <p>
+                                          <strong>Nationality:</strong>{" "}
+                                          {owner.nationality || "Not Available"}
+                                        </p>
+                                        <p>
+                                          <strong>Marital Status:</strong>{" "}
+                                          {owner.maritalStatus ||
+                                            "Not Available"}
+                                        </p>
+                                        <p>
+                                          <strong>Number of Children:</strong>{" "}
+                                          {owner.numberOfChildren ??
+                                            "Not Available"}
+                                        </p>
+                                        <p>
+                                          <strong>Profession:</strong>{" "}
+                                          {owner.profession || "Not Available"}
+                                        </p>
+                                        <p>
+                                          <strong>Designation:</strong>{" "}
+                                          {owner.designation || "Not Available"}
+                                        </p>
+                                        <p>
+                                          <strong>Company Name:</strong>{" "}
+                                          {owner.companyName || "Not Available"}
+                                        </p>
+                                        <p>
+                                          <strong>Passport Number:</strong>{" "}
+                                          {owner.passportNumber ||
+                                            "Not Available"}
+                                        </p>
+                                        <p>
+                                          <strong>PAN Number:</strong>{" "}
+                                          {owner.panNumber || "Not Available"}
+                                        </p>
+                                        <p>
+                                          <strong>Aadhar Number:</strong>{" "}
+                                          {owner.aadharNumber ||
+                                            "Not Available"}
+                                        </p>
+                                        <p>
+                                          <strong>Sale Date:</strong>{" "}
+                                          {owner.createdAt
+                                            ? new Date(
+                                                owner.createdAt
+                                              ).toLocaleString("en-IN", {
+                                                timeZone: "Asia/Kolkata",
+                                                day: "2-digit",
+                                                month: "2-digit",
+                                                year: "numeric",
+                                                hour: "2-digit",
+                                                minute: "2-digit",
+                                                hour12: true,
+                                              })
+                                            : "Not Available"}
+                                        </p>
+                                        {rera && towerID && owner.id && (
+                                          <button
+                                            className={styles.toggleButton}
+                                            onClick={() =>
+                                              handleEditSale(
+                                                rera,
+                                                owner.id,
+                                                "user",
+                                                towerID,
+                                                org.saleDetail?.flatId ?? "",
+                                                i
+                                              )
+                                            }
+                                          >
+                                            Edit Applicant's Details
+                                          </button>
                                         )}
                                       </div>
-                                      <p>
-                                        <strong>Full Name:</strong>{" "}
-                                        {[
-                                          owner.salutation,
-                                          owner.firstName,
-                                          owner.middleName,
-                                          owner.lastName,
-                                        ]
-                                          .filter(Boolean)
-                                          .join(" ") || "Not Available"}
-                                      </p>
-                                      <p>
-                                        <strong>Email:</strong>{" "}
-                                        {owner.email || "Not Available"}
-                                      </p>
-                                      <p>
-                                        <strong>Phone:</strong>{" "}
-                                        {owner.phoneNumber || "Not Available"}
-                                      </p>
-                                      <p>
-                                        <strong>Gender:</strong>{" "}
-                                        {owner.gender || "Not Available"}
-                                      </p>
-                                      <p>
-                                        <strong>DOB:</strong>{" "}
-                                        {owner.dateOfBirth
-                                          ? new Date(
-                                              owner.dateOfBirth
-                                            ).toLocaleDateString()
-                                          : "Not Available"}
-                                      </p>
-                                      <p>
-                                        <strong>Nationality:</strong>{" "}
-                                        {owner.nationality || "Not Available"}
-                                      </p>
-                                      <p>
-                                        <strong>Marital Status:</strong>{" "}
-                                        {owner.maritalStatus || "Not Available"}
-                                      </p>
-                                      <p>
-                                        <strong>Number of Children:</strong>{" "}
-                                        {owner.numberOfChildren ??
-                                          "Not Available"}
-                                      </p>
-                                      <p>
-                                        <strong>Profession:</strong>{" "}
-                                        {owner.profession || "Not Available"}
-                                      </p>
-                                      <p>
-                                        <strong>Designation:</strong>{" "}
-                                        {owner.designation || "Not Available"}
-                                      </p>
-                                      <p>
-                                        <strong>Company Name:</strong>{" "}
-                                        {owner.companyName || "Not Available"}
-                                      </p>
-                                      <p>
-                                        <strong>Passport Number:</strong>{" "}
-                                        {owner.passportNumber ||
-                                          "Not Available"}
-                                      </p>
-                                      <p>
-                                        <strong>PAN Number:</strong>{" "}
-                                        {owner.panNumber || "Not Available"}
-                                      </p>
-                                      <p>
-                                        <strong>Aadhar Number:</strong>{" "}
-                                        {owner.aadharNumber || "Not Available"}
-                                      </p>
-                                    </div>
+                                    )
                                   )
                                 )}
 
@@ -433,6 +593,7 @@ const Page = () => {
                                         )}
                                       </p>
                                     </div>
+                                    {/* Total Price */}
                                     <div className={styles.totalPriceSection}>
                                       <h4>Total Price</h4>
                                       <p>
@@ -443,6 +604,7 @@ const Page = () => {
                                         )}
                                       </p>
                                     </div>
+                                    {/* Price Breakdown */}
                                     <div
                                       className={styles.priceBreakdownSection}
                                     >
@@ -457,8 +619,9 @@ const Page = () => {
                                               <th>#</th>
                                               <th>Summary</th>
                                               <th>Price</th>
+
                                               <th>Type</th>
-                                              <th>Super Area(sqft)</th>
+                                              <th>Super Area</th>
                                               <th>Total</th>
                                             </tr>
                                           </thead>
@@ -515,7 +678,7 @@ const Page = () => {
                                   </button>
 
                                   <PaymentBreakdownModal
-                                    id={org.saleDetail.id}
+                                    id={org.saleDetail?.id}
                                     rera={rera ?? ""}
                                     paid={org.saleDetail?.paid ?? "0.00"}
                                     remaining={
