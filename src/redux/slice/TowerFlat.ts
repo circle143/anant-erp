@@ -45,8 +45,18 @@ interface companyCustomer {
   panNumber: string;
   saleId: string;
 }
+interface broker {
+  id: string;
+  name: string;
+  createdAt: string;
+  updatedAt: string;
+  aadharNumber: string;
+  panNumber: string;
+}
 interface SaleDetail {
   id: string;
+  brokerId: string;
+  broker: broker;
   flatId: string;
   orgId: string;
   owners?: Owner[];

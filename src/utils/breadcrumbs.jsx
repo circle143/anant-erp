@@ -60,3 +60,8 @@ export const society_edit = [
   { name: "Societies", href: "/org-admin/society" },
   { name: "Edit Society" },
 ];
+export const Brokers = [
+  { name: "Home", href: "/org-admin" },
+  { name: "Societies", href: "/org-admin/society" },
+  { name: "Brokers" },
+];

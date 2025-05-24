@@ -7,7 +7,9 @@ import {
   getTowers,
   getAllTowerUnsoldFlats,
   getAllOtherOptionalCharges,
+  getAllSocietyBrokers,
   addCustomer,
+
 } from "@/redux/action/org-admin";
 import InputLabel from "@mui/material/InputLabel";
 import FormHelperText from "@mui/material/FormHelperText";
@@ -28,9 +30,11 @@ import imageCompression from "browser-image-compression";
 import Checkbox from "@mui/material/Checkbox";
 import ListItemText from "@mui/material/ListItemText";
 import { CustomerDetails } from "@/utils/routes/sale/types";
+import { broker } from "@/utils/routes/broker/broker";
 
 const StepOneSchema = Yup.object().shape({
   society: Yup.string().required("Society is required"),
+  broker: Yup.string().required("Broker is required"),
   tower: Yup.string().required("Tower is required"),
   flat: Yup.string().required("Flat is required"),
   charges: Yup.array(),
@@ -192,6 +196,7 @@ const StepTwoSchema = Yup.object().shape({
 
 const initialValues = {
   society: "",
+  broker: "",
   tower: "",
   flat: "",
   seller: "",
@@ -282,6 +287,7 @@ const Sale = () => {
   const [towers, setTowers] = useState<
     { id: string; name: string; societyId: string }[]
   >([]);
+  const [brokers, setBrokers] = useState<{ id: string; name: string }[]>([]);
   const [loading, setLoading] = useState(false);
   const [selectedSocietyRera, setSelectedSocietyRera] = useState<string>("");
   const [flats, setFlats] = useState<{ id: string; name: string }[]>([]);
@@ -324,69 +330,91 @@ const Sale = () => {
   )
     .toISOString()
     .split("T")[0];
-  const handleSocietyChange = async (
-    e: React.ChangeEvent<HTMLSelectElement>,
-    setFieldValue: any
-  ) => {
-    setLoading(true);
-    const reraNumber = e.target.value;
-    setFieldValue("society", reraNumber);
-    setFieldValue("tower", ""); // Reset dependent fields
-    setFieldValue("flat", "");
-    setTowers([]);
-    setFlats([]);
+const handleSocietyChange = async (
+  e: React.ChangeEvent<HTMLSelectElement>,
+  setFieldValue: any
+) => {
+  setLoading(true);
+  const reraNumber = e.target.value;
+  setFieldValue("society", reraNumber);
+  setFieldValue("tower", "");
+  setFieldValue("flat", "");
+  setTowers([]);
+  setFlats([]);
+  setBrokers([]); // Reset brokers
 
-    if (!reraNumber) {
-      setLoading(false);
-      return;
+  if (!reraNumber) {
+    setLoading(false);
+    return;
+  }
+
+  const fetchAllTowers = async (
+    cursor: string | null = null,
+    accumulated: any[] = []
+  ) => {
+    const response = await getTowers(cursor, reraNumber);
+    if (response?.error) return accumulated;
+
+    const items = response?.data?.items || [];
+    const newData = [...accumulated, ...items];
+    const hasNext = response?.data?.pageInfo?.nextPage;
+    const nextCursor = response?.data?.pageInfo?.cursor;
+
+    if (hasNext && nextCursor) {
+      return await fetchAllTowers(nextCursor, newData);
     }
 
-    const fetchAllTowers = async (
-      cursor: string | null = null,
-      accumulated: any[] = []
-    ) => {
-      const response = await getTowers(cursor, reraNumber);
-      console.log("Response:", response);
-      if (response?.error) return accumulated;
-
-      const items = response?.data?.items || [];
-      const newData = [...accumulated, ...items];
-      const hasNext = response?.data?.pageInfo?.nextPage;
-      const nextCursor = response?.data?.pageInfo?.cursor;
-
-      if (hasNext && nextCursor) {
-        return await fetchAllTowers(nextCursor, newData);
-      }
-
-      return newData;
-    };
-
-    const towerData = await fetchAllTowers();
-    setTowers(towerData);
-
-    // 🔽 Fetch and print all optional charges
-    type MinimalCharge = { id: string; summary: string };
-
-    const fetchAllCharges = async (
-      accumulated: MinimalCharge[] = []
-    ): Promise<MinimalCharge[]> => {
-      const response = await getAllOtherOptionalCharges(reraNumber);
-      if (response?.error) return accumulated;
-
-      const items = response?.data || [];
-
-      return items.map(({ id, summary }: { id: string; summary: string }) => ({
-        id,
-        summary,
-      }));
-    };
-
-    const optionalCharges = await fetchAllCharges();
-    setSkillOptions(optionalCharges);
-    console.log("Optional Charges:", optionalCharges);
-
-    setLoading(false);
+    return newData;
   };
+
+  const towerData = await fetchAllTowers();
+  setTowers(towerData);
+
+  const fetchAllCharges = async () => {
+    const response = await getAllOtherOptionalCharges(reraNumber);
+    if (response?.error) return [];
+
+    return (
+      response?.data?.map(
+        ({ id, summary }: { id: string; summary: string }) => ({
+          id,
+          summary,
+        })
+      ) || []
+    );
+  };
+
+  const optionalCharges = await fetchAllCharges();
+  setSkillOptions(optionalCharges);
+
+  const fetchAllBrokers = async (
+    cursor: string | null = null,
+    accumulated: { id: string; name: string }[] = []
+  ): Promise<{ id: string; name: string }[]> => {
+    const response = await getAllSocietyBrokers(reraNumber, cursor);
+    if (response?.error) return accumulated;
+
+    const items = response?.data?.items || [];
+    const newData = [...accumulated, ...items];
+    const hasNext = response?.data?.pageInfo?.nextPage;
+    const nextCursor = response?.data?.pageInfo?.cursor;
+
+    if (hasNext && nextCursor) {
+      return await fetchAllBrokers(nextCursor, newData);
+    }
+
+    return newData;
+  };
+
+  const brokerData = await fetchAllBrokers();
+  setBrokers(brokerData);
+
+  console.log("Optional Charges:", optionalCharges);
+  console.log("Brokers:", brokerData);
+
+  setLoading(false);
+};
+
   const isCustomerError = (error: unknown): error is { email?: string } => {
     return typeof error === "object" && error !== null;
   };
@@ -456,6 +484,7 @@ const Sale = () => {
       setLoading(true);
       const {
         society,
+        broker,
         flat,
         charges,
         basicCost,
@@ -539,21 +568,22 @@ const Sale = () => {
       }
 
       // Make API call with parameters in correct order
-      // const response = await addCustomer(
-      //   society, // societyReraNumber: string
-      //   flat, // flatID: string
-      //   charges, // optionalCharges: string[]
-      //   parseFloat(basicCost.toString()), // basicCost: number
-      //   type, // type: string
-      //   type === "company" ? companyBuyer : undefined, // companyBuyer?
-      //   type === "user" ? processedCustomers : undefined // customers?
-      // );
+      const response = await addCustomer(
+        society, // societyReraNumber: string
+        flat, // flatID: string
+        charges, // optionalCharges: string[]
+        parseFloat(basicCost.toString()), // basicCost: number
+        type, // type: string
+        broker,
+        type === "company" ? companyBuyer : undefined, // companyBuyer?
+        type === "user" ? processedCustomers : undefined // customers?
+      );
 
-      // if (response.error) {
-      //   toast.error(response.message || "Submission failed");
-      //   setLoading(false);
-      //   return;
-      // }
+      if (response.error) {
+        toast.error(response.message || "Submission failed");
+        setLoading(false);
+        return;
+      }
 
       // Reset form on success
       toast.success("Form submitted successfully!");
@@ -656,7 +686,35 @@ const Sale = () => {
                           className="error"
                         />
                       </div>
+                      <div>
+                        <label>
+                          Broker: <span style={{ color: "red" }}>*</span>
+                        </label>
 
+                        <Select
+                          id="broker-select"
+                          value={values.broker || ""}
+                          onChange={
+                            (e: any) => setFieldValue("broker", e.target.value) // ✅
+                          }
+                          displayEmpty
+                          fullWidth
+                          // className={styles.multiselect}
+                          size="small"
+                        >
+                          <MenuItem value="">Select Broker</MenuItem>
+                          {brokers.map((broker) => (
+                            <MenuItem key={broker.id} value={broker.id}>
+                              {broker.name}
+                            </MenuItem>
+                          ))}
+                        </Select>
+                        <ErrorMessage
+                          name="broker"
+                          component="div"
+                          className="error"
+                        />
+                      </div>
                       <div>
                         <label>
                           Tower: <span style={{ color: "red" }}>*</span>

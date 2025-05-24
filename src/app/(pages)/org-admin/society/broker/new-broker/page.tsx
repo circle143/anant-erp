@@ -5,189 +5,148 @@ import * as Yup from "yup";
 import styles from "./page.module.scss";
 import toast from "react-hot-toast";
 import { useSearchParams } from "next/navigation";
-import { createOtherCharge } from "@/redux/action/org-admin";
 import CustomBreadcrumbs from "@/components/Breadcrumbs/Breadcrumbs";
-const validationSchema = Yup.object({
-    summary: Yup.string().required("Summary is required"),
-    price: Yup.number()
+import { addBroker } from "@/redux/action/org-admin";
 
-        .required("Price is required")
-        .min(1, "Price must be at least 1"),
-    advanceMonths: Yup.number().when("recurring", {
-        is: true,
-        then: (schema) =>
-            schema
-                .required("Advance months required for recurring charges")
-                .min(1, "Minimum 1 month"),
-        otherwise: (schema) => schema.notRequired().default(0),
-    }),
+const validationSchema = Yup.object({
+  name: Yup.string().required("Name is required"),
+  aadharNumber: Yup.string()
+    .nullable()
+    .matches(
+      /^[2-9]{1}[0-9]{11}$/,
+      "Invalid Aadhar format (12 digits, cannot start with 0/1)"
+    ),
+  panNumber: Yup.string()
+    .nullable()
+    .matches(
+      /^[A-Z]{5}[0-9]{4}[A-Z]{1}$/,
+      "Invalid PAN format (Example: ABCDE1234F)"
+    ),
 });
 
 const Page = () => {
-    const [loading, setLoading] = useState(false);
-    const searchParams = useSearchParams();
-    const rera = searchParams.get("rera");
+  const [loading, setLoading] = useState(false);
+  const searchParams = useSearchParams();
+  const rera = searchParams.get("rera");
 
-    const handleSubmit = async (
-        values: {
-            summary: string;
-            price: number;
-            recurring: boolean;
-            optional: boolean;
-            fixed: boolean;
-            advanceMonths: number;
-        },
-        { resetForm }: { resetForm: () => void }
-    ) => {
-        if (!rera) {
-            toast.error("RERA number missing from URL");
-            return;
-        }
+  const handleSubmit = async (
+    values: {
+      name: string;
+      aadharNumber: string;
+      panNumber: string;
+    },
+    { resetForm }: { resetForm: () => void }
+  ) => {
+    if (!rera) {
+      toast.error("RERA number missing from URL");
+      return;
+    }
 
-        setLoading(true);
+    setLoading(true);
 
-        try {
-            const payload = {
-                summary: values.summary,
-                price: values.price,
-                recurring: values.recurring,
-                optional: values.optional,
-                fixed: values.fixed,
-                advanceMonths: values.recurring ? values.advanceMonths : 0,
-            };
+    try {
+      const response = await addBroker(
+        rera,
+        values.name,
+        values.panNumber,
+        values.aadharNumber
+      );
 
-            const response = await createOtherCharge(rera, payload);
+      if (response?.error === false) {
+        toast.success("Broker added successfully!");
+        resetForm();
+      } else {
+        const errorMessage =
+          response?.response?.data?.message ||
+          response?.message ||
+          "Something went wrong";
+        toast.error(errorMessage);
+        console.error("API Error:", errorMessage);
+      }
+    } catch (error) {
+      toast.error("Unexpected error occurred");
+      console.error("Unexpected error:", error);
+    } finally {
+      setLoading(false);
+    }
+  };
 
-            if (response?.error === false) {
-                toast.success("Other charge created successfully!");
-                resetForm();
-            } else {
-                const errorMessage =
-                    response?.response?.data?.message ||
-                    response?.message ||
-                    "Something went wrong";
-                toast.error(errorMessage);
-                console.error("API Error:", errorMessage);
-            }
-        } catch (error) {
-            toast.error("Unexpected error occurred");
-            console.error("Unexpected error:", error);
-        } finally {
-            setLoading(false);
-        }
-    };
-    const new_other_charges = [
-        { name: "Home", href: "/org-admin" },
-        { name: "Societies", href: "/org-admin/society" },
-        {
-            name: "Other Charges",
-            href: `/org-admin/society/other-charges?rera=${rera}`,
-        },
-        { name: "New Other Charge" },
-    ];
-    return (
-        <div>
-            <div style={{ paddingTop: "1rem", paddingLeft: "1rem" }}>
-                <CustomBreadcrumbs items={new_other_charges} />
+  const new_broker_breadcrumb = [
+    { name: "Home", href: "/org-admin" },
+    { name: "Societies", href: "/org-admin/society" },
+    {
+      name: "Brokers",
+      href: `/org-admin/society/broker?rera=${rera}`,
+    },
+    { name: "New Broker" },
+  ];
+
+  return (
+    <div>
+      <div style={{ paddingTop: "1rem", paddingLeft: "1rem" }}>
+        <CustomBreadcrumbs items={new_broker_breadcrumb} />
+      </div>
+      <div className={`container ${styles.container}`}>
+        <h1>Create Broker</h1>
+        <Formik
+          initialValues={{
+            name: "",
+            panNumber: "",
+            aadharNumber: "",
+          }}
+          validationSchema={validationSchema}
+          onSubmit={handleSubmit}
+        >
+          <Form className={`form ${styles.form}`}>
+            <div className={styles.formGroup}>
+              <label htmlFor="name">Name</label>
+              <Field
+                type="text"
+                id="name"
+                name="name"
+                className={styles.form_control}
+              />
+              <ErrorMessage name="name" component="p" className="text-danger" />
             </div>
-            <div className={`container ${styles.container}`}>
-                <h1>Create Other Charge</h1>
-                <Formik
-                    initialValues={{
-                        summary: "",
-                        price: 0,
-                        recurring: false,
-                        optional: false,
-                        fixed: false,
-                        advanceMonths: 0,
-                    }}
-                    validationSchema={validationSchema}
-                    onSubmit={handleSubmit}
-                >
-                    {({ values }) => (
-                        <Form className={`form ${styles.form}`}>
-                            <div className={styles.formGroup}>
-                                <label htmlFor="summary">Summary</label>
-                                <Field
-                                    type="text"
-                                    id="summary"
-                                    name="summary"
-                                    className={styles.form_control}
-                                />
-                                <ErrorMessage
-                                    name="summary"
-                                    component="p"
-                                    className="text-danger"
-                                />
-                            </div>
 
-                            <div className={styles.formGroup}>
-                                <label htmlFor="price">Price per sqft</label>
-                                <Field
-                                    type="number"
-                                    id="price"
-                                    name="price"
-                                    className={styles.form_control}
-                                    min="0"
-                                    step="0.01"
-                                />
-                                <ErrorMessage
-                                    name="price"
-                                    component="p"
-                                    className="text-danger"
-                                />
-                            </div>
-
-                            <div className={styles.formGroup}>
-                                <label>
-                                    <Field type="checkbox" name="recurring" />
-                                    &nbsp;Recurring
-                                </label>
-                            </div>
-
-                            {values.recurring && (
-                                <div className={styles.formGroup}>
-                                    <label htmlFor="advanceMonths">
-                                        Advance Months
-                                    </label>
-                                    <Field
-                                        type="number"
-                                        id="advanceMonths"
-                                        name="advanceMonths"
-                                        className={styles.form_control}
-                                        min="1"
-                                    />
-                                    <ErrorMessage
-                                        name="advanceMonths"
-                                        component="p"
-                                        className="text-danger"
-                                    />
-                                </div>
-                            )}
-
-                            <div className={styles.formGroup}>
-                                <label>
-                                    <Field type="checkbox" name="optional" />
-                                    &nbsp;Optional
-                                </label>
-                            </div>
-
-                            <div className={styles.formGroup}>
-                                <label>
-                                    <Field type="checkbox" name="fixed" />
-                                    &nbsp;Fixed
-                                </label>
-                            </div>
-
-                            <button type="submit" disabled={loading}>
-                                {loading ? "Submitting..." : "Submit"}
-                            </button>
-                        </Form>
-                    )}
-                </Formik>
+            <div className={styles.formGroup}>
+              <label htmlFor="panNumber">PAN Number</label>
+              <Field
+                type="text"
+                id="panNumber"
+                name="panNumber"
+                className={styles.form_control}
+              />
+              <ErrorMessage
+                name="panNumber"
+                component="p"
+                className="text-danger"
+              />
             </div>
-        </div>
-    );
+
+            <div className={styles.formGroup}>
+              <label htmlFor="aadharNumber">Aadhar Number</label>
+              <Field
+                type="text"
+                id="aadharNumber"
+                name="aadharNumber"
+                className={styles.form_control}
+              />
+              <ErrorMessage
+                name="aadharNumber"
+                component="p"
+                className="text-danger"
+              />
+            </div>
+
+            <button type="submit" disabled={loading}>
+              {loading ? "Submitting..." : "Submit"}
+            </button>
+          </Form>
+        </Formik>
+      </div>
+    </div>
+  );
 };
 
 export default Page;
