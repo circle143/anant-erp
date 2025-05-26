@@ -79,6 +79,12 @@ import {
   BrokerRouteInput,
 } from "@/utils/routes/broker/types";
 import { broker } from "@/utils/routes/broker/broker";
+import {
+  BankByIdRouteInput,
+  BankDetailsReqBodyInput,
+  BankRouteInput,
+} from "@/utils/routes/bank/types";
+import { bank } from "@/utils/routes/bank/bank";
 
 const apiUrl = process.env.NEXT_PUBLIC_API_URL as string;
 
@@ -1313,6 +1319,7 @@ export const clearSaleRecord = async (
     return { error: true, message: error.message };
   }
 };
+//brokers
 export const addBroker = async (
   societyRera: string,
   name: string,
@@ -1383,9 +1390,86 @@ export const getAllSocietyBrokers = async (
     const token = await getIdToken();
     const input: BrokerRouteInput = {
       societyRera,
-      cursor:cursor ?? "",
+      cursor: cursor ?? "",
     };
     const url = broker.getAllSocietyBrokers.getEndpoint(input);
+    const response = await axios.get(createURL(url), {
+      headers: { Authorization: `Bearer ${token}` },
+    });
+    return response.data;
+  } catch (error: any) {
+    console.error(
+      "Error fetching data:",
+      error.response?.data || error.message
+    );
+    return { error: true, message: error.message };
+  }
+};
+//bank
+export const addBank = async (
+  societyRera: string,
+  name: string,
+  accountNumber: string
+) => {
+  try {
+    const token = await getIdToken();
+    const reqBody: BankDetailsReqBodyInput = {
+      name,
+      accountNumber,
+    };
+    const input: BankRouteInput = {
+      societyRera,
+    };
+    const url = bank.addBank.getEndpoint(input);
+    const response = await axios.post(createURL(url), reqBody, {
+      headers: { Authorization: `Bearer ${token}` },
+    });
+    return response.data;
+  } catch (error: any) {
+    console.error("Error adding bank:", error.response?.data || error.message);
+    return { error: true, message: error.message };
+  }
+};
+export const updateBankDetails = async (
+  societyRera: string,
+  bankId: string,
+  name: string,
+  accountNumber: string
+) => {
+  try {
+    const token = await getIdToken();
+    const input: BankByIdRouteInput = {
+      societyRera,
+      bankId,
+    };
+    const reqBody: BankDetailsReqBodyInput = {
+      name,
+      accountNumber,
+    };
+    const url = bank.updateBankDetails.getEndpoint(input);
+    const response = await axios.patch(createURL(url), reqBody, {
+      headers: { Authorization: `Bearer ${token}` },
+    });
+    return response.data;
+  } catch (error: any) {
+    console.error(
+      "Error updating bank:",
+      error.response?.data || error.message
+    );
+    return { error: true, message: error.message };
+  }
+};
+export const getAllSocietyBanks = async (
+  societyRera: string,
+  cursor: string | null = null
+) => {
+  try {
+    const token = await getIdToken();
+    const input: BankRouteInput = {
+      societyRera,
+      cursor: cursor ?? "",
+    };
+    const url = bank.getAllSocietyBanks.getEndpoint(input);
     const response = await axios.get(createURL(url), {
       headers: { Authorization: `Bearer ${token}` },
     });

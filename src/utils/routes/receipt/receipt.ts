@@ -23,6 +23,7 @@ export const receipt = {
 		getEndpoint: (input: ReceiptIdInput) => {
 			return getBasePath(input.societyRera) + `/${input.receiptId}/clear`;
 		},
+
 		getReqBody: (input: ClearSaleReceiptRequestBody) => {
 			return input;
 		},
