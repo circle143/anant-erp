@@ -85,6 +85,13 @@ import {
   BankRouteInput,
 } from "@/utils/routes/bank/types";
 import { bank } from "@/utils/routes/bank/bank";
+import { receipt } from "@/utils/routes/receipt/receipt";
+import {
+  AddSaleReceiptInput,
+  AddSaleReceiptRequestBody,
+  ClearSaleReceiptRequestBody,
+  ReceiptIdInput,
+} from "@/utils/routes/receipt/types";
 
 const apiUrl = process.env.NEXT_PUBLIC_API_URL as string;
 
@@ -1477,6 +1484,80 @@ export const getAllSocietyBanks = async (
   } catch (error: any) {
     console.error(
       "Error fetching data:",
+      error.response?.data || error.message
+    );
+    return { error: true, message: error.message };
+  }
+};
+//receipt
+export const addSaleReceipt = async (
+  societyRera: string,
+  saleId: string,
+  totalAmount: number,
+  mode: string,
+  dateIssued: string,
+  bankName?: string,
+  transactionNumber?: string
+) => {
+  try {
+    const token = await getIdToken();
+    const input: AddSaleReceiptInput = { societyRera, saleId };
+    const reqBody: AddSaleReceiptRequestBody = {
+      totalAmount,
+      mode,
+      dateIssued,
+      bankName,
+      transactionNumber,
+    };
+    const url = receipt.addSaleReceipt.getEndpoint(input);
+    const response = await axios.post(createURL(url), reqBody, {
+      headers: { Authorization: `Bearer ${token}` },
+    });
+    return response.data;
+  } catch (error: any) {
+    console.error(
+      "Error adding sale receipt:",
+      error.response?.data || error.message
+    );
+    return { error: true, message: error.message };
+  }
+};
+export const getReciptById = async (societyRera: string, receiptId: string) => {
+  try {
+    const token = await getIdToken();
+    const input: ReceiptIdInput = { societyRera, receiptId };
+    const url = receipt.getReciptById.getEndpoint(input);
+    const response = await axios.get(createURL(url), {
+      headers: { Authorization: `Bearer ${token}` },
+    });
+    return response.data;
+  } catch (error: any) {
+    console.error(
+      "Error fetching sale receipt:",
+      error.response?.data || error.message
+    );
+    return { error: true, message: error.message };
+  }
+};
+export const clearSaleReceipt = async (
+  societyRera: string,
+  receiptId: string,
+  bankId: string
+) => {
+  try {
+    const token = await getIdToken();
+    const reqBody: ClearSaleReceiptRequestBody = {
+      bankId,
+    };
+    const input: ReceiptIdInput = { societyRera, receiptId };
+    const url = receipt.clearSaleReceipt.getEndpoint(input);
+    const response = await axios.post(createURL(url), reqBody, {
+      headers: { Authorization: `Bearer ${token}` },
+    });
+    return response.data;
+  } catch (error: any) {
+    console.error(
+      "Error clearing sale receipt:",
       error.response?.data || error.message
     );
     return { error: true, message: error.message };

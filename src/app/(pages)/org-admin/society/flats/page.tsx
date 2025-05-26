@@ -15,6 +15,7 @@ import { debounce } from "lodash";
 import { getUrl, uploadData } from "aws-amplify/storage";
 import { formatIndianCurrencyWithDecimals } from "@/utils/formatIndianCurrencyWithDecimals";
 import PaymentBreakdownModal from "@/components/payment-breakdown/payment_breakdown";
+import ReceiptModal from "@/components/receiptModal/page";
 import { useRouter, useSearchParams } from "next/navigation";
 import CustomBreadcrumbs from "@/components/Breadcrumbs/Breadcrumbs";
 import { society_flats } from "@/utils/breadcrumbs";
@@ -649,7 +650,20 @@ const Page = () => {
                                       ? "Show Less"
                                       : "Show More"}
                                   </button>
-
+                                  <button
+                                    className={styles.toggleButton}
+                                    onClick={() =>
+                                      router.push(
+                                        `/org-admin/society/flats/create-receipt?rera=${rera}&saleId=${org.saleDetail?.id}`
+                                      )
+                                    }
+                                  >
+                                    Create Receipt
+                                  </button>
+                                  <ReceiptModal
+                                    id={org.saleDetail?.id}
+                                    rera={rera ?? ""}
+                                  />
                                   <PaymentBreakdownModal
                                     id={org.saleDetail?.id}
                                     rera={rera ?? ""}

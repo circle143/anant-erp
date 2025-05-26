@@ -2,7 +2,6 @@ export interface AddSaleReceiptInput {
 	societyRera: string;
 	saleId: string;
 }
-
 /*
     Valid values for mode are:
     online
@@ -10,7 +9,6 @@ export interface AddSaleReceiptInput {
     cheque
     demand-draft
     adjustment
-
     bankName and transactionNumber are required
     if mode value is online, cheque, demand-draft
 */
