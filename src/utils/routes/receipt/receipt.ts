@@ -38,4 +38,13 @@ export const receipt = {
 		},
 		requestMethod: "GET",
 	},
+	markReceiptAsFailed: {
+		getEndpoint: (input: ReceiptIdInput) => {
+			return getBasePath(input.societyRera) + `/${input.receiptId}/fail`;
+		},
+		getReqBody: () => {
+			// no req body
+		},
+		requestMethod: "PATCH",
+	},
 };
