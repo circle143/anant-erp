@@ -55,6 +55,7 @@ const Page = () => {
   const breadcrumbs = [
     { name: "Home", href: "/org-admin" },
     { name: "Societies", href: "/org-admin/society" },
+    { name: "Flats", href: `/org-admin/society/flats?rera=${rera}` },
     { name: "Create Receipt" },
   ];
 
