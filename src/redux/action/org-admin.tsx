@@ -76,6 +76,7 @@ import { paymentPlans } from "@/utils/routes/payment-plans/payment_plans";
 import {
   BrokerByIdRouteInput,
   BrokerDetailsReqBodyInput,
+  BrokerReportReqBody,
   BrokerRouteInput,
 } from "@/utils/routes/broker/types";
 import { broker } from "@/utils/routes/broker/broker";
@@ -1558,6 +1559,50 @@ export const clearSaleReceipt = async (
   } catch (error: any) {
     console.error(
       "Error clearing sale receipt:",
+      error.response?.data || error.message
+    );
+    return { error: true, message: error.message };
+  }
+};
+export const markReceiptAsFailed = async (
+  societyRera: string,
+  receiptId: string
+) => {
+  try {
+    const token = await getIdToken();
+    const input: ReceiptIdInput = { societyRera, receiptId };
+    const url = receipt.markReceiptAsFailed.getEndpoint(input);
+    const response = await axios.patch(createURL(url), null, {
+      headers: { Authorization: `Bearer ${token}` },
+    });
+    return response.data;
+  } catch (error: any) {
+    console.error(
+      "Error marking receipt as failed:",
+      error.response?.data || error.message
+    );
+    return { error: true, message: error.message };
+  }
+};
+//broker
+export const getBrokerReport = async (
+  societyRera: string,
+  brokerId: string,
+  recordsFrom?: Date,
+  recordsTill?: Date
+) => {
+  try {
+    const token = await getIdToken();
+    const input: BrokerByIdRouteInput = { societyRera, brokerId };
+    const body: BrokerReportReqBody = { recordsFrom, recordsTill };
+    const url = broker.getBrokerReport.getEndpoint(input);
+    const response = await axios.post(createURL(url), body, {
+      headers: { Authorization: `Bearer ${token}` },
+    });
+    return response.data;
+  } catch (error: any) {
+    console.error(
+      "Error fetching broker:",
       error.response?.data || error.message
     );
     return { error: true, message: error.message };

@@ -662,6 +662,7 @@ const Page = () => {
                                         searchTerm
                                       )
                                     }
+                                    
                                   />
                                   <PaymentBreakdownModal
                                     id={org.saleDetail?.id}

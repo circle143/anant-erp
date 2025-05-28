@@ -41,8 +41,14 @@ export const sidebarOrgAdminItems = [
   {
     eventKey: "report",
     icon: "bx bxs-bell-ring",
-    text: "Report",
+    text: "Sales Report",
     paths: ["/org-admin/report"],
+  },
+  {
+    eventKey: "broker-report",
+    icon: "bx bxs-bell-ring",
+    text: "Broker Report",
+    paths: ["/org-admin/broker-report"],
   },
   {
     eventKey: "Sale",

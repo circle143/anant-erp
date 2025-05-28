@@ -39,7 +39,7 @@ const Page = () => {
       </div>
       <div className={`container ${styles.container}`}>
         <h1>Create Sale Receipt</h1>
-        <CreateReceiptForm rera={rera} saleId={saleId} />
+        <CreateReceiptForm rera={rera} saleId={saleId} towerId={towerId} />
       </div>
     </>
   );

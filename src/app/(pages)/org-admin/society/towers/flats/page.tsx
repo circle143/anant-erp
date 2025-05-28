@@ -21,6 +21,7 @@ import { useSelector } from "react-redux";
 import { RootState } from "@/redux/store";
 import { useDispatch } from "react-redux";
 import { setUnits } from "@/redux/slice/TowerFlat";
+import ReceiptModal from "@/components/receiptModal/page";
 
 const ITEMS_PER_PAGE = 25;
 
@@ -676,7 +677,14 @@ const Page = () => {
                                       ? "Show Less"
                                       : "Show More"}
                                   </button>
-
+                                  <ReceiptModal
+                                    id={org.saleDetail?.id}
+                                    rera={rera ?? ""}
+                                    towerId={towerID ?? ""}
+                                    fetchData={() =>
+                                      fetchData(selectedFilter)
+                                    }
+                                  />
                                   <PaymentBreakdownModal
                                     id={org.saleDetail?.id}
                                     rera={rera ?? ""}

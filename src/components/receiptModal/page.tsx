@@ -7,18 +7,24 @@ import { useSelector } from "react-redux";
 import { RootState } from "@/redux/store";
 import { formatIndianCurrencyWithDecimals } from "@/utils/formatIndianCurrencyWithDecimals";
 import { useRouter } from "next/navigation";
-import { clearSaleReceipt, getAllSocietyBanks } from "@/redux/action/org-admin";
+import {
+  clearSaleReceipt,
+  getAllSocietyBanks,
+  markReceiptAsFailed,
+} from "@/redux/action/org-admin";
 import toast from "react-hot-toast";
 import Spinner from "react-bootstrap/Spinner";
 
 const ReceiptContent = ({
   id,
   rera,
+  towerId,
   handleClose,
   fetchData,
 }: {
   id: string;
   rera: string;
+  towerId?: string;
   handleClose: () => void;
   fetchData: () => void;
 }) => {
@@ -34,7 +40,10 @@ const ReceiptContent = ({
     { id: string; name: string; accountNumber: string }[]
   >([]);
 
-  const units = useSelector((state: RootState) => state.Society.units);
+  const units = useSelector((state: RootState) =>
+    towerId ? state.TowerFlats.units : state.Society.units
+  );
+
   const matchingUnit = units.find((unit) => unit.saleDetail?.id === id);
   const receipts = matchingUnit?.saleDetail?.receipts || [];
   const router = useRouter();
@@ -70,6 +79,22 @@ const ReceiptContent = ({
 
     const fetchedBanks = await fetchAllBanks();
     setBanks(fetchedBanks);
+  };
+  const handleMarkAsFailed = async (receiptId: string) => {
+    setLoading(true);
+    try {
+      const response = await markReceiptAsFailed(rera, receiptId);
+      if (response?.error) {
+        toast.error(response.message || "Failed to mark as failed.");
+      } else {
+        toast.success("Receipt marked as failed.");
+        fetchData();
+      }
+    } catch (error) {
+      toast.error("Unexpected error occurred.");
+    } finally {
+      setLoading(false);
+    }
   };
 
   const handleDone = async () => {
@@ -111,7 +136,9 @@ const ReceiptContent = ({
         className={styles.createButton}
         onClick={() =>
           router.push(
-            `/org-admin/society/flats/create-receipt?rera=${rera}&saleId=${id}`
+            towerId
+              ? `/org-admin/society/towers/flats/create-receipt?rera=${rera}&saleId=${id}&towerId=${towerId}`
+              : `/org-admin/society/flats/create-receipt?rera=${rera}&saleId=${id}`
           )
         }
       >
@@ -160,6 +187,19 @@ const ReceiptContent = ({
                 <strong>Total Amount:</strong>{" "}
                 {formatIndianCurrencyWithDecimals(receipt.totalAmount)}
               </p>
+              {receipt.failed && (
+                <>
+                  <strong>Status:</strong>
+                  <p className={styles.failed}>Receipt Marked as Failed</p>
+                </>
+              )}
+              {!receipt.cleared && !receipt.failed && (
+                <>
+                  <strong>Status:</strong>
+                  <p className={styles.pending}>Receipt Pending</p>
+                </>
+              )}
+
               {receipt.cleared && (
                 <div className={styles.clearedInfo}>
                   <p>
@@ -178,13 +218,22 @@ const ReceiptContent = ({
               )}
 
               <div className={styles.buttonGroup}>
-                {!receipt.cleared && (
-                  <button
-                    className={styles.clearButton}
-                    onClick={() => handleClearClick(receipt.id)}
-                  >
-                    Clear Receipt
-                  </button>
+                {!receipt.cleared && receipt.failed === false && (
+                  <>
+                    <button
+                      className={styles.clearButton}
+                      onClick={() => handleClearClick(receipt.id)}
+                    >
+                      Clear Receipt
+                    </button>
+                    <button
+                      onClick={() => handleMarkAsFailed(receipt.id)}
+                      className={styles.failedButton}
+                      disabled={loading}
+                    >
+                      {loading ? "Processing..." : "Mark as Failed"}
+                    </button>
+                  </>
                 )}
               </div>
             </div>
@@ -232,10 +281,16 @@ const ReceiptContent = ({
 interface ReceiptModalProps {
   id: string;
   rera: string;
+  towerId?: string;
   fetchData: () => void;
 }
 
-const ReceiptModal: React.FC<ReceiptModalProps> = ({ id, rera, fetchData }) => {
+const ReceiptModal: React.FC<ReceiptModalProps> = ({
+  id,
+  rera,
+  towerId,
+  fetchData,
+}) => {
   const [open, setOpen] = useState(false);
   const handleOpen = () => setOpen(true);
   const handleClose = () => setOpen(false);
@@ -250,6 +305,7 @@ const ReceiptModal: React.FC<ReceiptModalProps> = ({ id, rera, fetchData }) => {
           <ReceiptContent
             id={id}
             rera={rera}
+            towerId={towerId}
             handleClose={handleClose}
             fetchData={fetchData}
           />

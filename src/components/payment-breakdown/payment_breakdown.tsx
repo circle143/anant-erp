@@ -2,7 +2,7 @@
 import React, { useState, useCallback, useEffect } from "react";
 import {
   getSalePaymentBreakDown,
-//   addPaymentInstallmentToSale,
+  //   addPaymentInstallmentToSale,
 } from "@/redux/action/org-admin";
 import Box from "@mui/material/Box";
 import Modal from "@mui/material/Modal";
@@ -57,30 +57,29 @@ const PaymentBreakdownContent = ({
     fetchData();
   }, [fetchData]);
 
-// const handleMarkAsPaid = async (index: number, paymentId: string) => {
-//   const confirm = window.confirm(
-//     "Are you sure you want to mark this installment as paid?"
-//   );
-//   if (!confirm) return;
+  // const handleMarkAsPaid = async (index: number, paymentId: string) => {
+  //   const confirm = window.confirm(
+  //     "Are you sure you want to mark this installment as paid?"
+  //   );
+  //   if (!confirm) return;
 
-//   try {
-//     const res = await addPaymentInstallmentToSale(rera, paymentId, id);
-//     if (res?.error) {
-//       toast.error(res.message || "Failed to mark as paid");
-//     } else {
-//       toast.success("Installment marked as paid");
+  //   try {
+  //     const res = await addPaymentInstallmentToSale(rera, paymentId, id);
+  //     if (res?.error) {
+  //       toast.error(res.message || "Failed to mark as paid");
+  //     } else {
+  //       toast.success("Installment marked as paid");
 
-//       // ✅ Update Redux paid/remaining values
-//       const paidAmount = response.details[index].amountPaid;
-//       dispatch(updatePaymentInUnit({ saleId: id, amountPaid: paidAmount }));
+  //       // ✅ Update Redux paid/remaining values
+  //       const paidAmount = response.details[index].amountPaid;
+  //       dispatch(updatePaymentInUnit({ saleId: id, amountPaid: paidAmount }));
 
-//       fetchData(); // Refresh breakdown data
-//     }
-//   } catch (err: any) {
-//     toast.error(err.message || "Error processing request");
-//   }
-// };
-
+  //       fetchData(); // Refresh breakdown data
+  //     }
+  //   } catch (err: any) {
+  //     toast.error(err.message || "Error processing request");
+  //   }
+  // };
 
   if (loading)
     return (
@@ -169,13 +168,18 @@ const PaymentBreakdownContent = ({
                 <strong>Amount:</strong> {item.amount}%
               </p>
               <p>
-                <strong>Amount Paid:</strong>{" "}
-                {formatIndianCurrencyWithDecimals(item.amountPaid)}
-              </p>
-              <p>
                 <strong>Total Amount:</strong>{" "}
                 {formatIndianCurrencyWithDecimals(item.totalAmount)}
               </p>
+              <p>
+                <strong>Remaining:</strong>{" "}
+                {formatIndianCurrencyWithDecimals(item.remaining)}
+              </p>
+              <p>
+                <strong>Amount Paid:</strong>{" "}
+                {formatIndianCurrencyWithDecimals(item.amountPaid)}
+              </p>
+
               {/* <p>
                 <strong>Paid:</strong> {item.paid ? "Yes" : "No"}
               </p> */}

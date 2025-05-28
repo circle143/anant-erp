@@ -71,7 +71,8 @@ interface receipt {
   amount: string;
   bankName?: string;
   cgst: string;
-  cleared?:cleared;
+  cleared?: cleared;
+  failed:boolean;
   createdAt: string;
   dateIssued: string;
   id: string;
