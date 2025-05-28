@@ -28,7 +28,7 @@ const PaymentBreakdownContent = ({
   const [loading, setLoading] = useState<boolean>(true);
   const [error, setError] = useState<string | null>(null);
   const dispatch = useDispatch();
-  const units = useSelector((state: RootState) => state.TowerFlats.units);
+  const units = useSelector((state: RootState) => state.Society.units);
   const matchingUnit = units.find((unit) => unit.saleDetail?.id === id);
   const paid = matchingUnit?.saleDetail?.paid || "0";
   const remaining = matchingUnit?.saleDetail?.remaining || "0";
@@ -173,8 +173,12 @@ const PaymentBreakdownContent = ({
                 {formatIndianCurrencyWithDecimals(item.amountPaid)}
               </p>
               <p>
-                <strong>Paid:</strong> {item.paid ? "Yes" : "No"}
+                <strong>Total Amount:</strong>{" "}
+                {formatIndianCurrencyWithDecimals(item.totalAmount)}
               </p>
+              {/* <p>
+                <strong>Paid:</strong> {item.paid ? "Yes" : "No"}
+              </p> */}
             </div>
             {/* {!item.paid && (
               <button

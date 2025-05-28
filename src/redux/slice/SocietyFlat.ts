@@ -54,6 +54,33 @@ interface broker {
   aadharNumber: string;
   panNumber: string;
 }
+interface bank {
+  accountNumber: string;
+  createdAt:string;
+  id:string;
+  name:string;
+  orgId:string;
+  societyId:string;
+}
+interface cleared {
+  bank:bank;
+  bankId: string;
+  receiptId: string;
+}
+interface receipt {
+  amount: string;
+  bankName?: string;
+  cgst: string;
+  cleared?:cleared;
+  createdAt: string;
+  dateIssued: string;
+  id: string;
+  mode: string;
+  saleId: string;
+  sgst: string;
+  totalAmount: string;
+  transactionNumber: string;
+}
 interface SaleDetail {
   id: string;
   brokerId: string;
@@ -64,6 +91,7 @@ interface SaleDetail {
   companyCustomer?: companyCustomer;
   totalPrice: string;
   priceBreakdown: PriceBreakdown[];
+  receipts?:receipt[];
   paid: string;
   remaining: string;
 }

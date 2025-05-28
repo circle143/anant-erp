@@ -650,19 +650,18 @@ const Page = () => {
                                       ? "Show Less"
                                       : "Show More"}
                                   </button>
-                                  <button
-                                    className={styles.toggleButton}
-                                    onClick={() =>
-                                      router.push(
-                                        `/org-admin/society/flats/create-receipt?rera=${rera}&saleId=${org.saleDetail?.id}`
-                                      )
-                                    }
-                                  >
-                                    Create Receipt
-                                  </button>
+
                                   <ReceiptModal
                                     id={org.saleDetail?.id}
                                     rera={rera ?? ""}
+                                    fetchData={() =>
+                                      fetchData(
+                                        null,
+                                        false,
+                                        selectedFilter,
+                                        searchTerm
+                                      )
+                                    }
                                   />
                                   <PaymentBreakdownModal
                                     id={org.saleDetail?.id}
