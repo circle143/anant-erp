@@ -125,7 +125,7 @@ const page = () => {
 
     const brokerData = await fetchAllBrokers();
     setBrokers(brokerData);
-    
+
     setLoading(false);
   };
   const handleClearFilter = async () => {
@@ -265,6 +265,91 @@ const page = () => {
       {report && (
         <div className={styles.reportContainer}>
           <h2>Broker Report Data</h2>
+          <div>
+            <h3>broker details</h3>
+            <p>
+              <strong>Broker Name:</strong> {report.data.name}
+            </p>
+            <p>
+              <strong>Aadhar Number:</strong> {report.data.aadharNumber}
+            </p>
+            <p>
+              <strong>PAN Number:</strong> {report.data.panNumber}
+            </p>
+
+            <p>
+              <strong>Registered On:</strong>{" "}
+              {new Date(report.data.createdAt).toLocaleString()}
+            </p>
+          </div>
+          {report.data.sales?.length > 0 ? (
+            report.data.sales.map((sale: any, index: number) => (
+              <div key={sale.id} className={styles.saleSection}>
+                <hr />
+                <h3>Sale #{index + 1}</h3>
+                <p>
+                  <strong>Flat Name:</strong> {sale.flat.name}
+                </p>
+                <p>
+                  <strong>Floor Number:</strong> {sale.flat.floorNumber}
+                </p>
+                <p>
+                  <strong>Facing:</strong> {sale.flat.facing}
+                </p>
+                <p>
+                  <strong>Total Price:</strong> ₹{sale.totalPrice}
+                </p>
+                <p>
+                  <strong>Paid:</strong> ₹{sale.paid}
+                </p>
+                <p>
+                  <strong>Remaining:</strong> ₹{sale.remaining}
+                </p>
+
+                {/* Price Breakdown */}
+                <h4>Price Breakdown:</h4>
+                <ul>
+                  {sale.priceBreakdown.map((pb: any, idx: number) => (
+                    <li key={idx}>
+                      <strong>{pb.summary}</strong> — ₹{pb.total} ({pb.price}
+                      /sqft × {pb.superArea} sqft)
+                    </li>
+                  ))}
+                </ul>
+
+                {/* Company Customer */}
+                {sale.companyCustomer && (
+                  <>
+                    <h4>Customer Details:</h4>
+                    <p>
+                      <strong>Name:</strong> {sale.companyCustomer.name}
+                    </p>
+                    <p>
+                      <strong>Company PAN:</strong>{" "}
+                      {sale.companyCustomer.companyPan}
+                    </p>
+                    <p>
+                      <strong>GST:</strong> {sale.companyCustomer.companyGst}
+                    </p>
+                    <p>
+                      <strong>Aadhar Number:</strong>{" "}
+                      {sale.companyCustomer.aadharNumber?.trim()
+                        ? sale.companyCustomer.aadharNumber
+                        : "N/A"}
+                    </p>
+                    <p>
+                      <strong>PAN:</strong>{" "}
+                      {sale.companyCustomer.panNumber?.trim()
+                        ? sale.companyCustomer.panNumber
+                        : "N/A"}
+                    </p>
+                  </>
+                )}
+              </div>
+            ))
+          ) : (
+            <p>No sales data found for this broker.</p>
+          )}
           <pre>{JSON.stringify(report, null, 2)}</pre>
         </div>
       )}
