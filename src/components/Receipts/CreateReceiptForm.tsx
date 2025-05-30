@@ -70,17 +70,19 @@ const CreateReceiptForm: React.FC<CreateReceiptFormProps> = ({
       );
 
       if (response?.error === false) {
-        toast.success("Receipt created successfully!");
-        {
-          towerId
-            ? router.push(
-                `/org-admin/society/towers/flats?rera=${rera}&saleId=${saleId}&towerId=${towerId}`
-              )
-            : router.push(
-                `/org-admin/society/flats?rera=${rera}&saleId=${saleId}`
-              );
-        }
-      } else {
+  toast.success("Receipt created successfully!");
+  if (towerId) {
+    router.push(
+      `/org-admin/society/towers/flats?rera=${rera}&saleId=${saleId}&towerId=${towerId}`
+    );
+  } else {
+    router.push(
+      `/org-admin/society/flats?rera=${rera}&saleId=${saleId}`
+    );
+  }
+}
+
+ else {
         toast.error(response?.message || "Failed to create receipt.");
       }
     } catch (error) {

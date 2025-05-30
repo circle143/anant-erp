@@ -7,7 +7,7 @@ import { useFormik } from "formik";
 import * as Yup from "yup";
 import Loader from "@/components/Loader/Loader";
 import styles from "./page.module.scss"; // ensure path is correct
-const page = () => {
+const Page = () => {
   const [societies, setSocieties] = useState<
     { reraNumber: string; name: string }[]
   >([]);
@@ -357,4 +357,4 @@ const page = () => {
   );
 };
 
-export default page;
+export default Page;
