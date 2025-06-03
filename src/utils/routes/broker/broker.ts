@@ -1,6 +1,7 @@
 import {
 	BrokerByIdRouteInput,
 	BrokerDetailsReqBodyInput,
+	BrokerReportReqBody,
 	BrokerRouteInput,
 } from "./types";
 
@@ -18,7 +19,7 @@ export const broker = {
 		},
 		requestMethod: "POST",
 	},
-	
+
 	updateBrokerDetails: {
 		getEndpoint: (input: BrokerByIdRouteInput) => {
 			return getBasePath(input.societyRera) + `/${input.brokerId}`;
@@ -39,5 +40,14 @@ export const broker = {
 			// no request body required
 		},
 		requestMethod: "GET",
+	},
+	getBrokerReport: {
+		getEndpoint: (input: BrokerByIdRouteInput) => {
+			return getBasePath(input.societyRera) + `/${input.brokerId}/report`;
+		},
+		getReqBody: (input: BrokerReportReqBody) => {
+			return input;
+		},
+		requestMethod: "POST",
 	},
 };

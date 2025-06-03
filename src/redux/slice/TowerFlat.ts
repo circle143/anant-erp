@@ -45,6 +45,34 @@ interface companyCustomer {
   panNumber: string;
   saleId: string;
 }
+interface bank {
+  accountNumber: string;
+  createdAt: string;
+  id: string;
+  name: string;
+  orgId: string;
+  societyId: string;
+}
+interface cleared {
+  bank: bank;
+  bankId: string;
+  receiptId: string;
+}
+interface receipt {
+  amount: string;
+  bankName?: string;
+  cgst: string;
+  cleared?: cleared;
+  failed: boolean;
+  createdAt: string;
+  dateIssued: string;
+  id: string;
+  mode: string;
+  saleId: string;
+  sgst: string;
+  totalAmount: string;
+  transactionNumber: string;
+}
 interface broker {
   id: string;
   name: string;
@@ -63,6 +91,7 @@ interface SaleDetail {
   companyCustomer?: companyCustomer;
   totalPrice: string;
   priceBreakdown: PriceBreakdown[];
+  receipts?: receipt[];
   paid: string;
   remaining: string;
 }

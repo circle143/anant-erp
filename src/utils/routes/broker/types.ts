@@ -13,3 +13,8 @@ export interface BrokerByIdRouteInput {
 	societyRera: string;
 	brokerId: string;
 }
+
+export interface BrokerReportReqBody {
+	recordsFrom?: Date;
+	recordsTill?: Date;
+}

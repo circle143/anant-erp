@@ -93,6 +93,7 @@ const Page = () => {
             });
 
             if (response.error) {
+                console.log("Update failed", response.message);
                 toast.error(response.message.message || "Update failed");
                 return;
             }

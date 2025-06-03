@@ -76,9 +76,24 @@ import { paymentPlans } from "@/utils/routes/payment-plans/payment_plans";
 import {
   BrokerByIdRouteInput,
   BrokerDetailsReqBodyInput,
+  BrokerReportReqBody,
   BrokerRouteInput,
 } from "@/utils/routes/broker/types";
 import { broker } from "@/utils/routes/broker/broker";
+import {
+  BankByIdRouteInput,
+  BankDetailsReqBodyInput,
+  BankReportReqBody,
+  BankRouteInput,
+} from "@/utils/routes/bank/types";
+import { bank } from "@/utils/routes/bank/bank";
+import { receipt } from "@/utils/routes/receipt/receipt";
+import {
+  AddSaleReceiptInput,
+  AddSaleReceiptRequestBody,
+  ClearSaleReceiptRequestBody,
+  ReceiptIdInput,
+} from "@/utils/routes/receipt/types";
 
 const apiUrl = process.env.NEXT_PUBLIC_API_URL as string;
 
@@ -1313,6 +1328,7 @@ export const clearSaleRecord = async (
     return { error: true, message: error.message };
   }
 };
+//brokers
 export const addBroker = async (
   societyRera: string,
   name: string,
@@ -1383,7 +1399,7 @@ export const getAllSocietyBrokers = async (
     const token = await getIdToken();
     const input: BrokerRouteInput = {
       societyRera,
-      cursor:cursor ?? "",
+      cursor: cursor ?? "",
     };
     const url = broker.getAllSocietyBrokers.getEndpoint(input);
     const response = await axios.get(createURL(url), {
@@ -1393,6 +1409,224 @@ export const getAllSocietyBrokers = async (
   } catch (error: any) {
     console.error(
       "Error fetching data:",
+      error.response?.data || error.message
+    );
+    return { error: true, message: error.message };
+  }
+};
+//bank
+export const addBank = async (
+  societyRera: string,
+  name: string,
+  accountNumber: string
+) => {
+  try {
+    const token = await getIdToken();
+    const reqBody: BankDetailsReqBodyInput = {
+      name,
+      accountNumber,
+    };
+    const input: BankRouteInput = {
+      societyRera,
+    };
+    const url = bank.addBank.getEndpoint(input);
+    const response = await axios.post(createURL(url), reqBody, {
+      headers: { Authorization: `Bearer ${token}` },
+    });
+    return response.data;
+  } catch (error: any) {
+    console.error("Error adding bank:", error.response?.data || error.message);
+    return { error: true, message: error.message };
+  }
+};
+export const updateBankDetails = async (
+  societyRera: string,
+  bankId: string,
+  name: string,
+  accountNumber: string
+) => {
+  try {
+    const token = await getIdToken();
+    const input: BankByIdRouteInput = {
+      societyRera,
+      bankId,
+    };
+    const reqBody: BankDetailsReqBodyInput = {
+      name,
+      accountNumber,
+    };
+    const url = bank.updateBankDetails.getEndpoint(input);
+    const response = await axios.patch(createURL(url), reqBody, {
+      headers: { Authorization: `Bearer ${token}` },
+    });
+    return response.data;
+  } catch (error: any) {
+    console.error(
+      "Error updating bank:",
+      error.response?.data || error.message
+    );
+    return { error: true, message: error.message };
+  }
+};
+export const getAllSocietyBanks = async (
+  societyRera: string,
+  cursor: string | null = null
+) => {
+  try {
+    const token = await getIdToken();
+    const input: BankRouteInput = {
+      societyRera,
+      cursor: cursor ?? "",
+    };
+    const url = bank.getAllSocietyBanks.getEndpoint(input);
+    const response = await axios.get(createURL(url), {
+      headers: { Authorization: `Bearer ${token}` },
+    });
+    return response.data;
+  } catch (error: any) {
+    console.error(
+      "Error fetching data:",
+      error.response?.data || error.message
+    );
+    return { error: true, message: error.message };
+  }
+};
+//receipt
+export const addSaleReceipt = async (
+  societyRera: string,
+  saleId: string,
+  totalAmount: number,
+  mode: string,
+  dateIssued: string,
+  bankName?: string,
+  transactionNumber?: string
+) => {
+  try {
+    const token = await getIdToken();
+    const input: AddSaleReceiptInput = { societyRera, saleId };
+    const reqBody: AddSaleReceiptRequestBody = {
+      totalAmount,
+      mode,
+      dateIssued,
+      bankName,
+      transactionNumber,
+    };
+    const url = receipt.addSaleReceipt.getEndpoint(input);
+    const response = await axios.post(createURL(url), reqBody, {
+      headers: { Authorization: `Bearer ${token}` },
+    });
+    return response.data;
+  } catch (error: any) {
+    console.error(
+      "Error adding sale receipt:",
+      error.response?.data || error.message
+    );
+    return { error: true, message: error.message };
+  }
+};
+export const getReciptById = async (societyRera: string, receiptId: string) => {
+  try {
+    const token = await getIdToken();
+    const input: ReceiptIdInput = { societyRera, receiptId };
+    const url = receipt.getReciptById.getEndpoint(input);
+    const response = await axios.get(createURL(url), {
+      headers: { Authorization: `Bearer ${token}` },
+    });
+    return response.data;
+  } catch (error: any) {
+    console.error(
+      "Error fetching sale receipt:",
+      error.response?.data || error.message
+    );
+    return { error: true, message: error.message };
+  }
+};
+export const clearSaleReceipt = async (
+  societyRera: string,
+  receiptId: string,
+  bankId: string
+) => {
+  try {
+    const token = await getIdToken();
+    const reqBody: ClearSaleReceiptRequestBody = {
+      bankId,
+    };
+    const input: ReceiptIdInput = { societyRera, receiptId };
+    const url = receipt.clearSaleReceipt.getEndpoint(input);
+    const response = await axios.post(createURL(url), reqBody, {
+      headers: { Authorization: `Bearer ${token}` },
+    });
+    return response.data;
+  } catch (error: any) {
+    console.error(
+      "Error clearing sale receipt:",
+      error.response?.data || error.message
+    );
+    return { error: true, message: error.message };
+  }
+};
+export const markReceiptAsFailed = async (
+  societyRera: string,
+  receiptId: string
+) => {
+  try {
+    const token = await getIdToken();
+    const input: ReceiptIdInput = { societyRera, receiptId };
+    const url = receipt.markReceiptAsFailed.getEndpoint(input);
+    const response = await axios.patch(createURL(url), null, {
+      headers: { Authorization: `Bearer ${token}` },
+    });
+    return response.data;
+  } catch (error: any) {
+    console.error(
+      "Error marking receipt as failed:",
+      error.response?.data || error.message
+    );
+    return { error: true, message: error.message };
+  }
+};
+//broker
+export const getBrokerReport = async (
+  societyRera: string,
+  brokerId: string,
+  recordsFrom?: Date,
+  recordsTill?: Date
+) => {
+  try {
+    const token = await getIdToken();
+    const input: BrokerByIdRouteInput = { societyRera, brokerId };
+    const body: BrokerReportReqBody = { recordsFrom, recordsTill };
+    const url = broker.getBrokerReport.getEndpoint(input);
+    const response = await axios.post(createURL(url), body, {
+      headers: { Authorization: `Bearer ${token}` },
+    });
+    return response.data;
+  } catch (error: any) {
+    console.error(
+      "Error fetching broker:",
+      error.response?.data || error.message
+    );
+    return { error: true, message: error.message };
+  }
+};
+export const getBankReport = async (
+  societyRera: string,
+  bankId: string,
+  recordsFrom?: Date,
+  recordsTill?: Date
+) => {
+  try {
+    const token = await getIdToken();
+    const input: BankByIdRouteInput = { societyRera, bankId };
+    const body: BankReportReqBody = { recordsFrom, recordsTill };
+    const url = bank.getBankReport.getEndpoint(input);
+    const response = await axios.post(createURL(url), body, {
+      headers: { Authorization: `Bearer ${token}` },
+    });
+    return response.data;
+  } catch (error: any) {
+    console.error(
+      "Error fetching broker:",
       error.response?.data || error.message
     );
     return { error: true, message: error.message };

@@ -1,7 +1,7 @@
 "use client";
 import React from "react";
 import CreateOrg from "@/components/Forms/create_org";
-const page = () => {
+const Page = () => {
   return (
     <div>
       <CreateOrg />
@@ -9,4 +9,4 @@ const page = () => {
   );
 };
 
-export default page;
+export default Page;

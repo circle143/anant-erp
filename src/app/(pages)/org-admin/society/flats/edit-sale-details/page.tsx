@@ -5,7 +5,7 @@ import { useSearchParams } from "next/navigation";
 import EditApplicant from "@/components/edit-applicant-details/page";
 import EditCompany from "@/components/edit-company-details/page";
 
-const page = () => {
+const Page = () => {
   const searchParams = useSearchParams();
 
   const type = searchParams.get("type");
@@ -34,4 +34,4 @@ const page = () => {
   );
 };
 
-export default page;
+export default Page;

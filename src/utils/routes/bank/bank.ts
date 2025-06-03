@@ -1,6 +1,7 @@
 import {
 	BankByIdRouteInput,
 	BankDetailsReqBodyInput,
+	BankReportReqBody,
 	BankRouteInput,
 } from "./types";
 
@@ -9,7 +10,7 @@ function getBasePath(societyReraNumber: string) {
 }
 
 export const bank = {
-	addBroker: {
+	addBank: {
 		getEndpoint: (input: BankRouteInput) => {
 			return getBasePath(input.societyRera);
 		},
@@ -18,7 +19,7 @@ export const bank = {
 		},
 		requestMethod: "POST",
 	},
-	updateBrokerDetails: {
+	updateBankDetails: {
 		getEndpoint: (input: BankByIdRouteInput) => {
 			return getBasePath(input.societyRera) + `/${input.bankId}`;
 		},
@@ -28,7 +29,7 @@ export const bank = {
 		requestMethod: "PATCH",
 	},
 
-	getAllSocietyBrokers: {
+	getAllSocietyBanks: {
 		getEndpoint: (input: BankRouteInput) => {
 			if (!input.cursor || input.cursor.trim().length == 0)
 				return getBasePath(input.societyRera);
@@ -38,5 +39,14 @@ export const bank = {
 			// no request body required
 		},
 		requestMethod: "GET",
+	},
+	getBankReport: {
+		getEndpoint: (input: BankByIdRouteInput) => {
+			return getBasePath(input.societyRera) + `/${input.bankId}/report`;
+		},
+		getReqBody: (input: BankReportReqBody) => {
+			return input;
+		},
+		requestMethod: "POST",
 	},
 };

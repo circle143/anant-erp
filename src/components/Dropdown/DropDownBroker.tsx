@@ -4,12 +4,13 @@ import { useRouter } from "next/navigation";
 import { MoreVertical } from "lucide-react";
 import styles from "./page.module.scss";
 
-interface BrokerProps {
+interface DropDownProps {
   reraNumber: string;
   id: string;
   name: string;
-  panNumber: string;
-  aadharNumber: string;
+  panNumber?: string;
+  aadharNumber?: string;
+  accountNumber?: string;
 }
 
 const DropDownBroker = ({
@@ -18,22 +19,34 @@ const DropDownBroker = ({
   name,
   panNumber,
   aadharNumber,
-}: BrokerProps) => {
+  accountNumber,
+}: DropDownProps) => {
   const [isOpen, setIsOpen] = useState(false);
   const router = useRouter();
 
-  const handleEditBroker = () => {
+  const handleEdit = () => {
     const queryParams = new URLSearchParams({
       rera: reraNumber,
       id,
       name,
-      panNumber,
-      aadharNumber,
     });
 
-    router.push(
-      `/org-admin/society/broker/edit-broker?${queryParams.toString()}`
-    );
+    if (panNumber && aadharNumber) {
+      // Broker
+      queryParams.append("panNumber", panNumber);
+      queryParams.append("aadharNumber", aadharNumber);
+      router.push(
+        `/org-admin/society/brokers/edit-broker?${queryParams.toString()}`
+      );
+    } else if (accountNumber) {
+      // Bank
+      queryParams.append("accountNumber", accountNumber);
+      router.push(
+        `/org-admin/society/banks/edit-bank?${queryParams.toString()}`
+      );
+    } else {
+      console.warn("Unknown entity type for editing.");
+    }
   };
 
   return (
@@ -44,7 +57,9 @@ const DropDownBroker = ({
 
       {isOpen && (
         <div className={styles.dropdownMenu}>
-          <div onClick={handleEditBroker}>Edit Broker</div>
+          <div onClick={handleEdit}>
+            Edit {accountNumber ? "Bank" : "Broker"}
+          </div>
         </div>
       )}
     </div>

@@ -5,70 +5,58 @@ import { Formik, Form, Field, ErrorMessage } from "formik";
 import * as Yup from "yup";
 import toast from "react-hot-toast";
 import styles from "./page.module.scss";
-import { updateBrokerDetails } from "@/redux/action/org-admin";
+import { updateBankDetails } from "@/redux/action/org-admin";
 import CustomBreadcrumbs from "@/components/Breadcrumbs/Breadcrumbs";
 
+// Validation Schema
 const validationSchema = Yup.object({
   name: Yup.string().required("Name is required"),
-  aadharNumber: Yup.string()
-    .nullable()
-    .matches(
-      /^[2-9]{1}[0-9]{11}$/,
-      "Invalid Aadhar format (12 digits, cannot start with 0/1)"
-    ),
-  panNumber: Yup.string()
-    .nullable()
-    .matches(
-      /^[A-Z]{5}[0-9]{4}[A-Z]{1}$/,
-      "Invalid PAN format (Example: ABCDE1234F)"
-    ),
+  accountNumber: Yup.string()
+    .matches(/^[0-9]{9,18}$/, "Invalid account number")
+    .required("Account number is required"),
 });
 
-const page = () => {
+const Page = () => {
   const router = useRouter();
   const searchParams = useSearchParams();
-
   const rera = searchParams.get("rera") || "";
   const id = searchParams.get("id") || "";
   const name = searchParams.get("name") || "";
-  const panNumber = searchParams.get("panNumber") || "";
-  const aadharNumber = searchParams.get("aadharNumber") || "";
+  const accountNumber = searchParams.get("accountNumber") || "";
 
   const breadcrumbs = [
     { name: "Home", href: "/org-admin" },
     { name: "Societies", href: "/org-admin/society" },
     {
-      name: "Brokers",
-      href: `/org-admin/society/broker?rera=${rera}`,
+      name: "Banks",
+      href: `/org-admin/society/banks?rera=${rera}`,
     },
-    { name: "Edit Broker" },
+    { name: "Edit Bank" },
   ];
 
   const handleSubmit = async (
     values: {
       name: string;
-      panNumber: string;
-      aadharNumber: string;
+      accountNumber: string;
     },
     { setSubmitting }: { setSubmitting: (isSubmitting: boolean) => void }
   ) => {
     try {
-      const response = await updateBrokerDetails(
+      const response = await updateBankDetails(
         rera,
         id,
         values.name,
-        values.panNumber,
-        values.aadharNumber
+        values.accountNumber
       );
 
       if (response?.error === false) {
-        toast.success("Broker updated successfully!");
-        router.push(`/org-admin/society/broker?rera=${rera}`);
+        toast.success("Bank updated successfully!");
+        router.push(`/org-admin/society/banks?rera=${rera}`);
       } else {
         const message =
           response?.response?.data?.message ||
           response?.message ||
-          "Failed to update broker.";
+          "Failed to update bank.";
         toast.error(message);
       }
     } catch (error) {
@@ -86,9 +74,9 @@ const page = () => {
       </div>
 
       <div className={`container ${styles.container}`}>
-        <h1>Edit Broker</h1>
+        <h1>Edit Bank</h1>
         <Formik
-          initialValues={{ name, panNumber, aadharNumber }}
+          initialValues={{ name, accountNumber }}
           validationSchema={validationSchema}
           onSubmit={handleSubmit}
           enableReinitialize
@@ -96,7 +84,7 @@ const page = () => {
           {({ isSubmitting }) => (
             <Form className={styles.form}>
               <div className={styles.formGroup}>
-                <label htmlFor="name">Name</label>
+                <label htmlFor="name">Bank Name</label>
                 <Field
                   type="text"
                   id="name"
@@ -111,37 +99,22 @@ const page = () => {
               </div>
 
               <div className={styles.formGroup}>
-                <label htmlFor="panNumber">PAN Number</label>
+                <label htmlFor="accountNumber">Account Number</label>
                 <Field
                   type="text"
-                  id="panNumber"
-                  name="panNumber"
+                  id="accountNumber"
+                  name="accountNumber"
                   className={styles.formControl}
                 />
                 <ErrorMessage
-                  name="panNumber"
-                  component="p"
-                  className={styles.error}
-                />
-              </div>
-
-              <div className={styles.formGroup}>
-                <label htmlFor="aadharNumber">Aadhar Number</label>
-                <Field
-                  type="text"
-                  id="aadharNumber"
-                  name="aadharNumber"
-                  className={styles.formControl}
-                />
-                <ErrorMessage
-                  name="aadharNumber"
+                  name="accountNumber"
                   component="p"
                   className={styles.error}
                 />
               </div>
 
               <button type="submit" disabled={isSubmitting}>
-                {isSubmitting ? "Updating..." : "Update Broker"}
+                {isSubmitting ? "Updating..." : "Update Bank"}
               </button>
             </Form>
           )}
@@ -151,4 +124,4 @@ const page = () => {
   );
 };
 
-export default page;
+export default Page;
