@@ -2,15 +2,48 @@
 
 import React, { useEffect, useState } from "react";
 import { getAllSocietyBrokers, getSocieties } from "@/redux/action/org-admin";
-import { getBrokerReport } from "@/redux/action/org-admin"; // ensure path is correct
+import { getBrokerReport } from "@/redux/action/org-admin";
 import { useFormik } from "formik";
 import * as Yup from "yup";
 import Loader from "@/components/Loader/Loader";
-import styles from "./page.module.scss"; // ensure path is correct
+import styles from "./page.module.scss";
+import { formatIndianCurrencyWithDecimals } from "@/utils/formatIndianCurrencyWithDecimals";
+import Image from "next/image";
+
+type Owner = {
+  id: string;
+  salutation?: string;
+  firstName: string;
+  lastName: string;
+  dateOfBirth?: string;
+  phoneNumber?: string;
+  email?: string;
+  aadharNumber?: string;
+  panNumber?: string;
+  photo?: string;
+};
+
+type Receipt = {
+  id: string;
+  totalAmount: string;
+  mode: string;
+  dateIssued: string;
+  bankName: string;
+  transactionNumber: string;
+  failed: boolean;
+  amount: string;
+  cgst: string;
+  sgst: string;
+  cleared?: {
+    bank: {
+      name: string;
+      accountNumber: string;
+    };
+  };
+};
+
 const Page = () => {
-  const [societies, setSocieties] = useState<
-    { reraNumber: string; name: string }[]
-  >([]);
+  const [societies, setSocieties] = useState<{ reraNumber: string; name: string }[]>([]);
   const [brokers, setBrokers] = useState<{ id: string; name: string }[]>([]);
   const [loading, setLoading] = useState(false);
   const [report, setReport] = useState<any>(null);
@@ -18,10 +51,7 @@ const Page = () => {
   const today = new Date().toISOString().split("T")[0];
 
   useEffect(() => {
-    const fetchAllSocieties = async (
-      cursor: string | null = null,
-      accumulated: any[] = []
-    ): Promise<any[]> => {
+    const fetchAllSocieties = async (cursor: string | null = null, accumulated: any[] = []): Promise<any[]> => {
       setLoading(true);
       const response = await getSocieties(cursor);
       if (response?.error) {
@@ -54,31 +84,20 @@ const Page = () => {
     validationSchema: Yup.object({
       society: Yup.string().required("Select a society"),
       broker: Yup.string().required("Select a broker"),
-
       recordsFrom: Yup.date()
         .nullable()
-        .transform((value, originalValue) =>
-          !originalValue ? null : new Date(originalValue)
-        )
+        .transform((value, originalValue) => (!originalValue ? null : new Date(originalValue)))
         .max(new Date(), "Start date can't be in the future"),
-
       recordsTill: Yup.date()
         .nullable()
-        .transform((value, originalValue) =>
-          !originalValue ? null : new Date(originalValue)
-        )
+        .transform((value, originalValue) => (!originalValue ? null : new Date(originalValue)))
         .max(new Date(), "End date can't be in the future")
-        .test(
-          "endDateAfterStartDate",
-          "End date cannot be before start date",
-          function (value) {
-            const { recordsFrom } = this.parent;
-            if (!value || !recordsFrom) return true; // only validate when both are defined
-            return new Date(value) >= new Date(recordsFrom);
-          }
-        ),
+        .test("endDateAfterStartDate", "End date cannot be before start date", function (value) {
+          const { recordsFrom } = this.parent;
+          if (!value || !recordsFrom) return true;
+          return new Date(value) >= new Date(recordsFrom);
+        }),
     }),
-
     onSubmit: async (values) => {
       setLoading(true);
       const data = await getBrokerReport(
@@ -92,9 +111,7 @@ const Page = () => {
     },
   });
 
-  const handleSocietyChange = async (
-    e: React.ChangeEvent<HTMLSelectElement>
-  ) => {
+  const handleSocietyChange = async (e: React.ChangeEvent<HTMLSelectElement>) => {
     const reraNumber = e.target.value;
     formik.setFieldValue("society", reraNumber);
     formik.setFieldValue("broker", "");
@@ -119,15 +136,14 @@ const Page = () => {
       if (hasNext && nextCursor) {
         return await fetchAllBrokers(nextCursor, newData);
       }
-
       return newData;
     };
 
     const brokerData = await fetchAllBrokers();
     setBrokers(brokerData);
-
     setLoading(false);
   };
+
   const handleClearFilter = async () => {
     formik.setFieldValue("recordsFrom", "");
     formik.setFieldValue("recordsTill", "");
@@ -136,13 +152,14 @@ const Page = () => {
 
     if (formik.values.society && formik.values.broker) {
       setLoading(true);
-      const data = await getBrokerReport(
-        formik.values.society,
-        formik.values.broker
-      );
+      const data = await getBrokerReport(formik.values.society, formik.values.broker);
       setReport(data);
       setLoading(false);
     }
+  };
+
+  const formatDate = (dateString: string) => {
+    return new Date(dateString).toLocaleDateString('en-IN');
   };
 
   return (
@@ -187,14 +204,10 @@ const Page = () => {
                   const data = await getBrokerReport(
                     formik.values.society,
                     brokerId,
-                    formik.values.recordsFrom
-                      ? new Date(formik.values.recordsFrom)
-                      : undefined,
-                    formik.values.recordsTill
-                      ? new Date(formik.values.recordsTill)
-                      : undefined
+                    formik.values.recordsFrom ? new Date(formik.values.recordsFrom) : undefined,
+                    formik.values.recordsTill ? new Date(formik.values.recordsTill) : undefined
                   );
-                  console.log("Broker Report Data:", data);
+                  console.log(data);
                   setReport(data);
                   setLoading(false);
                 }
@@ -251,9 +264,7 @@ const Page = () => {
             <button
               type="button"
               onClick={handleClearFilter}
-              disabled={
-                loading || !formik.values.society || !formik.values.broker
-              }
+              disabled={loading || !formik.values.society || !formik.values.broker}
             >
               Clear Filter
             </button>
@@ -261,96 +272,152 @@ const Page = () => {
         </div>
       </form>
 
-      {/* Report Display */}
       {report && (
         <div className={styles.reportContainer}>
           <h2>Broker Report Data</h2>
-          <div>
-            <h3>broker details</h3>
-            <p>
-              <strong>Broker Name:</strong> {report.data.name}
-            </p>
-            <p>
-              <strong>Aadhar Number:</strong> {report.data.aadharNumber}
-            </p>
-            <p>
-              <strong>PAN Number:</strong> {report.data.panNumber}
-            </p>
-
-            <p>
-              <strong>Registered On:</strong>{" "}
-              {new Date(report.data.createdAt).toLocaleString()}
-            </p>
+          <div className={styles.summarySection}>
+            <h3>Total Sales amount: {formatIndianCurrencyWithDecimals(report.data.totalAmount)}</h3>
           </div>
-          {report.data.sales?.length > 0 ? (
-            report.data.sales.map((sale: any, index: number) => (
+          <div className={styles.brokerDetails}>
+            <h3>Broker Details</h3>
+            <div className={styles.detailGrid}>
+              <p><strong>Broker Name:</strong> {report.data.details.name}</p>
+              <p><strong>Aadhar Number:</strong> {report.data.details.aadharNumber}</p>
+              <p><strong>PAN Number:</strong> {report.data.details.panNumber}</p>
+              <p><strong>Registered On:</strong> {formatDate(report.data.details.createdAt)}</p>
+            </div>
+          </div>
+
+          {report.data.details.sales?.length > 0 ? (
+            report.data.details.sales.map((sale: any, index: number) => (
               <div key={sale.id} className={styles.saleSection}>
-                <hr />
+                <hr className={styles.sectionDivider} />
                 <h3>Sale #{index + 1}</h3>
-                <p>
-                  <strong>Flat Name:</strong> {sale.flat.name}
-                </p>
-                <p>
-                  <strong>Floor Number:</strong> {sale.flat.floorNumber}
-                </p>
-                <p>
-                  <strong>Facing:</strong> {sale.flat.facing}
-                </p>
-                <p>
-                  <strong>Total Price:</strong> ₹{sale.totalPrice}
-                </p>
-                <p>
-                  <strong>Paid:</strong> ₹{sale.paid}
-                </p>
-                <p>
-                  <strong>Remaining:</strong> ₹{sale.remaining}
-                </p>
+                
+                <div className={styles.flatDetails}>
+                  <h4>Flat Details</h4>
+                  <div className={styles.detailGrid}>
+                    <p><strong>Flat Name:</strong> {sale.flat.name}</p>
+                    <p><strong>Floor Number:</strong> {sale.flat.floorNumber}</p>
+                    <p><strong>Facing:</strong> {sale.flat.facing}</p>
+                    <p><strong>Total Price:</strong> {formatIndianCurrencyWithDecimals(sale.totalPrice)}</p>
+                  </div>
+                </div>
 
-                {/* Price Breakdown */}
-                <h4>Price Breakdown:</h4>
-                <ul>
-                  {sale.priceBreakdown.map((pb: any, idx: number) => (
-                    <li key={idx}>
-                      <strong>{pb.summary}</strong> — ₹{pb.total} ({pb.price}
-                      /sqft × {pb.superArea} sqft)
-                    </li>
-                  ))}
-                </ul>
+                <div className={styles.priceBreakdown}>
+                  <h4>Price Breakdown</h4>
+                  <table className={styles.detailsTable}>
+                    <thead>
+                      <tr>
+                        <th>Type</th>
+                        <th>Description</th>
+                        <th>Rate</th>
+                        <th>Area</th>
+                        <th>Total</th>
+                      </tr>
+                    </thead>
+                    <tbody>
+                      {sale.priceBreakdown.map((pb: any, idx: number) => (
+                        <tr key={idx}>
+                          <td>{pb.type}</td>
+                          <td>{pb.summary}</td>
+                          <td>{pb.price}/sqft</td>
+                          <td>{pb.superArea} sqft</td>
+                          <td>{formatIndianCurrencyWithDecimals(pb.total)}</td>
+                        </tr>
+                      ))}
+                    </tbody>
+                  </table>
+                </div>
 
-                {/* Company Customer */}
-                {sale.companyCustomer && (
-                  <>
-                    <h4>Customer Details:</h4>
-                    <p>
-                      <strong>Name:</strong> {sale.companyCustomer.name}
-                    </p>
-                    <p>
-                      <strong>Company PAN:</strong>{" "}
-                      {sale.companyCustomer.companyPan}
-                    </p>
-                    <p>
-                      <strong>GST:</strong> {sale.companyCustomer.companyGst}
-                    </p>
-                    <p>
-                      <strong>Aadhar Number:</strong>{" "}
-                      {sale.companyCustomer.aadharNumber?.trim()
-                        ? sale.companyCustomer.aadharNumber
-                        : "N/A"}
-                    </p>
-                    <p>
-                      <strong>PAN:</strong>{" "}
-                      {sale.companyCustomer.panNumber?.trim()
-                        ? sale.companyCustomer.panNumber
-                        : "N/A"}
-                    </p>
-                  </>
+                {sale.companyCustomer ? (
+                  <div className={styles.customerDetails}>
+                    <h4>Company Customer Details</h4>
+                    <div className={styles.detailGrid}>
+                      <p><strong>Company Name:</strong> {sale.companyCustomer.name}</p>
+                      <p><strong>Company PAN:</strong> {sale.companyCustomer.companyPan}</p>
+                      <p><strong>GST:</strong> {sale.companyCustomer.companyGst}</p>
+                      <p><strong>Aadhar Number:</strong> {sale.companyCustomer.aadharNumber || "N/A"}</p>
+                      <p><strong>PAN:</strong> {sale.companyCustomer.panNumber || "N/A"}</p>
+                    </div>
+                  </div>
+                ) : sale.owners?.length > 0 ? (
+                  <div className={styles.customerDetails}>
+                    <h4>Owner Details</h4>
+                    {sale.owners.map((owner: Owner, i: number) => (
+                      <div key={owner.id} className={styles.ownerDetails}>
+                        <div className={styles.ownerImage}>
+                          {owner.photo ? (
+                            <Image 
+                              src={owner.photo} 
+                              alt={`${owner.firstName} ${owner.lastName}`} 
+                              width={100} 
+                              height={100}
+                              className={styles.profileImage}
+                            />
+                          ) : (
+                            <div className={styles.blankProfile}>
+                              <span>{owner.firstName.charAt(0)}{owner.lastName.charAt(0)}</span>
+                            </div>
+                          )}
+                        </div>
+                        <div className={styles.ownerInfo}>
+                          <p><strong>Name:</strong> {`${owner.salutation || ''} ${owner.firstName} ${owner.lastName}`.trim()}</p>
+                          <p><strong>DOB:</strong> {owner.dateOfBirth ? formatDate(owner.dateOfBirth) : "N/A"}</p>
+                          <p><strong>Phone:</strong> {owner.phoneNumber || "N/A"}</p>
+                          <p><strong>Email:</strong> {owner.email || "N/A"}</p>
+                          <p><strong>Aadhar:</strong> {owner.aadharNumber || "N/A"}</p>
+                          <p><strong>PAN:</strong> {owner.panNumber || "N/A"}</p>
+                        </div>
+                      </div>
+                    ))}
+                  </div>
+                ) : null}
+
+                {sale.receipts?.length > 0 && (
+                  <div className={styles.receiptsSection}>
+                    <h4>Payment Receipts</h4>
+                    <table className={styles.detailsTable}>
+                      <thead>
+                        <tr>
+                          <th>Date</th>
+                          <th>Amount</th>
+                          <th>Mode</th>
+                          <th>Bank</th>
+                          <th>Transaction</th>
+                          <th>Status</th>
+                          <th>CGST</th>
+                          <th>SGST</th>
+                        </tr>
+                      </thead>
+                      <tbody>
+                        {sale.receipts.map((receipt: Receipt) => (
+                          <tr key={receipt.id} className={receipt.failed ? styles.failedReceipt : ''}>
+                            <td>{formatDate(receipt.dateIssued)}</td>
+                            <td>{formatIndianCurrencyWithDecimals(receipt.amount)}</td>
+                            <td>{receipt.mode}</td>
+                            <td>
+                              {receipt.cleared?.bank ? 
+                                `${receipt.cleared.bank.name} (${receipt.cleared.bank.accountNumber})` : 
+                                receipt.bankName || "N/A"}
+                            </td>
+                            <td>{receipt.transactionNumber || "N/A"}</td>
+                            <td>
+                              {receipt.failed ? "Failed" : receipt.cleared ? "Cleared" : "Pending"}
+                            </td>
+                            <td>{formatIndianCurrencyWithDecimals(receipt.cgst)}</td>
+                            <td>{formatIndianCurrencyWithDecimals(receipt.sgst)}</td>
+                          </tr>
+                        ))}
+                      </tbody>
+                    </table>
+                  </div>
                 )}
               </div>
             ))
           ) : (
-            <p>No sales data found for this broker.</p>
+            <p className={styles.noData}>No sales data found for this broker.</p>
           )}
-          <pre>{JSON.stringify(report, null, 2)}</pre>
         </div>
       )}
     </div>

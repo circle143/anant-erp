@@ -83,6 +83,7 @@ import { broker } from "@/utils/routes/broker/broker";
 import {
   BankByIdRouteInput,
   BankDetailsReqBodyInput,
+  BankReportReqBody,
   BankRouteInput,
 } from "@/utils/routes/bank/types";
 import { bank } from "@/utils/routes/bank/bank";
@@ -1596,6 +1597,29 @@ export const getBrokerReport = async (
     const input: BrokerByIdRouteInput = { societyRera, brokerId };
     const body: BrokerReportReqBody = { recordsFrom, recordsTill };
     const url = broker.getBrokerReport.getEndpoint(input);
+    const response = await axios.post(createURL(url), body, {
+      headers: { Authorization: `Bearer ${token}` },
+    });
+    return response.data;
+  } catch (error: any) {
+    console.error(
+      "Error fetching broker:",
+      error.response?.data || error.message
+    );
+    return { error: true, message: error.message };
+  }
+};
+export const getBankReport = async (
+  societyRera: string,
+  bankId: string,
+  recordsFrom?: Date,
+  recordsTill?: Date
+) => {
+  try {
+    const token = await getIdToken();
+    const input: BankByIdRouteInput = { societyRera, bankId };
+    const body: BankReportReqBody = { recordsFrom, recordsTill };
+    const url = bank.getBankReport.getEndpoint(input);
     const response = await axios.post(createURL(url), body, {
       headers: { Authorization: `Bearer ${token}` },
     });
