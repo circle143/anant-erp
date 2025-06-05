@@ -14,7 +14,7 @@ import {
 } from "@/redux/action/org-admin";
 import toast from "react-hot-toast";
 import Spinner from "react-bootstrap/Spinner";
-
+import ReceiptDocModal from "@/components/ReceiptDocModal/page";
 const ReceiptContent = ({
   id,
   rera,
@@ -128,7 +128,28 @@ const ReceiptContent = ({
       </div>
     );
   }
-
+  const data = {
+    receiptNo: "301/2/9",
+    customerId: "IG-000675",
+    name: "Mr. Rahul Kumar",
+    address: "H.NO.23, Dadri Greater Noida, UP - 203207",
+    phone: "9910208001",
+    date: "15 Mar 2024",
+    amount: 380952,
+    cgst: 9524,
+    sgst: 9524,
+    total: 400000,
+    unitNo: "301",
+    area: 1225,
+    floor: "3rd",
+    tower: "Tower-2",
+    project: "Novena Green",
+    plotNo: "CP-GH-5B",
+    bankName: "NOIDA COMMERCIAL CO-OPERATIVE BANK LTD",
+    instrumentDate: "15 Mar 2024",
+    instrumentNo: "INDR832024031500229880",
+    mode: "Online",
+  };
   return (
     <div className={styles.container}>
       <h1>Receipts</h1>
@@ -217,7 +238,10 @@ const ReceiptContent = ({
                 </div>
               )}
 
-              <div className={styles.buttonGroup}>
+              <div className={styles.button_group}>
+                <div >
+                  <ReceiptDocModal receiptData={data} />
+                </div>
                 {!receipt.cleared && receipt.failed === false && (
                   <>
                     <button

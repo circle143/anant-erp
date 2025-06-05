@@ -43,7 +43,7 @@
 
 .grid {
   display: grid;
-  grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+  grid-template-columns: repeat(auto-fit, minmax(350px, 1fr));
   gap: 1.5rem;
 }
 
@@ -59,7 +59,11 @@
   &:hover {
     transform: translateY(-5px);
   }
-
+  .button_group {
+    outline: 2px solid red;
+    min-height: 50px;
+    background: rgba(255, 0, 0, 0.05);
+  }
   p {
     margin: 0.5rem 0;
     font-size: 0.95rem;
@@ -69,29 +73,30 @@
       color: #111;
     }
   }
-  .buttonGroup {
-    display: flex;
-    justify-content: flex-end;
-
-    .clearButton {
-      padding: 8px 14px;
-      background-color: var(
-        --color-accent
-      ); // warm orange to distinguish from other actions
-      color: white;
-      border: none;
-      border-radius: 6px;
-      font-weight: 500;
-      font-size: 0.95rem;
-      cursor: pointer;
-      transition: background-color 0.2s ease-in-out;
-      &:hover {
-        background-color: var(--color-hover);
-      }
-    }
-  }
 }
 
+// .buttonGroup {
+//   display: flex;
+//   justify-content: flex-end;
+//   gap: 1em;
+
+//   .clearButton {
+//     padding: 8px 14px;
+//     background-color: var(
+//       --color-accent
+//     ); // warm orange to distinguish from other actions
+//     color: white;
+//     border: none;
+//     border-radius: 6px;
+//     font-weight: 500;
+//     font-size: 0.95rem;
+//     cursor: pointer;
+//     transition: background-color 0.2s ease-in-out;
+//     &:hover {
+//       background-color: var(--color-hover);
+//     }
+//   }
+// }
 .error {
   color: red;
   text-align: center;

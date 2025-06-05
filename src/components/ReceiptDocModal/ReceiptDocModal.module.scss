@@ -1,0 +1,19 @@
+.modalContent {
+  background: white;
+  max-height: 90vh;
+  overflow-y: auto;
+  padding: 20px;
+  margin: auto;
+  margin-top: 5vh;
+  width: 80%;
+  border-radius: 10px;
+}
+
+.viewReceiptButton {
+  background-color: #1976d2;
+  color: white;
+  padding: 6px 12px;
+  border: none;
+  border-radius: 5px;
+  cursor: pointer;
+}

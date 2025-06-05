@@ -212,7 +212,7 @@ const Page = () => {
         // Replace original paymentBreakdown with enriched one
         report.data.paymentBreakdown = enrichedBreakdown;
         delete report.data.flats;
-        console.log("Enriched Report", report);
+        // console.log("Enriched Report", report);
         if (!report?.error) {
             setTowerReport(report);
         }
@@ -312,7 +312,7 @@ const Page = () => {
     interface PaymentItem {
         flat_id: string;
         amount: string;
-        flatInfo: FlatInfo;
+        // flatInfo: FlatInfo;
     }
 
     interface PaymentBreakdown {
@@ -561,7 +561,7 @@ const Page = () => {
                                   key={item.flat_id}
                                   className={styles.flatCard}
                                 >
-                                  <div className={styles.flatHeader}>
+                                  {/* <div className={styles.flatHeader}>
                                     <span className={styles.flatName}>
                                       {item.flatInfo.name}
                                     </span>
@@ -580,8 +580,8 @@ const Page = () => {
                                         item.amount
                                       )}
                                     </span>
-                                  </div>
-                                  <div className={styles.priceBreakdown}>
+                                  </div> */}
+                                  {/* <div className={styles.priceBreakdown}>
                                     <h6>Price Breakdown:</h6>
                                     <table>
                                       <thead>
@@ -615,7 +615,7 @@ const Page = () => {
                                         )}
                                       </tbody>
                                     </table>
-                                  </div>
+                                  </div> */}
                                 </div>
                               ))}
                             </div>
@@ -625,7 +625,7 @@ const Page = () => {
                           {plan.unpaidItems && (
                             <div className={styles.flatSection}>
                               <h5 className={styles.subTitle}>Unpaid Flats</h5>
-                              {plan.unpaidItems.map((item) => (
+                              {/* {plan.unpaidItems.map((item) => (
                                 <div
                                   key={item.flat_id}
                                   className={styles.flatCard}
@@ -686,7 +686,7 @@ const Page = () => {
                                     </table>
                                   </div>
                                 </div>
-                              ))}
+                              ))} */}
                             </div>
                           )}
                         </div>
