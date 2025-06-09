@@ -16,7 +16,9 @@ interface ReceiptData {
   cgst: number;
   sgst: number;
   total: number;
-  unitNo: string;
+  superArea: number;
+balconyArea: number;
+  reraCarpetArea: number;
   area: number;
   floor: string;
   tower: string;
@@ -24,7 +26,7 @@ interface ReceiptData {
   plotNo: string;
   bankName: string;
   instrumentDate: string;
-  instrumentNo: string;
+  status: string;
   mode: string;
 }
 

@@ -10,10 +10,21 @@
 }
 
 .viewReceiptButton {
-  background-color: #1976d2;
-  color: white;
-  padding: 6px 12px;
+  padding: 8px 14px;
   border: none;
-  border-radius: 5px;
+  border-radius: 6px;
+  font-weight: 500;
+  font-size: 0.95rem;
   cursor: pointer;
+  transition: background-color 0.2s ease-in-out, opacity 0.2s ease;
+  background-color: #2196f3; // blue
+  color: white;
+
+  &:hover {
+    background-color: #1976d2;
+  }
+  &:disabled {
+    opacity: 0.6;
+    cursor: not-allowed;
+  }
 }

@@ -3,7 +3,7 @@ import React, { useRef } from "react";
 import styles from "./page.module.scss";
 import html2canvas from "html2canvas";
 import jsPDF from "jspdf";
-
+import { numberToWords } from "@/utils/numberToWords"; // Ensure this utility is available
 interface ReceiptData {
   receiptNo: string;
   customerId: string;
@@ -15,7 +15,9 @@ interface ReceiptData {
   cgst: number;
   sgst: number;
   total: number;
-  unitNo: string;
+  superArea: number;
+  balconyArea: number;
+  reraCarpetArea: number;
   area: number;
   floor: string;
   tower: string;
@@ -23,17 +25,17 @@ interface ReceiptData {
   plotNo: string;
   bankName: string;
   instrumentDate: string;
-  instrumentNo: string;
+  status: string;
   mode: string;
 }
 
 interface PageProps {
   receiptData: ReceiptData;
-  
+
   onClose: () => void;
 }
 
-const Page: React.FC<PageProps> = ({ receiptData , onClose }) => {
+const Page: React.FC<PageProps> = ({ receiptData, onClose }) => {
   const {
     receiptNo,
     customerId,
@@ -45,7 +47,9 @@ const Page: React.FC<PageProps> = ({ receiptData , onClose }) => {
     cgst,
     sgst,
     total,
-    unitNo,
+    superArea,
+    balconyArea,
+    reraCarpetArea,
     area,
     floor,
     tower,
@@ -53,218 +57,227 @@ const Page: React.FC<PageProps> = ({ receiptData , onClose }) => {
     plotNo,
     bankName,
     instrumentDate,
-    instrumentNo,
+    status,
     mode,
   } = receiptData;
 
   const receiptRef = useRef<HTMLDivElement>(null);
 
-const handlePrint = () => {
-  const receiptElement = receiptRef.current;
-  if (!receiptElement) return;
+  const handlePrint = () => {
+    const receiptElement = receiptRef.current;
+    if (!receiptElement) return;
 
-  // Clone receipt content
-  const clonedContent = receiptElement.cloneNode(true) as HTMLElement;
-  clonedContent.querySelectorAll(".noPrint").forEach((el) => el.remove());
+    // Clone receipt content
+    const clonedContent = receiptElement.cloneNode(true) as HTMLElement;
+    clonedContent.querySelectorAll(".noPrint").forEach((el) => el.remove());
 
-  // Create and configure iframe
-  const iframe = document.createElement("iframe");
-  iframe.style.position = "absolute";
-  iframe.style.width = "1px";
-  iframe.style.height = "1px";
-  iframe.style.left = "-9999px";
-  iframe.style.top = "0";
-  document.body.appendChild(iframe);
+    // Create and configure iframe
+    const iframe = document.createElement("iframe");
+    iframe.style.position = "absolute";
+    iframe.style.width = "1px";
+    iframe.style.height = "1px";
+    iframe.style.left = "-9999px";
+    iframe.style.top = "0";
+    document.body.appendChild(iframe);
 
-  const iframeDoc = iframe.contentDocument || iframe.contentWindow?.document;
-  if (!iframeDoc) return;
+    const iframeDoc = iframe.contentDocument || iframe.contentWindow?.document;
+    if (!iframeDoc) return;
 
-  // Create base structure
-  const html = document.createElement("html");
-  const head = document.createElement("head");
-  const body = document.createElement("body");
+    // Create base structure
+    const html = document.createElement("html");
+    const head = document.createElement("head");
+    const body = document.createElement("body");
 
-  // Copy existing stylesheets into the iframe
-  const cssLinks = Array.from(document.querySelectorAll('link[rel="stylesheet"]'));
-  cssLinks.forEach(link => {
-    head.appendChild(link.cloneNode(true));
-  });
+    // Copy existing stylesheets into the iframe
+    const cssLinks = Array.from(
+      document.querySelectorAll('link[rel="stylesheet"]')
+    );
+    cssLinks.forEach((link) => {
+      head.appendChild(link.cloneNode(true));
+    });
 
-  // Optional: Add print-specific inline styles
-  const style = document.createElement("style");
-  style.textContent = `
+    // Optional: Add print-specific inline styles
+    const style = document.createElement("style");
+    style.textContent = `
     @page {
       size: A4 portrait;
       margin: 0mm;
     }
   `;
-  head.appendChild(style);
-  // Append cloned receipt content
-  body.appendChild(clonedContent);
+    head.appendChild(style);
+    // Append cloned receipt content
+    body.appendChild(clonedContent);
 
-  // Build and inject HTML structure
-  html.appendChild(head);
-  html.appendChild(body);
-  iframeDoc.replaceChild(html, iframeDoc.documentElement);
+    // Build and inject HTML structure
+    html.appendChild(head);
+    html.appendChild(body);
+    iframeDoc.replaceChild(html, iframeDoc.documentElement);
 
-  // Wait for DOM render before printing
-  setTimeout(() => {
-    iframe.contentWindow?.focus();
-    iframe.contentWindow?.print();
-    setTimeout(() => document.body.removeChild(iframe), 1000);
-  }, 500); // Adjust delay as needed
-};
-const handleDownloadPDF = async () => {
-  const input = receiptRef.current;
-  if (!input) return;
+    // Wait for DOM render before printing
+    setTimeout(() => {
+      iframe.contentWindow?.focus();
+      iframe.contentWindow?.print();
+      setTimeout(() => document.body.removeChild(iframe), 1000);
+    }, 500); // Adjust delay as needed
+  };
+  const handleDownloadPDF = async () => {
+    const input = receiptRef.current;
+    if (!input) return;
 
-  // Hide noPrint elements
-  const noPrintElements = input.querySelectorAll(".noPrint");
-  noPrintElements.forEach((el) => (el as HTMLElement).style.display = "none");
+    // Hide noPrint elements
+    const noPrintElements = input.querySelectorAll(".noPrint");
+    noPrintElements.forEach(
+      (el) => ((el as HTMLElement).style.display = "none")
+    );
 
-  // Add a temporary class to ensure proper rendering
-  input.classList.add("pdf-export");
+    // Add a temporary class to ensure proper rendering
+    input.classList.add("pdf-export");
 
-  // Wait for reflow
-  await new Promise((resolve) => setTimeout(resolve, 100));
+    // Wait for reflow
+    await new Promise((resolve) => setTimeout(resolve, 100));
 
-  const canvas = await html2canvas(input, {
-    scale: 2, // Increased scale for better quality
-    useCORS: true,
-    backgroundColor: "#ffffff", // Explicit white background
-    logging: false,
-    allowTaint: true,
-  });
+    const canvas = await html2canvas(input, {
+      scale: 2, // Increased scale for better quality
+      useCORS: true,
+      backgroundColor: "#ffffff", // Explicit white background
+      logging: false,
+      allowTaint: true,
+    });
 
-  // Remove temporary class
-  input.classList.remove("pdf-export");
+    // Remove temporary class
+    input.classList.remove("pdf-export");
 
-  const imgData = canvas.toDataURL("image/png");
+    const imgData = canvas.toDataURL("image/png");
 
-  const pdf = new jsPDF("p", "mm", "a4");
-  const pdfWidth = pdf.internal.pageSize.getWidth();
-  const pdfHeight = pdf.internal.pageSize.getHeight();
+    const pdf = new jsPDF("p", "mm", "a4");
+    const pdfWidth = pdf.internal.pageSize.getWidth();
+    const pdfHeight = pdf.internal.pageSize.getHeight();
 
-  // Calculate aspect ratio
-  const imgRatio = canvas.width / canvas.height;
-  const pdfRatio = pdfWidth / pdfHeight;
+    // Calculate aspect ratio
+    const imgRatio = canvas.width / canvas.height;
+    const pdfRatio = pdfWidth / pdfHeight;
 
-  let imgWidth = pdfWidth;
-  let imgHeight = pdfHeight;
+    let imgWidth = pdfWidth;
+    let imgHeight = pdfHeight;
 
-  if (imgRatio > pdfRatio) {
-    imgHeight = pdfWidth / imgRatio;
-  } else {
-    imgWidth = pdfHeight * imgRatio;
-  }
+    if (imgRatio > pdfRatio) {
+      imgHeight = pdfWidth / imgRatio;
+    } else {
+      imgWidth = pdfHeight * imgRatio;
+    }
 
-  pdf.addImage(imgData, "PNG", 0, 0, imgWidth, imgHeight);
-  pdf.save(`receipt_${receiptNo}.pdf`);
+    pdf.addImage(imgData, "PNG", 0, 0, imgWidth, imgHeight);
+    pdf.save(`receipt_${receiptNo}.pdf`);
 
-  // Restore .noPrint elements
-  noPrintElements.forEach((el) => (el as HTMLElement).style.display = "");
-};
-
-
+    // Restore .noPrint elements
+    noPrintElements.forEach((el) => ((el as HTMLElement).style.display = ""));
+  };
 
   return (
     <>
-      <div className={styles.overlay} >
-      <button className={styles.closeButton} onClick={onClose}>
-        ✕
-      </button>
-      <div  style={{ backgroundColor: "#ffffff" }} id="receipt" ref={receiptRef} className={styles.receiptContainer}>
-        <div className={styles.header}>
-          <h1>DSD HOMES PVT. LTD.</h1>
-          <p>
-            Registered Office: CP-GH-5B, Tech Zone-IV, Greater Noida (West) U.P
-          </p>
-          <p>
-            Web: www.novenagreen.com | Email: info@novenagreen.com
-          </p>
+      <div className={styles.overlay}>
+        <button className={styles.closeButton} onClick={onClose}>
+          ✕
+        </button>
+        <div
+          style={{ backgroundColor: "#ffffff" }}
+          id="receipt"
+          ref={receiptRef}
+          className={styles.receiptContainer}
+        >
+          <div className={styles.header}>
+            <h1>DSD HOMES PVT. LTD.</h1>
+            <p>
+              Registered Office: CP-GH-5B, Tech Zone-IV, Greater Noida (West)
+              U.P
+            </p>
+            <p>Web: www.novenagreen.com | Email: info@novenagreen.com</p>
+          </div>
+
+          <div className={styles.customerInfo}>
+            <p>
+              <strong>Receipt No:</strong> {receiptNo} &nbsp;&nbsp;
+              <strong>Customer ID:</strong> {customerId}
+            </p>
+            <p>
+              <strong>Name:</strong> {name}
+            </p>
+            <p>
+              <strong>Address:</strong> {address}
+            </p>
+            <p>
+              <strong>Mobile:</strong> {phone}
+            </p>
+            <p>
+              <strong>Date:</strong> {date}
+            </p>
+          </div>
+
+          <div className={styles.summary}>
+            <p>
+              A sum of <strong>₹{total.toLocaleString()}</strong> (
+              <strong>{numberToWords(total).toUpperCase()} ONLY</strong>)
+              received for Flat No.{ " "}
+              <strong>{plotNo}</strong>
+              with Super Area <strong>{superArea} Sq.Ft.</strong> and Area{" "}
+              <strong>
+                {area} Sq.Ft.({balconyArea} + {reraCarpetArea} )
+              </strong>{" "}
+              on <strong>{floor}th floor</strong> at Tower no.{" "}
+              <strong>{tower}</strong> in project <strong>{project}</strong>.
+            </p>
+          </div>
+
+          <table className={styles.receiptTable}>
+            <thead>
+              <tr>
+                <th>S.No</th>
+                <th>Mode</th>
+                <th>Instrument Date</th>
+                <th>Status</th>
+                <th>Bank</th>
+                <th>Amount</th>
+                <th>CGST</th>
+                <th>SGST</th>
+                <th>Total</th>
+              </tr>
+            </thead>
+            <tbody>
+              <tr>
+                <td>1</td>
+                <td>{mode}</td>
+                <td>{instrumentDate}</td>
+                <td>{status}</td>
+                <td>{bankName}</td>
+                <td>₹{amount.toLocaleString()}</td>
+                <td>₹{cgst.toLocaleString()}</td>
+                <td>₹{sgst.toLocaleString()}</td>
+                <td>₹{total.toLocaleString()}</td>
+              </tr>
+            </tbody>
+          </table>
+
+          <div className={styles.signature}>
+            <p>For DSD HOMES PVT. LTD.</p>
+            <p className={styles.authorized}>Authorised Signatory</p>
+          </div>
+
+          <div className={styles.terms}>
+            <ul>
+              <li>This receipt is subject to realization of cheque/draft.</li>
+              <li>
+                The receipts are not transferable without written consent of the
+                company.
+              </li>
+              <li>
+                This is only the receipt for the remittance and does not entitle
+                ownership unless confirmed by the company.
+              </li>
+            </ul>
+          </div>
         </div>
-
-        <div className={styles.customerInfo}>
-          <p>
-            <strong>Receipt No:</strong> {receiptNo} &nbsp;&nbsp;
-            <strong>Customer ID:</strong> {customerId}
-          </p>
-          <p>
-            <strong>Name:</strong> {name}
-          </p>
-          <p>
-            <strong>Address:</strong> {address}
-          </p>
-          <p>
-            <strong>Mobile:</strong> {phone}
-          </p>
-          <p>
-            <strong>Date:</strong> {date}
-          </p>
-        </div>
-
-        <div className={styles.summary}>
-          <p>
-            A sum of <strong>₹{total.toLocaleString()}</strong> received for
-            Unit No. <strong>{unitNo}</strong> with Area{" "}
-            <strong>{area} Sq.Ft.</strong> on <strong>{floor} floor</strong> at
-            Tower no. <strong>{tower}</strong> in project{" "}
-            <strong>{project}, Plot No. {plotNo}</strong>
-          </p>
-        </div>
-
-        <table className={styles.receiptTable}>
-          <thead>
-            <tr>
-              <th>S.No</th>
-              <th>Mode</th>
-              <th>Instrument Date</th>
-              <th>Instrument No</th>
-              <th>Bank</th>
-              <th>Amount</th>
-              <th>CGST</th>
-              <th>SGST</th>
-              <th>Total</th>
-            </tr>
-          </thead>
-          <tbody>
-            <tr>
-              <td>1</td>
-              <td>{mode}</td>
-              <td>{instrumentDate}</td>
-              <td>{instrumentNo}</td>
-              <td>{bankName}</td>
-              <td>₹{amount.toLocaleString()}</td>
-              <td>₹{cgst.toLocaleString()}</td>
-              <td>₹{sgst.toLocaleString()}</td>
-              <td>₹{total.toLocaleString()}</td>
-            </tr>
-          </tbody>
-        </table>
-
-       <div className={styles.signature}>
-          <p>For DSD HOMES PVT. LTD.</p>
-          <p className={styles.authorized}>Authorised Signatory</p>
-        </div>
-
-        <div className={styles.terms}>
-          <ul>
-            <li>This receipt is subject to realization of cheque/draft.</li>
-            <li>
-              The receipts are not transferable without written consent of the
-              company.
-            </li>
-            <li>
-              This is only the receipt for the remittance and does not entitle
-              ownership unless confirmed by the company.
-            </li>
-          </ul>
-        </div>
-
-        
       </div>
-    </div>
-     <div className={styles.noPrint}>
+      <div className={styles.noPrint}>
         <button onClick={handlePrint} className={styles.printButton}>
           Print
         </button>
@@ -273,7 +286,6 @@ const handleDownloadPDF = async () => {
         </button>
       </div>
     </>
- 
   );
 };
 

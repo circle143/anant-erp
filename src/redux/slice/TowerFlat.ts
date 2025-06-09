@@ -96,6 +96,20 @@ interface SaleDetail {
   remaining: string;
 }
 
+export interface FlatType {
+  builtUpArea: string;
+  reraCarpetArea: string;
+  superArea: string;
+  accommodation: string;
+  balconyArea: string;
+  createdAt: string;
+  updatedAt: string;
+  id: string;
+  name: string;
+  orgId: string;
+  societyId: string;
+}
+
 export interface Unit {
   id: string;
   name: string;
@@ -106,6 +120,7 @@ export interface Unit {
   createdAt: string;
   updatedAt: string;
   saleDetail?: SaleDetail;
+  flatType?: FlatType; // ✅ Add this to fix the TS error
 }
 
 interface UnitState {

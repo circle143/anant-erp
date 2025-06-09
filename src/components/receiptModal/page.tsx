@@ -49,6 +49,7 @@ const ReceiptContent = ({
   const router = useRouter();
 
   useEffect(() => {
+    console.log("matchingUnit", matchingUnit);
     setPageLoading(false); // simulate async page preparation if needed
   }, []);
 
@@ -128,28 +129,7 @@ const ReceiptContent = ({
       </div>
     );
   }
-  const data = {
-    receiptNo: "301/2/9",
-    customerId: "IG-000675",
-    name: "Mr. Rahul Kumar",
-    address: "H.NO.23, Dadri Greater Noida, UP - 203207",
-    phone: "9910208001",
-    date: "15 Mar 2024",
-    amount: 380952,
-    cgst: 9524,
-    sgst: 9524,
-    total: 400000,
-    unitNo: "301",
-    area: 1225,
-    floor: "3rd",
-    tower: "Tower-2",
-    project: "Novena Green",
-    plotNo: "CP-GH-5B",
-    bankName: "NOIDA COMMERCIAL CO-OPERATIVE BANK LTD",
-    instrumentDate: "15 Mar 2024",
-    instrumentNo: "INDR832024031500229880",
-    mode: "Online",
-  };
+
   return (
     <div className={styles.container}>
       <h1>Receipts</h1>
@@ -239,8 +219,47 @@ const ReceiptContent = ({
               )}
 
               <div className={styles.button_group}>
-                <div >
-                  <ReceiptDocModal receiptData={data} />
+                <div>
+                  <ReceiptDocModal
+                    receiptData={{
+                      receiptNo: receipt.id,
+                      customerId: "N/A",
+                      name: "Customer Name",
+                      address: "N/A",
+                      phone: "N/A",
+                      date: new Date(receipt.dateIssued).toLocaleDateString(),
+                      amount: Number(receipt.amount),
+                      cgst: Number(receipt.cgst),
+                      sgst: Number(receipt.sgst),
+                      total: Number(receipt.totalAmount),
+                      superArea: Number(matchingUnit?.flatType?.superArea) || 0,
+                      balconyArea:
+                        Number(matchingUnit?.flatType?.balconyArea) || 0,
+                      reraCarpetArea:
+                        Number(matchingUnit?.flatType?.reraCarpetArea) || 0,
+                      area: Number(matchingUnit?.flatType?.builtUpArea) || 0,
+                      floor:
+                        matchingUnit?.floorNumber !== undefined &&
+                        matchingUnit?.floorNumber !== null
+                          ? String(matchingUnit.floorNumber)
+                          : "N/A",
+                      tower: matchingUnit?.name
+                        ? matchingUnit.name.charAt(0)
+                        : "N/A",
+                      project: "N/A",
+                      plotNo: matchingUnit?.name || "N/A",
+                      bankName: receipt.bankName || "N/A",
+                      instrumentDate: new Date(
+                        receipt.dateIssued
+                      ).toLocaleDateString(),
+                      status: receipt.failed
+                        ? "Failed"
+                        : receipt.cleared
+                        ? "Paid"
+                        : "Pending",
+                      mode: receipt.mode,
+                    }}
+                  />
                 </div>
                 {!receipt.cleared && receipt.failed === false && (
                   <>
