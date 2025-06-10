@@ -223,10 +223,29 @@ const ReceiptContent = ({
                   <ReceiptDocModal
                     receiptData={{
                       receiptNo: receipt.id,
-                      customerId: "N/A",
-                      name: "Customer Name",
+                      customerId: matchingUnit?.saleDetail?.companyCustomer
+                        ? matchingUnit.saleDetail.companyCustomer.id
+                        : matchingUnit?.saleDetail?.owners
+                            ?.map((o) => o.id)
+                            .filter(Boolean)
+                            .join(", ") || "N/A",
+                      name: matchingUnit?.saleDetail?.companyCustomer
+                        ? matchingUnit.saleDetail.companyCustomer.name
+                        : matchingUnit?.saleDetail?.owners
+                            ?.map((o) =>
+                              [o.firstName, o.middleName, o.lastName]
+                                .filter(Boolean)
+                                .join(" ")
+                            )
+                            .join(", ") || "N/A",
+
                       address: "N/A",
-                      phone: "N/A",
+                      phone: matchingUnit?.saleDetail?.companyCustomer
+                        ? "N/A"
+                        : matchingUnit?.saleDetail?.owners
+                            ?.map((o) => o.phoneNumber)
+                            .filter(Boolean)
+                            .join(", ") || "N/A",
                       date: new Date(receipt.dateIssued).toLocaleDateString(),
                       amount: Number(receipt.amount),
                       cgst: Number(receipt.cgst),

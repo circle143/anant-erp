@@ -4,6 +4,7 @@ import styles from "./page.module.scss";
 import html2canvas from "html2canvas";
 import jsPDF from "jspdf";
 import { numberToWords } from "@/utils/numberToWords"; // Ensure this utility is available
+import { formatIndianCurrencyWithDecimals } from "@/utils/formatIndianCurrencyWithDecimals";
 interface ReceiptData {
   receiptNo: string;
   customerId: string;
@@ -191,16 +192,25 @@ const Page: React.FC<PageProps> = ({ receiptData, onClose }) => {
               Registered Office: CP-GH-5B, Tech Zone-IV, Greater Noida (West)
               U.P
             </p>
+            <p>GSTIN: 09AAECD6248G2ZI | CIN No.: U70109DL2013PTC251321</p>
             <p>Web: www.novenagreen.com | Email: info@novenagreen.com</p>
           </div>
 
           <div className={styles.customerInfo}>
             <p>
-              <strong>Receipt No:</strong> {receiptNo} &nbsp;&nbsp;
-              <strong>Customer ID:</strong> {customerId}
+              <strong>Receipt No:</strong> {receiptNo}
             </p>
             <p>
-              <strong>Name:</strong> {name}
+              <strong>
+                {customerId.includes(",") ? "Owner ID(s)" : "Customer ID"}:
+              </strong>{" "}
+              {customerId}
+            </p>
+            <p>
+              <strong>
+                {customerId.includes(",") ? "Owner(s)" : "Customer Name"}:
+              </strong>{" "}
+              {name}
             </p>
             <p>
               <strong>Address:</strong> {address}
@@ -215,10 +225,9 @@ const Page: React.FC<PageProps> = ({ receiptData, onClose }) => {
 
           <div className={styles.summary}>
             <p>
-              A sum of <strong>₹{total.toLocaleString()}</strong> (
+              A sum of <strong>{formatIndianCurrencyWithDecimals(total)}</strong> (
               <strong>{numberToWords(total).toUpperCase()} ONLY</strong>)
-              received for Flat No.{ " "}
-              <strong>{plotNo}</strong>
+              received for Flat No. <strong>{plotNo}</strong>
               with Super Area <strong>{superArea} Sq.Ft.</strong> and Area{" "}
               <strong>
                 {area} Sq.Ft.({balconyArea} + {reraCarpetArea} )
@@ -249,10 +258,10 @@ const Page: React.FC<PageProps> = ({ receiptData, onClose }) => {
                 <td>{instrumentDate}</td>
                 <td>{status}</td>
                 <td>{bankName}</td>
-                <td>₹{amount.toLocaleString()}</td>
-                <td>₹{cgst.toLocaleString()}</td>
-                <td>₹{sgst.toLocaleString()}</td>
-                <td>₹{total.toLocaleString()}</td>
+                <td>{formatIndianCurrencyWithDecimals(amount)}</td>
+                <td>{formatIndianCurrencyWithDecimals(cgst)}</td>
+                <td>{formatIndianCurrencyWithDecimals(sgst)}</td>
+                <td>{formatIndianCurrencyWithDecimals(total)}</td>
               </tr>
             </tbody>
           </table>
