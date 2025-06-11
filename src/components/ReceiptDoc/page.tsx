@@ -5,6 +5,9 @@ import html2canvas from "html2canvas";
 import jsPDF from "jspdf";
 import { numberToWords } from "@/utils/numberToWords"; // Ensure this utility is available
 import { formatIndianCurrencyWithDecimals } from "@/utils/formatIndianCurrencyWithDecimals";
+import { useSelector } from "react-redux";
+import { RootState } from "@/redux/store";
+import { useSearchParams } from "next/navigation";
 interface ReceiptData {
   receiptNo: string;
   customerId: string;
@@ -173,7 +176,11 @@ const Page: React.FC<PageProps> = ({ receiptData, onClose }) => {
     // Restore .noPrint elements
     noPrintElements.forEach((el) => ((el as HTMLElement).style.display = ""));
   };
-
+  const searchParams = useSearchParams();
+  const rera = searchParams.get("rera");
+  const SocietyFlatData = useSelector((state: RootState) =>
+    rera ? state.flats.societyFlats[rera] : null
+  );
   return (
     <>
       <div className={styles.overlay}>
@@ -192,6 +199,7 @@ const Page: React.FC<PageProps> = ({ receiptData, onClose }) => {
               Registered Office: CP-GH-5B, Tech Zone-IV, Greater Noida (West)
               U.P
             </p>
+            <p>Ph: 0120-4229777</p>
             <p>GSTIN: 09AAECD6248G2ZI | CIN No.: U70109DL2013PTC251321</p>
             <p>Web: www.novenagreen.com | Email: info@novenagreen.com</p>
           </div>
@@ -225,7 +233,8 @@ const Page: React.FC<PageProps> = ({ receiptData, onClose }) => {
 
           <div className={styles.summary}>
             <p>
-              A sum of <strong>{formatIndianCurrencyWithDecimals(total)}</strong> (
+              A sum of{" "}
+              <strong>{formatIndianCurrencyWithDecimals(total)}</strong> (
               <strong>{numberToWords(total).toUpperCase()} ONLY</strong>)
               received for Flat No. <strong>{plotNo}</strong>
               with Super Area <strong>{superArea} Sq.Ft.</strong> and Area{" "}
@@ -233,10 +242,9 @@ const Page: React.FC<PageProps> = ({ receiptData, onClose }) => {
                 {area} Sq.Ft.({balconyArea} + {reraCarpetArea} )
               </strong>{" "}
               on <strong>{floor}th floor</strong> at Tower no.{" "}
-              <strong>{tower}</strong> in project <strong>{project}</strong>.
+              <strong>{tower}</strong> in project <strong>{SocietyFlatData?.name} located at {SocietyFlatData?.address}</strong>.
             </p>
           </div>
-
           <table className={styles.receiptTable}>
             <thead>
               <tr>

@@ -24,6 +24,8 @@ export default function Layout({ children }: { children: React.ReactNode }) {
             updateSocietyFlats({
               reraNumber: data.data.reraNumber,
               data: {
+                name: data.data.name,
+                address: data.data.address,
                 totalFlats: data.data.totalFlats,
                 totalSoldFlats: data.data.soldFlats,
                 totalUnsoldFlats: data.data.unsoldFlats,
