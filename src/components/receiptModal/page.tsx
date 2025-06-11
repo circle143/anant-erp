@@ -14,7 +14,7 @@ import {
 } from "@/redux/action/org-admin";
 import toast from "react-hot-toast";
 import Spinner from "react-bootstrap/Spinner";
-
+import ReceiptDocModal from "@/components/ReceiptDocModal/page";
 const ReceiptContent = ({
   id,
   rera,
@@ -49,6 +49,7 @@ const ReceiptContent = ({
   const router = useRouter();
 
   useEffect(() => {
+    console.log("matchingUnit", matchingUnit);
     setPageLoading(false); // simulate async page preparation if needed
   }, []);
 
@@ -217,7 +218,68 @@ const ReceiptContent = ({
                 </div>
               )}
 
-              <div className={styles.buttonGroup}>
+              <div className={styles.button_group}>
+                <div>
+                  <ReceiptDocModal
+                    receiptData={{
+                      receiptNo: receipt.id,
+                      customerId: matchingUnit?.saleDetail?.companyCustomer
+                        ? matchingUnit.saleDetail.companyCustomer.id
+                        : matchingUnit?.saleDetail?.owners
+                            ?.map((o) => o.id)
+                            .filter(Boolean)
+                            .join(", ") || "N/A",
+                      name: matchingUnit?.saleDetail?.companyCustomer
+                        ? matchingUnit.saleDetail.companyCustomer.name
+                        : matchingUnit?.saleDetail?.owners
+                            ?.map((o) =>
+                              [o.firstName, o.middleName, o.lastName]
+                                .filter(Boolean)
+                                .join(" ")
+                            )
+                            .join(", ") || "N/A",
+
+                      address: "N/A",
+                      phone: matchingUnit?.saleDetail?.companyCustomer
+                        ? "N/A"
+                        : matchingUnit?.saleDetail?.owners
+                            ?.map((o) => o.phoneNumber)
+                            .filter(Boolean)
+                            .join(", ") || "N/A",
+                      date: new Date(receipt.dateIssued).toLocaleDateString(),
+                      amount: Number(receipt.amount),
+                      cgst: Number(receipt.cgst),
+                      sgst: Number(receipt.sgst),
+                      total: Number(receipt.totalAmount),
+                      superArea: Number(matchingUnit?.flatType?.superArea) || 0,
+                      balconyArea:
+                        Number(matchingUnit?.flatType?.balconyArea) || 0,
+                      reraCarpetArea:
+                        Number(matchingUnit?.flatType?.reraCarpetArea) || 0,
+                      area: Number(matchingUnit?.flatType?.builtUpArea) || 0,
+                      floor:
+                        matchingUnit?.floorNumber !== undefined &&
+                        matchingUnit?.floorNumber !== null
+                          ? String(matchingUnit.floorNumber)
+                          : "N/A",
+                      tower: matchingUnit?.name
+                        ? matchingUnit.name.charAt(0)
+                        : "N/A",
+                      project: "N/A",
+                      plotNo: matchingUnit?.name || "N/A",
+                      bankName: receipt.bankName || "N/A",
+                      instrumentDate: new Date(
+                        receipt.dateIssued
+                      ).toLocaleDateString(),
+                      status: receipt.failed
+                        ? "Failed"
+                        : receipt.cleared
+                        ? "Paid"
+                        : "Pending",
+                      mode: receipt.mode,
+                    }}
+                  />
+                </div>
                 {!receipt.cleared && receipt.failed === false && (
                   <>
                     <button

@@ -28,6 +28,8 @@
     "browser-image-compression": "^2.0.2",
     "formik": "^2.4.6",
     "graphql": "^16.10.0",
+    "html2canvas": "^1.4.1",
+    "jspdf": "^3.0.1",
     "libphonenumber-js": "^1.12.7",
     "lodash": "^4.17.21",
     "lucide-react": "^0.487.0",
