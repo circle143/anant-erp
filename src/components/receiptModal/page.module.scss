@@ -43,7 +43,7 @@
 
 .grid {
   display: grid;
-  grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+  grid-template-columns: repeat(auto-fit, minmax(350px, 1fr));
   gap: 1.5rem;
 }
 
@@ -59,6 +59,49 @@
   &:hover {
     transform: translateY(-5px);
   }
+.button_group {
+  display: flex;
+  justify-content: flex-end;
+  align-items: center;
+  gap: 1em;
+  margin-top: 1rem;
+
+  .clearButton,
+  .failedButton {
+    padding: 8px 14px;
+    border: none;
+    border-radius: 6px;
+    font-weight: 500;
+    font-size: 0.95rem;
+    cursor: pointer;
+    transition: background-color 0.2s ease-in-out, opacity 0.2s ease;
+
+    &:disabled {
+      opacity: 0.6;
+      cursor: not-allowed;
+    }
+  }
+
+  .clearButton {
+    background-color: var(--color-accent); // e.g., orange
+    color: white;
+
+    &:hover {
+      background-color: var(--color-hover); // e.g., darker orange
+    }
+  }
+
+  .failedButton {
+    background-color: #e63946; // reddish tone
+    color: white;
+
+    &:hover {
+      background-color: #c62828;
+    }
+  }
+
+
+}
 
   p {
     margin: 0.5rem 0;
@@ -67,27 +110,6 @@
 
     strong {
       color: #111;
-    }
-  }
-  .buttonGroup {
-    display: flex;
-    justify-content: flex-end;
-
-    .clearButton {
-      padding: 8px 14px;
-      background-color: var(
-        --color-accent
-      ); // warm orange to distinguish from other actions
-      color: white;
-      border: none;
-      border-radius: 6px;
-      font-weight: 500;
-      font-size: 0.95rem;
-      cursor: pointer;
-      transition: background-color 0.2s ease-in-out;
-      &:hover {
-        background-color: var(--color-hover);
-      }
     }
   }
 }
