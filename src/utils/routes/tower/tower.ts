@@ -23,6 +23,18 @@ export const tower = {
 		},
 		requestMethod: "POST",
 	},
+	bulkCreateTower: {
+		getEndpoint: (input: CreateTowerInput) => {
+			return getBasePath(input.societyReraNumber);
+		},
+		getReqBody: () => {
+			// add multipart form data
+			// file name: file
+			// required column names in excel file
+			// "Name" and "No. Of Floors In Towers"
+		},
+		requestMethod: "POST",
+	},
 	updateTower: {
 		getEndpoint: (input: TowerByIdInput) => {
 			return getBasePath(input.societyReraNumber) + `/${input.towerID}`;
