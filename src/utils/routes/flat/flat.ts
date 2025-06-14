@@ -1,4 +1,5 @@
 import {
+	BulkCreateFlatInput,
 	CreateFlatInput,
 	CreateFlatRequestBodyInput,
 	DeleteFlatInput,
@@ -20,6 +21,21 @@ export const flat = {
 		},
 		getReqBody: (input: CreateFlatRequestBodyInput) => {
 			return input;
+		},
+		requestMethod: "POST",
+	},
+	bulkCreateFlat: {
+		getEndpoint: (input: BulkCreateFlatInput) => {
+			return (
+				getBasePath(input.societyReraNumber) +
+				`/tower/${input.towerID}/bulk`
+			);
+		},
+		getReqBody: () => {
+			// add multipart form data
+			// file name: file
+			// required column names in excel file
+			// "Unit No", "Saleable Area (in sq. ft.)" and "Flat facing"
 		},
 		requestMethod: "POST",
 	},
