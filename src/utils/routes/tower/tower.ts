@@ -1,9 +1,8 @@
 import {
 	CreateTowerInput,
 	CreateTowerRequestBodyInput,
-	DeleteTowerInput,
 	GetAllTowersInput,
-	UpdateTowerInput,
+	TowerByIdInput,
 	UpdateTowerRequestBodyInput,
 } from "./types";
 
@@ -25,7 +24,7 @@ export const tower = {
 		requestMethod: "POST",
 	},
 	updateTower: {
-		getEndpoint: (input: UpdateTowerInput) => {
+		getEndpoint: (input: TowerByIdInput) => {
 			return getBasePath(input.societyReraNumber) + `/${input.towerID}`;
 		},
 		getReqBody: (input: UpdateTowerRequestBodyInput) => {
@@ -37,7 +36,7 @@ export const tower = {
 		requestMethod: "PATCH",
 	},
 	deleteTower: {
-		getEndpoint: (input: DeleteTowerInput) => {
+		getEndpoint: (input: TowerByIdInput) => {
 			return getBasePath(input.societyReraNumber) + `/${input.towerID}`;
 		},
 		getReqBody: () => {
@@ -52,6 +51,15 @@ export const tower = {
 			return (
 				getBasePath(input.societyReraNumber) + `?cursor=${input.cursor}`
 			);
+		},
+		getReqBody: () => {
+			// no request body required
+		},
+		requestMethod: "GET",
+	},
+	getTowerId: {
+		getEndpoint: (input: TowerByIdInput) => {
+			return getBasePath(input.societyReraNumber) + `/${input.towerID}`;
 		},
 		getReqBody: () => {
 			// no request body required
