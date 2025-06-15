@@ -13,6 +13,7 @@ import {
     GetTowerFlats,
     DeleteFlatInput,
     GetSocietyFlatsByName,
+    BulkCreateFlatInput,
 } from "@/utils/routes/flat/types";
 import {
     CreateTowerInput,
@@ -1656,6 +1657,58 @@ export const getTowerById = async (
         return response.data;
     } catch (error: any) {
         console.error("Error :", error.response?.data || error.message);
+        return { error: true, message: error.message };
+    }
+};
+export const bulkCreateFlat = async (
+    societyReraNumber: string,
+    towerID: string,
+    file: File
+) => {
+    try {
+        const token = await getIdToken();
+        const input: BulkCreateFlatInput = { societyReraNumber, towerID };
+        const url = flat.bulkCreateFlat.getEndpoint(input);
+
+        const formData = new FormData();
+        formData.append("file", file);
+
+        const response = await axios.post(createURL(url), formData, {
+            headers: {
+                Authorization: `Bearer ${token}`,
+                // Do not set 'Content-Type'; Axios will set it automatically for FormData
+            },
+        });
+
+        return response.data;
+    } catch (error: any) {
+        console.error("Error:", error.response?.data || error.message);
+        return { error: true, message: error.message };
+    }
+};
+
+export const bulkCreateTower = async (
+    societyReraNumber: string,
+    file: File
+) => {
+    try {
+        const token = await getIdToken();
+        const input: CreateTowerInput = { societyReraNumber };
+        const url = tower.bulkCreateTower.getEndpoint(input);
+
+        const formData = new FormData();
+        formData.append("file", file); // If backend expects a different key, change "file" accordingly
+
+        const response = await axios.post(createURL(url), formData, {
+            headers: {
+                Authorization: `Bearer ${token}`,
+                // No need to manually set 'Content-Type' for FormData
+            },
+        });
+
+        return response.data;
+    } catch (error: any) {
+        console.error("Error:", error.response?.data || error.message);
         return { error: true, message: error.message };
     }
 };
