@@ -86,7 +86,7 @@ const Page = () => {
         { name: "Home", href: "/org-admin" },
         { name: "Societies", href: "/org-admin/society" },
         {
-            name: "Payment Plans",
+            name: "Flat Types",
             href: `/org-admin/society/flat-types?rera=${rera}`,
         },
         {
