@@ -22,13 +22,14 @@ import { RootState } from "@/redux/store";
 import { useDispatch } from "react-redux";
 import { setUnits } from "@/redux/slice/TowerFlat";
 import ReceiptModal from "@/components/receiptModal/page";
-
+import ExcelUploadModal from "@/components/ExcelUploadModal/ExcelUploadModal";
+import { bulkCreateFlat } from "@/redux/action/org-admin";
 const ITEMS_PER_PAGE = 25;
 
 const Page = () => {
     const [allData, setAllData] = useState<any[]>([]);
     const [displayedData, setDisplayedData] = useState<any[]>([]);
-
+    const [isFlatModalOpen, setIsFlatModalOpen] = useState(false);
     const [currentPage, setCurrentPage] = useState(1);
     const [loading, setLoading] = useState<boolean>(true);
     const [selectedFilter, setSelectedFilter] = useState<string>("all");
@@ -274,6 +275,26 @@ const Page = () => {
         if (!towerID) return null;
         return state.flats.towerFlats[towerID];
     });
+    const handleFlatUpload = async (file: File) => {
+        if (!rera || !towerID) return; // Ensure you have towerId in your component
+
+        try {
+            const response = await bulkCreateFlat(rera, towerID, file);
+
+            if (response?.error) {
+                toast.error(response.message || "Flat upload failed");
+                return;
+            }
+            toast.success("Flats uploaded successfully");
+            fetchData(); // Reload flat data
+        } catch (error: any) {
+            toast.error(
+                error?.message ||
+                    "An unexpected error occurred during flat upload"
+            );
+        }
+    };
+
     return (
         <div className={`container ${styles.container}`}>
             <div className={styles.header}>
@@ -320,6 +341,12 @@ const Page = () => {
                         }
                     >
                         New Flat
+                    </button>
+                    <button
+                        className={styles.newFlatButton}
+                        onClick={() => setIsFlatModalOpen(true)}
+                    >
+                        New Flats
                     </button>
                 </div>
             </div>
@@ -1116,6 +1143,12 @@ const Page = () => {
                     </div>
                 </div>
             )}
+            <ExcelUploadModal
+                open={isFlatModalOpen}
+                onClose={() => setIsFlatModalOpen(false)}
+                title="Upload Flat Excel"
+                onUpload={handleFlatUpload}
+            />
         </div>
     );
 };
