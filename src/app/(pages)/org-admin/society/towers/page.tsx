@@ -12,6 +12,7 @@ import { tower } from "@/utils/breadcrumbs";
 import { useDispatch } from "react-redux";
 import ExcelUploadModal from "@/components/ExcelUploadModal/ExcelUploadModal";
 import { bulkCreateTower } from "@/redux/action/org-admin";
+import toast from "react-hot-toast";
 const Page = () => {
     const [orgData, setOrgData] = useState<any[]>([]);
     const [cursor, setCursor] = useState<string | null>(null);
@@ -26,8 +27,23 @@ const Page = () => {
     const [isTowerModalOpen, setIsTowerModalOpen] = useState(false);
     const handleTowerUpload = async (file: File) => {
         if (!rera) return;
-        await bulkCreateTower(rera, file);
-        fetchData(null, false); // refresh tower list
+
+        try {
+            const response = await bulkCreateTower(rera, file);
+
+            // Check for error returned in response
+            if (response?.error) {
+                toast.error(response.message || "Upload failed");
+                return;
+            }
+
+            toast.success("Towers uploaded successfully");
+            fetchData(null, false);
+        } catch (error: any) {
+            toast.error(
+                error?.message || "An unexpected error occurred during upload"
+            );
+        }
     };
     const fetchData = async (cursor: string | null = null, isNext = true) => {
         setLoading(true);

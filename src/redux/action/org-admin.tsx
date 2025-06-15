@@ -1697,15 +1697,14 @@ export const bulkCreateTower = async (
         const url = tower.bulkCreateTower.getEndpoint(input);
 
         const formData = new FormData();
-        formData.append("file", file); // If backend expects a different key, change "file" accordingly
-
+        formData.append("file", file);
+        console.log("form", formData);
         const response = await axios.post(createURL(url), formData, {
             headers: {
                 Authorization: `Bearer ${token}`,
                 // No need to manually set 'Content-Type' for FormData
             },
         });
-
         return response.data;
     } catch (error: any) {
         console.error("Error:", error.response?.data || error.message);
