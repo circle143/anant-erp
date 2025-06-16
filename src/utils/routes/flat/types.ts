@@ -3,6 +3,11 @@ export interface CreateFlatInput {
 	societyReraNumber: string;
 }
 
+export interface BulkCreateFlatInput {
+	societyReraNumber: string;
+	towerID: string;
+}
+
 export interface CreateFlatRequestBodyInput {
 	tower: string; // tower id
 	flatType: string; // flat type id
