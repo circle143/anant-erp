@@ -10,7 +10,9 @@ export interface BulkCreateFlatInput {
 
 export interface CreateFlatRequestBodyInput {
 	tower: string; // tower id
-	flatType: string; // flat type id
+	// flatType: string; // flat type id
+	unitType: string; // like 2BHK
+	saleableArea: number;
 	name: string;
 	floorNumber: number;
 	facing: string; // Park/Road or Default
@@ -49,7 +51,9 @@ export interface UpdateFlatInput {
 
 export interface UpdateFlatRequestBodyInput {
 	tower: string; // tower id
-	flatType: string; // flat type id
+	// flatType: string; // flat type id
+	unitType: string; // like 2BHK
+	saleableArea: number;
 	name: string;
 	floorNumber: number;
 	facing: string; // Park/Road or Default
