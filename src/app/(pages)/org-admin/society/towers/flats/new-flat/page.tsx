@@ -3,7 +3,7 @@ import React, { useEffect, useState } from "react";
 import { Formik, Form, Field, ErrorMessage } from "formik";
 import * as Yup from "yup";
 import styles from "./page.module.scss";
-import { createFlat, getFlatTypes } from "@/redux/action/org-admin";
+import { createFlat } from "@/redux/action/org-admin";
 import toast from "react-hot-toast";
 import { useSearchParams } from "next/navigation";
 import CustomBreadcrumbs from "@/components/Breadcrumbs/Breadcrumbs";
@@ -32,32 +32,32 @@ const Page = () => {
     const [loading, setLoading] = useState<boolean>(true);
     const [submitting, setSubmitting] = useState<boolean>(false);
 
-    const fetchAllFlatTypes = async (
-        cursor: string | null = null,
-        accumulated: any[] = []
-    ): Promise<any[]> => {
-        if (!rera) return [];
+    // const fetchAllFlatTypes = async (
+    //     cursor: string | null = null,
+    //     accumulated: any[] = []
+    // ): Promise<any[]> => {
+    //     if (!rera) return [];
 
-        const response = await getFlatTypes(cursor, rera);
-        if (response?.error) return accumulated;
+    //     const response = await getFlatTypes(cursor, rera);
+    //     if (response?.error) return accumulated;
 
-        const items = response?.data?.items || [];
-        const newData = [...accumulated, ...items];
-        const hasNext = response?.data?.pageInfo?.nextPage;
-        const nextCursor = response?.data?.pageInfo?.cursor;
+    //     const items = response?.data?.items || [];
+    //     const newData = [...accumulated, ...items];
+    //     const hasNext = response?.data?.pageInfo?.nextPage;
+    //     const nextCursor = response?.data?.pageInfo?.cursor;
 
-        if (hasNext && nextCursor) {
-            return await fetchAllFlatTypes(nextCursor, newData);
-        }
+    //     if (hasNext && nextCursor) {
+    //         return await fetchAllFlatTypes(nextCursor, newData);
+    //     }
 
-        return newData;
-    };
+    //     return newData;
+    // };
 
     useEffect(() => {
         const loadData = async () => {
             setLoading(true);
-            const allFlatTypes = await fetchAllFlatTypes();
-            setFlatTypes(allFlatTypes);
+            // const allFlatTypes = await fetchAllFlatTypes();
+            // setFlatTypes(allFlatTypes);
             setLoading(false);
         };
         loadData();
@@ -81,7 +81,7 @@ const Page = () => {
         const response = await createFlat(
             rera,
             towerId,
-            values.flatType,
+            // values.flatType,
             values.name,
             Number(values.floorNumber),
             values.facing
