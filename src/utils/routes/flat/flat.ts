@@ -35,7 +35,7 @@ export const flat = {
 			// add multipart form data
 			// file name: file
 			// required column names in excel file
-			// "Unit No", "Saleable Area (in sq. ft.)" and "Flat facing"
+			// "Unit No", "Saleable Area (in sq. ft.)", "Unit Type" and "Flat facing"
 		},
 		requestMethod: "POST",
 	},

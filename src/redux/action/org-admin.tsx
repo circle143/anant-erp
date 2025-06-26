@@ -20,14 +20,14 @@ import {
     CreateTowerRequestBodyInput,
     TowerByIdInput,
 } from "@/utils/routes/tower/types";
-import {
-    GetAllFlatTypesInput,
-    CreateFlatTyperInput,
-    CreateFlatTyperRequestBodyInput,
-    UpdateFlatTypeInput,
-    UpdateFlatTypeRequestBodyInput,
-    DeleteFlatTypeInput,
-} from "@/utils/routes/flat-type/types";
+// import {
+//     GetAllFlatTypesInput,
+//     CreateFlatTyperInput,
+//     CreateFlatTyperRequestBodyInput,
+//     UpdateFlatTypeInput,
+//     UpdateFlatTypeRequestBodyInput,
+//     DeleteFlatTypeInput,
+// } from "@/utils/routes/flat-type/types";
 import {
     AddUserToOrganizationRequestBodyInput,
     GetAllOrganizationUsersInput,
@@ -71,7 +71,7 @@ import { flat } from "@/utils/routes/flat/flat";
 import { tower } from "@/utils/routes/tower/tower";
 import { organization } from "@/utils/routes/organization/organization";
 import { getIdToken } from "@/utils/get_user_tokens";
-import { flatType } from "@/utils/routes/flat-type/flat_type";
+// import { flatType } from "@/utils/routes/flat-type/flat_type";
 import { sum } from "lodash";
 import { paymentPlans } from "@/utils/routes/payment-plans/payment_plans";
 import {
@@ -326,7 +326,8 @@ export const getAllTowerSoldFlats = async (
 export const createFlat = async (
     societyReraNumber: string,
     tower: string,
-    flatType: string,
+    saleableArea: number,
+    unitType: string,
     name: string,
     floorNumber: number,
     facing: string
@@ -336,7 +337,8 @@ export const createFlat = async (
         const input: CreateFlatInput = { societyReraNumber };
         const reqBody: CreateFlatRequestBodyInput = {
             tower,
-            flatType,
+            saleableArea,
+            unitType,
             name,
             floorNumber,
             facing,
@@ -429,61 +431,61 @@ export const createTower = async (
 
 // ========== FLAT TYPES ==========
 
-export const getFlatTypes = async (
-    cursor: string | null = null,
-    societyReraNumber: string
-) => {
-    try {
-        const token = await getIdToken();
-        const input: GetAllFlatTypesInput = {
-            cursor: cursor ?? "",
-            societyReraNumber,
-        };
-        const url = flatType.getAllFlatTypes.getEndpoint(input);
-        const response = await axios.get(createURL(url), {
-            headers: { Authorization: `Bearer ${token}` },
-        });
-        return response.data;
-    } catch (error: any) {
-        console.error(
-            "Error fetching flat types:",
-            error.response?.data || error.message
-        );
-        return { error: true, message: error.message };
-    }
-};
+// export const getFlatTypes = async (
+//     cursor: string | null = null,
+//     societyReraNumber: string
+// ) => {
+//     try {
+//         const token = await getIdToken();
+//         const input: GetAllFlatTypesInput = {
+//             cursor: cursor ?? "",
+//             societyReraNumber,
+//         };
+//         const url = flatType.getAllFlatTypes.getEndpoint(input);
+//         const response = await axios.get(createURL(url), {
+//             headers: { Authorization: `Bearer ${token}` },
+//         });
+//         return response.data;
+//     } catch (error: any) {
+//         console.error(
+//             "Error fetching flat types:",
+//             error.response?.data || error.message
+//         );
+//         return { error: true, message: error.message };
+//     }
+// };
 
-export const createFlatType = async (
-    societyReraNumber: string,
-    name: string,
-    accommodation: string,
-    reraCarpetArea: number,
-    balconyArea: number,
-    superArea: number
-) => {
-    try {
-        const token = await getIdToken();
-        const input: CreateFlatTyperInput = { societyReraNumber };
-        const reqBody: CreateFlatTyperRequestBodyInput = {
-            name,
-            accommodation,
-            reraCarpetArea,
-            balconyArea,
-            superArea,
-        };
-        const url = flatType.createFlatType.getEndpoint(input);
-        const response = await axios.post(createURL(url), reqBody, {
-            headers: { Authorization: `Bearer ${token}` },
-        });
-        return response.data;
-    } catch (error: any) {
-        console.error(
-            "Error creating flat type:",
-            error.response?.data || error.message
-        );
-        return { error: true, message: error.message };
-    }
-};
+// export const createFlatType = async (
+//     societyReraNumber: string,
+//     name: string,
+//     accommodation: string,
+//     reraCarpetArea: number,
+//     balconyArea: number,
+//     superArea: number
+// ) => {
+//     try {
+//         const token = await getIdToken();
+//         const input: CreateFlatTyperInput = { societyReraNumber };
+//         const reqBody: CreateFlatTyperRequestBodyInput = {
+//             name,
+//             accommodation,
+//             reraCarpetArea,
+//             balconyArea,
+//             superArea,
+//         };
+//         const url = flatType.createFlatType.getEndpoint(input);
+//         const response = await axios.post(createURL(url), reqBody, {
+//             headers: { Authorization: `Bearer ${token}` },
+//         });
+//         return response.data;
+//     } catch (error: any) {
+//         console.error(
+//             "Error creating flat type:",
+//             error.response?.data || error.message
+//         );
+//         return { error: true, message: error.message };
+//     }
+// };
 
 export const createUser = async (email: string) => {
     try {
@@ -667,31 +669,31 @@ export const removeUserFromOrganization = async (email: string) => {
 //     }
 // };
 
-export const deleteFlatType = async (
-    FlatTypeID: string,
-    societyReraNumber: string
-) => {
-    try {
-        const token = await getIdToken();
-        const input: DeleteFlatTypeInput = {
-            FlatTypeID,
-            societyReraNumber,
-        };
+// export const deleteFlatType = async (
+//     FlatTypeID: string,
+//     societyReraNumber: string
+// ) => {
+//     try {
+//         const token = await getIdToken();
+//         const input: DeleteFlatTypeInput = {
+//             FlatTypeID,
+//             societyReraNumber,
+//         };
 
-        const url = flatType.deleteFlatType.getEndpoint(input);
-        const response = await axios.delete(createURL(url), {
-            headers: { Authorization: `Bearer ${token}` },
-        });
+//         const url = flatType.deleteFlatType.getEndpoint(input);
+//         const response = await axios.delete(createURL(url), {
+//             headers: { Authorization: `Bearer ${token}` },
+//         });
 
-        return response.data;
-    } catch (error: any) {
-        console.error(
-            "Error deleting flattype:",
-            error.response?.data || error.message
-        );
-        return { error: true, message: error.message };
-    }
-};
+//         return response.data;
+//     } catch (error: any) {
+//         console.error(
+//             "Error deleting flattype:",
+//             error.response?.data || error.message
+//         );
+//         return { error: true, message: error.message };
+//     }
+// };
 export const getAllPreferenceLocationCharges = async (
     societyReraNumber: string,
     cursor: string | null = null

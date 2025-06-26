@@ -3,13 +3,12 @@ import React, { useEffect, useState } from "react";
 import { Formik, Form, Field, ErrorMessage } from "formik";
 import * as Yup from "yup";
 import styles from "./page.module.scss";
-import { createFlat, getFlatTypes } from "@/redux/action/org-admin";
+import { createFlat } from "@/redux/action/org-admin";
 import toast from "react-hot-toast";
-import { useSearchParams } from "next/navigation";
+import { useSearchParams, useRouter } from "next/navigation";
 import CustomBreadcrumbs from "@/components/Breadcrumbs/Breadcrumbs";
-import { useRouter } from "next/navigation";
+
 const validationSchema = Yup.object({
-    flatType: Yup.string().required("Flat Type is required"),
     name: Yup.string()
         .min(3, "Name must be at least 3 characters")
         .required("Name is required"),
@@ -20,6 +19,11 @@ const validationSchema = Yup.object({
         .required("Floor Number is required")
         .min(0, "Floor number must be at least 0"),
     facing: Yup.string().required("Facing is required"),
+    saleableArea: Yup.number()
+        .typeError("Saleable area must be a number")
+        .required("Saleable Area is required")
+        .positive("Saleable area must be positive"),
+    unitType: Yup.string().required("Unit Type is required"),
 });
 
 const Page = () => {
@@ -28,47 +32,23 @@ const Page = () => {
     const rera = searchParams.get("rera");
     const towerId = searchParams.get("towerId");
 
-    const [flatTypes, setFlatTypes] = useState<any[]>([]);
     const [loading, setLoading] = useState<boolean>(true);
     const [submitting, setSubmitting] = useState<boolean>(false);
 
-    const fetchAllFlatTypes = async (
-        cursor: string | null = null,
-        accumulated: any[] = []
-    ): Promise<any[]> => {
-        if (!rera) return [];
-
-        const response = await getFlatTypes(cursor, rera);
-        if (response?.error) return accumulated;
-
-        const items = response?.data?.items || [];
-        const newData = [...accumulated, ...items];
-        const hasNext = response?.data?.pageInfo?.nextPage;
-        const nextCursor = response?.data?.pageInfo?.cursor;
-
-        if (hasNext && nextCursor) {
-            return await fetchAllFlatTypes(nextCursor, newData);
-        }
-
-        return newData;
-    };
-
     useEffect(() => {
         const loadData = async () => {
-            setLoading(true);
-            const allFlatTypes = await fetchAllFlatTypes();
-            setFlatTypes(allFlatTypes);
-            setLoading(false);
+            setLoading(false); // No data loading here now
         };
         loadData();
     }, [rera]);
 
     const handleSubmit = async (
         values: {
-            flatType: string;
             name: string;
             floorNumber: string;
             facing: string;
+            saleableArea: string;
+            unitType: string;
         },
         { resetForm }: { resetForm: () => void }
     ) => {
@@ -77,20 +57,20 @@ const Page = () => {
             return;
         }
 
-        setSubmitting(true); // Start form loading
+        setSubmitting(true);
         const response = await createFlat(
             rera,
             towerId,
-            values.flatType,
+            Number(values.saleableArea),
+            values.unitType,
             values.name,
             Number(values.floorNumber),
             values.facing
         );
-        setSubmitting(false); // Stop form loading
+        setSubmitting(false);
 
         if (response?.error === false) {
             toast.success("Flat created successfully!");
-
             resetForm();
         } else {
             const errorMessage =
@@ -100,6 +80,7 @@ const Page = () => {
             toast.error(errorMessage);
         }
     };
+
     const new_flat = [
         { name: "Home", href: "/org-admin" },
         { name: "Societies", href: "/org-admin/society" },
@@ -110,10 +91,10 @@ const Page = () => {
         },
         { name: "New Flat" },
     ];
+
     return (
         <div>
             <div style={{ paddingTop: "1rem", paddingLeft: "1rem" }}>
-                {" "}
                 <CustomBreadcrumbs items={new_flat} />
             </div>
 
@@ -122,10 +103,11 @@ const Page = () => {
 
                 <Formik
                     initialValues={{
-                        flatType: "",
                         name: "",
                         floorNumber: "",
                         facing: "Default",
+                        saleableArea: "",
+                        unitType: "",
                     }}
                     validationSchema={validationSchema}
                     onSubmit={handleSubmit}
@@ -133,29 +115,6 @@ const Page = () => {
                 >
                     {() => (
                         <Form className={`form ${styles.form}`}>
-                            {/* Flat Type Select */}
-                            <div className={styles.formGroup}>
-                                <label htmlFor="flatType">Flat Type</label>
-                                <Field
-                                    as="select"
-                                    id="flatType"
-                                    name="flatType"
-                                    className={styles.form_control}
-                                >
-                                    <option value="">Select Flat Type</option>
-                                    {flatTypes.map((type: any) => (
-                                        <option key={type.id} value={type.id}>
-                                            {type.name}
-                                        </option>
-                                    ))}
-                                </Field>
-                                <ErrorMessage
-                                    name="flatType"
-                                    component="p"
-                                    className="text-danger"
-                                />
-                            </div>
-
                             {/* Flat Name */}
                             <div className={styles.formGroup}>
                                 <label htmlFor="name">Flat Name</label>
@@ -183,7 +142,6 @@ const Page = () => {
                                     name="floorNumber"
                                     min="0"
                                     className={styles.form_control}
-                                    placeholder="Enter floor number"
                                 />
                                 <ErrorMessage
                                     name="floorNumber"
@@ -191,7 +149,49 @@ const Page = () => {
                                     className="text-danger"
                                 />
                             </div>
-                            {/* Facing Select */}
+
+                            {/* Saleable Area */}
+                            <div className={styles.formGroup}>
+                                <label htmlFor="saleableArea">
+                                    Saleable Area (sq ft)
+                                </label>
+                                <Field
+                                    type="number"
+                                    id="saleableArea"
+                                    name="saleableArea"
+                                    className={styles.form_control}
+                                />
+                                <ErrorMessage
+                                    name="saleableArea"
+                                    component="p"
+                                    className="text-danger"
+                                />
+                            </div>
+
+                            {/* Unit Type */}
+                            <div className={styles.formGroup}>
+                                <label htmlFor="unitType">Unit Type</label>
+                                <Field
+                                    as="select"
+                                    id="unitType"
+                                    name="unitType"
+                                    className={styles.form_control}
+                                >
+                                    <option value="">Select Unit Type</option>
+                                    <option value="1BHK">1BHK</option>
+                                    <option value="2BHK">2BHK</option>
+                                    <option value="3BHK">3BHK</option>
+                                    <option value="4BHK">4BHK</option>
+                                    <option value="Studio">Studio</option>
+                                </Field>
+                                <ErrorMessage
+                                    name="unitType"
+                                    component="p"
+                                    className="text-danger"
+                                />
+                            </div>
+
+                            {/* Facing */}
                             <div className={styles.formGroup}>
                                 <label htmlFor="facing">Facing</label>
                                 <Field
@@ -209,6 +209,8 @@ const Page = () => {
                                     className="text-danger"
                                 />
                             </div>
+
+                            {/* Submit Button */}
                             <button
                                 type="submit"
                                 disabled={submitting || loading}
