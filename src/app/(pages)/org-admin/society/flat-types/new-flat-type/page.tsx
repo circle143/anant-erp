@@ -3,7 +3,7 @@ import React, { useState } from "react";
 import { Formik, Form, Field, ErrorMessage } from "formik";
 import * as Yup from "yup";
 import styles from "./page.module.scss";
-import { createFlatType } from "@/redux/action/org-admin";
+// import { createFlatType } from "@/redux/action/org-admin";
 import toast from "react-hot-toast";
 import { useSearchParams } from "next/navigation";
 import CustomBreadcrumbs from "@/components/Breadcrumbs/Breadcrumbs";
@@ -55,26 +55,25 @@ const Page = () => {
 
         setLoading(true);
         try {
-            const response = await createFlatType(
-                rera,
-                values.name,
-                values.accommodation,
-                parseFloat(values.reraCarpetArea),
-                parseFloat(values.balconyArea),
-                parseFloat(values.superArea)
-            );
-
-            if (response?.error === false) {
-                toast.success("Flat type created successfully!");
-                resetForm();
-            } else {
-                const errorMessage =
-                    response?.response?.data?.message ||
-                    response?.message ||
-                    "Something went wrong";
-                toast.error(errorMessage);
-                console.error("API Error:", errorMessage);
-            }
+            // const response = await createFlatType(
+            //     rera,
+            //     values.name,
+            //     values.accommodation,
+            //     parseFloat(values.reraCarpetArea),
+            //     parseFloat(values.balconyArea),
+            //     parseFloat(values.superArea)
+            // );
+            // if (response?.error === false) {
+            //     toast.success("Flat type created successfully!");
+            //     resetForm();
+            // } else {
+            //     const errorMessage =
+            //         response?.response?.data?.message ||
+            //         response?.message ||
+            //         "Something went wrong";
+            //     toast.error(errorMessage);
+            //     console.error("API Error:", errorMessage);
+            // }
         } catch (error) {
             toast.error("Unexpected error occurred");
             console.error("Unexpected error:", error);
