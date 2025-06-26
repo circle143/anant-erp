@@ -377,6 +377,18 @@ const Page = () => {
                                                         "Not Available"}
                                                 </div>
                                                 <div>
+                                                    <strong>
+                                                        Salable Area:
+                                                    </strong>{" "}
+                                                    {org.salableArea ??
+                                                        "Not Available"}
+                                                </div>
+                                                <div>
+                                                    <strong>Type:</strong>{" "}
+                                                    {org.unitType ??
+                                                        "Not Available"}
+                                                </div>
+                                                <div>
                                                     <strong>Facing:</strong>{" "}
                                                     {org.facing ||
                                                         "Not Available"}
