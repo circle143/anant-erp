@@ -1,184 +1,190 @@
 .container {
-  padding: 2rem;
-  font-family: 'Segoe UI', sans-serif;
-  color: #1e1e1e;
-  background-color: #f9f9f9;
+    padding: 2rem;
+    font-family: "Segoe UI", sans-serif;
+    color: #1e1e1e;
+    background-color: #f9f9f9;
 
-  h1 {
-    font-size: 2rem;
-    margin-bottom: 1.5rem;
-    color: #2c3e50;
-  }
-
-  h2 {
-    margin-top: 2rem;
-    font-size: 1.75rem;
-    color: #34495e;
-  }
-
-  h3 {
-    font-size: 1.25rem;
-    color: #2c3e50;
-    margin-top: 1rem;
-  }
-
-  h4 {
-    font-size: 1.1rem;
-    color: #2c3e50;
-    margin-bottom: 0.5rem;
-  }
-
-  .formGroup, .dateGroup {
-    display: flex;
-    gap: 2rem;
-    flex-wrap: wrap;
-    margin-bottom: 1rem;
-
-    label {
-      display: block;
-      font-weight: 600;
-      margin-bottom: 0.25rem;
+    h1 {
+        font-size: 2rem;
+        margin-bottom: 1.5rem;
+        color: #2c3e50;
     }
 
-    select, input {
-      width: 100%;
-      max-width: 300px;
-      padding: 0.5rem;
-      border: 1px solid #ccc;
-      border-radius: 6px;
+    h2 {
+        margin-top: 2rem;
+        font-size: 1.75rem;
+        color: #34495e;
     }
-  }
-
-  .buttonGroup {
-    display: flex;
-    gap: 1rem;
-    align-items: flex-end;
-
-    button {
-      padding: 0.5rem 1rem;
-      font-weight: 600;
-      border: none;
-      border-radius: 6px;
-      background-color: #3498db;
-      color: white;
-      cursor: pointer;
-      transition: background 0.2s ease;
-
-      &:hover {
-        background-color: #2980b9;
-      }
-
-      &:disabled {
-        background-color: #95a5a6;
-        cursor: not-allowed;
-      }
-    }
-  }
-
-  .reportContainer {
-    margin-top: 2rem;
-    background: white;
-    padding: 1.5rem;
-    border-radius: 8px;
-    box-shadow: 0 2px 6px rgba(0, 0, 0, 0.05);
-  }
-
-  .summarySection {
-    background: #ecf0f1;
-    padding: 1rem;
-    border-radius: 6px;
-    margin-bottom: 1rem;
 
     h3 {
-      margin: 0;
+        font-size: 1.25rem;
+        color: #2c3e50;
+        margin-top: 1rem;
     }
-  }
 
-  .detailGrid {
-    display: grid;
-    grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
-    gap: 1rem;
-    margin-bottom: 1rem;
-
-    p {
-      margin: 0;
+    h4 {
+        font-size: 1.1rem;
+        color: #2c3e50;
+        margin-bottom: 0.5rem;
     }
-  }
 
-  .saleSection {
-    margin-bottom: 2rem;
-
-    .sectionDivider {
-      margin: 2rem 0;
-      border: none;
-      border-top: 1px solid #ccc;
-    }
-  }
-
-  .ownerDetails {
-    display: flex;
-    align-items: flex-start;
-    gap: 1rem;
-    background: #f0f3f4;
-    padding: 1rem;
-    border-radius: 6px;
-    margin-bottom: 1rem;
-
-    .ownerImage {
-      flex-shrink: 0;
-
-      .profileImage {
-        border-radius: 50%;
-        object-fit: cover;
-      }
-
-      .blankProfile {
-        width: 100px;
-        height: 100px;
-        background-color: #bdc3c7;
-        border-radius: 50%;
+    .formGroup,
+    .dateGroup {
         display: flex;
-        align-items: center;
-        justify-content: center;
-        font-weight: bold;
-        font-size: 1.5rem;
-        color: white;
-      }
+        gap: 2rem;
+        flex-wrap: wrap;
+        margin-bottom: 1rem;
+        .broker {
+            width: clamp(8em, 10vi, 10em);
+        }
+        label {
+            display: block;
+            font-weight: 600;
+            margin-bottom: 0.25rem;
+        }
+
+        select,
+        input {
+            width: 100%;
+            max-width: 300px;
+            padding: 0.5rem;
+            border: 1px solid #ccc;
+            border-radius: 6px;
+        }
     }
 
-    .ownerInfo {
-      display: grid;
-      gap: 0.25rem;
+    .buttonGroup {
+        display: flex;
+        gap: 1rem;
+        align-items: flex-end;
+
+        button {
+            padding: 0.5rem 1rem;
+            font-weight: 600;
+            border: none;
+            border-radius: 6px;
+            background-color: #3498db;
+            color: white;
+            cursor: pointer;
+            transition: background 0.2s ease;
+
+            &:hover {
+                background-color: #2980b9;
+            }
+
+            &:disabled {
+                background-color: #95a5a6;
+                cursor: not-allowed;
+            }
+        }
     }
-  }
 
-  .detailsTable {
-    width: 100%;
-    border-collapse: collapse;
-    margin-top: 1rem;
-
-    th, td {
-      padding: 0.5rem;
-      text-align: left;
-      border: 1px solid #ccc;
+    .reportContainer {
+        margin-top: 2rem;
+        background: white;
+        padding: 1.5rem;
+        border-radius: 8px;
+        box-shadow: 0 2px 6px rgba(0, 0, 0, 0.05);
     }
 
-    th {
-      background-color: #f5f5f5;
+    .summarySection {
+        background: #ecf0f1;
+        padding: 1rem;
+        border-radius: 6px;
+        margin-bottom: 1rem;
+
+        h3 {
+            margin: 0;
+        }
     }
 
-    .failedReceipt {
-      background-color: #fdecea;
+    .detailGrid {
+        display: grid;
+        grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+        gap: 1rem;
+        margin-bottom: 1rem;
+
+        p {
+            margin: 0;
+        }
     }
-  }
 
-  .noData {
-    margin-top: 1rem;
-    font-style: italic;
-    color: #7f8c8d;
-  }
+    .saleSection {
+        margin-bottom: 2rem;
 
-  .brokerSelect, .date {
-    color: black;
-  }
+        .sectionDivider {
+            margin: 2rem 0;
+            border: none;
+            border-top: 1px solid #ccc;
+        }
+    }
+
+    .ownerDetails {
+        display: flex;
+        align-items: flex-start;
+        gap: 1rem;
+        background: #f0f3f4;
+        padding: 1rem;
+        border-radius: 6px;
+        margin-bottom: 1rem;
+
+        .ownerImage {
+            flex-shrink: 0;
+
+            .profileImage {
+                border-radius: 50%;
+                object-fit: cover;
+            }
+
+            .blankProfile {
+                width: 100px;
+                height: 100px;
+                background-color: #bdc3c7;
+                border-radius: 50%;
+                display: flex;
+                align-items: center;
+                justify-content: center;
+                font-weight: bold;
+                font-size: 1.5rem;
+                color: white;
+            }
+        }
+
+        .ownerInfo {
+            display: grid;
+            gap: 0.25rem;
+        }
+    }
+
+    .detailsTable {
+        width: 100%;
+        border-collapse: collapse;
+        margin-top: 1rem;
+
+        th,
+        td {
+            padding: 0.5rem;
+            text-align: left;
+            border: 1px solid #ccc;
+        }
+
+        th {
+            background-color: #f5f5f5;
+        }
+
+        .failedReceipt {
+            background-color: #fdecea;
+        }
+    }
+
+    .noData {
+        margin-top: 1rem;
+        font-style: italic;
+        color: #7f8c8d;
+    }
+
+    .brokerSelect,
+    .date {
+        color: black;
+    }
 }

@@ -56,12 +56,17 @@ export const sale = [
 ];
 export const home = [{ name: "Home" }];
 export const society_edit = [
-  { name: "Home", href: "/org-admin" },
-  { name: "Societies", href: "/org-admin/society" },
-  { name: "Edit Society" },
+    { name: "Home", href: "/org-admin" },
+    { name: "Societies", href: "/org-admin/society" },
+    { name: "Edit Society" },
 ];
 export const Brokers = [
-  { name: "Home", href: "/org-admin" },
-  { name: "Societies", href: "/org-admin/society" },
-  { name: "Brokers" },
+    { name: "Home", href: "/org-admin" },
+    { name: "Societies", href: "/org-admin/society" },
+    { name: "Brokers" },
+];
+export const Banks = [
+    { name: "Home", href: "/org-admin" },
+    { name: "Societies", href: "/org-admin/society" },
+    { name: "Banks" },
 ];

@@ -294,7 +294,11 @@ const Page = () => {
             );
         }
     };
-
+    useEffect(() => {
+        if (totalPages > 0) {
+            window.scrollTo({ top: 0, behavior: "smooth" });
+        }
+    }, [currentPage]);
     return (
         <div className={`container ${styles.container}`}>
             <div className={styles.header}>
@@ -1095,11 +1099,20 @@ const Page = () => {
 
                             <div className={styles.paginationControls}>
                                 <button
-                                    onClick={() =>
-                                        setCurrentPage((prev) =>
-                                            Math.max(prev - 1, 1)
-                                        )
-                                    }
+                                    onClick={() => {
+                                        if (
+                                            currentPage > 1 &&
+                                            totalPages !== 0
+                                        ) {
+                                            setCurrentPage((prev) =>
+                                                Math.max(prev - 1, 1)
+                                            );
+                                            window.scrollTo({
+                                                top: 0,
+                                                behavior: "smooth",
+                                            });
+                                        }
+                                    }}
                                     disabled={
                                         currentPage === 1 || totalPages === 0
                                     }
@@ -1112,11 +1125,20 @@ const Page = () => {
                                     {totalPages}
                                 </span> */}
                                 <button
-                                    onClick={() =>
-                                        setCurrentPage((prev) =>
-                                            Math.min(prev + 1, totalPages)
-                                        )
-                                    }
+                                    onClick={() => {
+                                        if (
+                                            currentPage < totalPages &&
+                                            totalPages !== 0
+                                        ) {
+                                            setCurrentPage((prev) =>
+                                                Math.min(prev + 1, totalPages)
+                                            );
+                                            window.scrollTo({
+                                                top: 0,
+                                                behavior: "smooth",
+                                            });
+                                        }
+                                    }}
                                     disabled={
                                         currentPage === totalPages ||
                                         totalPages === 0
