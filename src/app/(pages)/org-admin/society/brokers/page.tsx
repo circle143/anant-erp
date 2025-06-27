@@ -66,7 +66,7 @@ const Page = () => {
                 <button
                     onClick={() =>
                         router.push(
-                            `/org-admin/society/brokers/new-broker?rera=${rera}`
+                            `/org-admin/society/broker/new-broker?rera=${rera}`
                         )
                     }
                 >

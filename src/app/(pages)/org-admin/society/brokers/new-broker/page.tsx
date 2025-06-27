@@ -76,7 +76,7 @@ const Page = () => {
         { name: "Societies", href: "/org-admin/society" },
         {
             name: "Brokers",
-            href: `/org-admin/society/brokers?rera=${rera}`,
+            href: `/org-admin/society/broker?rera=${rera}`,
         },
         { name: "New Broker" },
     ];
