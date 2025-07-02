@@ -1,0 +1,247 @@
+.receiptContainer {
+    padding: 1.5rem;
+    background-color: white;
+    color: black;
+    max-width: 56rem;
+    margin: 0 auto;
+    box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1),
+        0 2px 4px -1px rgba(0, 0, 0, 0.06);
+    // outline :2px solid red;
+    .header {
+        text-align: center;
+
+        h1 {
+            font-size: 1.25rem;
+            font-weight: bold;
+        }
+    }
+
+    .customerInfo {
+        margin-top: 1rem;
+        border-top: 1px solid #e5e7eb;
+        padding-top: 1rem;
+
+        p {
+            margin: 0.25rem 0;
+        }
+    }
+
+    .summary {
+        margin-top: 1rem;
+    }
+
+    .receiptTable {
+        width: 100%;
+        margin-top: 1rem;
+        border-collapse: collapse;
+        font-size: 0.9rem;
+        th,
+        td {
+            border: 1px solid black;
+            padding: 0.5rem;
+            text-align: center;
+        }
+
+        th {
+            background-color: #f3f4f6;
+        }
+    }
+
+    .totalAmount {
+        text-align: right;
+        margin-top: 0.5rem;
+        font-weight: bold;
+        font-size: 1.125rem;
+    }
+
+    .terms {
+        margin-top: 1.5rem;
+        font-size: 0.875rem;
+        border-top: 1px solid #e5e7eb;
+        padding-top: 1rem;
+
+        ul {
+            list-style-type: disc;
+            padding-left: 1.25rem;
+        }
+    }
+
+    .signature {
+        margin-top: 1.5rem;
+        display: flex;
+        flex-direction: column;
+        justify-content: space-between;
+        gap: 4em;
+
+        .authorized {
+            font-weight: 600;
+        }
+    }
+
+    .printButton {
+        margin-top: 1rem;
+        padding: 0.5rem 1rem;
+        background-color: #2563eb;
+        color: white;
+        border-radius: 0.25rem;
+
+        &:hover {
+            background-color: #1d4ed8;
+        }
+    }
+}
+.overlay {
+    position: relative;
+    .closeButton {
+        position: absolute;
+        top: 1rem;
+        right: 1rem;
+        background-color: #f3f3f3;
+        border: none;
+        border-radius: 50%;
+        width: 2.5rem;
+        height: 2.5rem;
+        font-size: 1.5rem;
+        font-weight: bold;
+        color: #333;
+        cursor: pointer;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        box-shadow: 0 2px 6px rgba(0, 0, 0, 0.1);
+        transition: background-color 0.3s ease, transform 0.2s ease,
+            color 0.2s ease;
+
+        &:hover {
+            background-color: #e0e0e0;
+            color: #000;
+            transform: scale(1.05);
+        }
+
+        &:focus {
+            outline: none;
+            box-shadow: 0 0 0 3px rgba(0, 123, 255, 0.4); // accessibility focus ring
+        }
+    }
+}
+
+// Print styles
+// Add these print-specific styles
+@media print {
+    @page {
+        size: A4 portrait;
+        // margin: 2mm;
+    }
+    .receiptContainer {
+        padding: 1.5rem;
+        background-color: white;
+        color: black;
+        max-width: 56rem;
+        // margin: 0 auto;
+        box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1),
+            0 2px 4px -1px rgba(0, 0, 0, 0.06);
+        // outline :2px solid red;
+        .header {
+            text-align: center;
+
+            h1 {
+                font-size: 1.25rem;
+                font-weight: bold;
+            }
+        }
+
+        .customerInfo {
+            margin-top: 1rem;
+            border-top: 1px solid #e5e7eb;
+            padding-top: 1rem;
+
+            p {
+                margin: 0.25rem 0;
+            }
+        }
+
+        .summary {
+            margin-top: 1rem;
+        }
+
+        .receiptTable {
+            max-width: 100%;
+            // outline: 2px solid red;
+            margin-top: 1rem;
+            border-collapse: collapse;
+            font-size: 0.7rem;
+            // transform: scale(0.95);
+
+            th,
+            td {
+                border: 1px solid black;
+                padding: 0.4rem;
+                text-align: center;
+                font-size: 0.7rem;
+            }
+
+            th {
+                background-color: #f3f4f6;
+            }
+        }
+
+        .totalAmount {
+            text-align: right;
+            margin-top: 0.5rem;
+            font-weight: bold;
+            font-size: 1.125rem;
+        }
+
+        .terms {
+            margin-top: 1.5rem;
+            font-size: 0.875rem;
+            border-top: 1px solid #e5e7eb;
+            padding-top: 1rem;
+
+            ul {
+                list-style-type: disc;
+                padding-left: 1.25rem;
+            }
+        }
+
+        .signature {
+            margin-top: 1.5rem;
+            display: flex;
+            flex-direction: column;
+            justify-content: space-between;
+            gap: 4em;
+
+            .authorized {
+                font-weight: 600;
+            }
+        }
+
+        .printButton {
+            margin-top: 1rem;
+            padding: 0.5rem 1rem;
+            background-color: #2563eb;
+            color: white;
+            border-radius: 0.25rem;
+
+            &:hover {
+                background-color: #1d4ed8;
+            }
+        }
+    }
+    .noPrint {
+        display: none !important;
+    }
+}
+.pdf-export {
+    background-color: white !important;
+    color: black !important;
+
+    .receiptTable {
+        th {
+            background-color: #f3f4f6 !important;
+            color: black !important;
+            -webkit-print-color-adjust: exact !important;
+            print-color-adjust: exact !important;
+        }
+    }
+}

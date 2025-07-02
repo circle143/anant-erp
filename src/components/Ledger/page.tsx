@@ -8,57 +8,56 @@ import { formatIndianCurrencyWithDecimals } from "@/utils/formatIndianCurrencyWi
 import { useSelector } from "react-redux";
 import { RootState } from "@/redux/store";
 import { useSearchParams } from "next/navigation";
-interface ReceiptData {
-    receiptNo: string;
+interface bank {
+    accountNumber: string;
+    createdAt: string;
+    id: string;
+    name: string;
+    orgId: string;
+    societyId: string;
+}
+interface cleared {
+    bank: bank;
+    bankId: string;
+    receiptId: string;
+}
+interface SingleReceipt {
+    amount: string;
+    bankName?: string;
+    cgst: string;
+    cleared?: cleared;
+    failed: boolean;
+    createdAt: string;
+    dateIssued: string;
+    id: string;
+    mode: string;
+    saleId: string;
+    sgst: string;
+    totalAmount: string;
+    transactionNumber: string;
+}
+
+interface LedgerProps {
+    receipt: SingleReceipt[];
     customerId: string;
     name: string;
-    address: string;
     phone: string;
-    date: string;
     amount: number;
-    cgst: number;
-    sgst: number;
-    total: number;
+    amountRemaining: number;
+    bookingDate: string;
     superArea: number;
     floor: string;
     tower: string;
     project: string;
     plotNo: string;
-    bankName: string;
-    instrumentDate: string;
-    status: string;
-    mode: string;
 }
 
 interface PageProps {
-    receiptData: ReceiptData;
-
+    receiptData: LedgerProps;
     onClose: () => void;
 }
 
 const Page: React.FC<PageProps> = ({ receiptData, onClose }) => {
-    const {
-        receiptNo,
-        customerId,
-        name,
-        address,
-        phone,
-        date,
-        amount,
-        cgst,
-        sgst,
-        total,
-        superArea,
-        floor,
-        tower,
-        project,
-        plotNo,
-        bankName,
-        instrumentDate,
-        status,
-        mode,
-    } = receiptData;
-
     const receiptRef = useRef<HTMLDivElement>(null);
 
     const handlePrint = () => {
@@ -166,7 +165,7 @@ const Page: React.FC<PageProps> = ({ receiptData, onClose }) => {
         }
 
         pdf.addImage(imgData, "PNG", 0, 0, imgWidth, imgHeight);
-        pdf.save(`receipt_${receiptNo}.pdf`);
+        pdf.save(`receipt_${receiptData.customerId}.pdf`);
 
         // Restore .noPrint elements
         noPrintElements.forEach(
@@ -209,57 +208,58 @@ const Page: React.FC<PageProps> = ({ receiptData, onClose }) => {
 
                     <div className={styles.customerInfo}>
                         <p>
-                            <strong>Receipt No:</strong> {receiptNo}
-                        </p>
-                        <p>
                             <strong>
-                                {customerId.includes(",")
+                                {receiptData.customerId.includes(",")
                                     ? "Owner ID(s)"
                                     : "Customer ID"}
                                 :
                             </strong>{" "}
-                            {customerId}
+                            {receiptData.customerId}
                         </p>
                         <p>
                             <strong>
-                                {customerId.includes(",")
+                                {receiptData.customerId.includes(",")
                                     ? "Owner(s)"
                                     : "Customer Name"}
                                 :
                             </strong>{" "}
-                            {name}
+                            {receiptData.name}
                         </p>
                         <p>
-                            <strong>Address:</strong> {address}
+                            <strong>Mobile:</strong> {receiptData.phone}
                         </p>
                         <p>
-                            <strong>Mobile:</strong> {phone}
+                            <strong>Total Amount:</strong>{" "}
+                            {formatIndianCurrencyWithDecimals(
+                                Number(receiptData.amount)
+                            )}
                         </p>
                         <p>
-                            <strong>Date:</strong> {date}
+                            <strong>Remaining Amount:</strong>{" "}
+                            {formatIndianCurrencyWithDecimals(
+                                Number(receiptData.amountRemaining)
+                            )}
+                        </p>
+                        <p>
+                            <strong>Booking Date:</strong>{" "}
+                            {receiptData.bookingDate}
                         </p>
                     </div>
 
                     <div className={styles.summary}>
                         <p>
-                            A sum of{" "}
+                            Flat No. <strong>{receiptData.plotNo}</strong> with
+                            a salable area of{" "}
+                            <strong>{receiptData.superArea} Sq.Ft.</strong>,
+                            located on the{" "}
                             <strong>
-                                {formatIndianCurrencyWithDecimals(total)}
+                                {receiptData.floor}
+                                <sup>th</sup> floor
                             </strong>{" "}
-                            (
-                            <strong>
-                                {numberToWords(total).toUpperCase()} ONLY
-                            </strong>
-                            ) received for Flat No. <strong>{plotNo}</strong>{" "}
-                            with Salable Area{" "}
-                            <strong>{superArea} Sq.Ft.</strong> on{" "}
-                            <strong>{floor}th floor</strong> at Tower no.{" "}
-                            <strong>{tower}</strong> in project{" "}
-                            <strong>
-                                {SocietyFlatData?.name} located at{" "}
-                                {SocietyFlatData?.address}
-                            </strong>
-                            .
+                            of Tower <strong>{receiptData.tower}</strong>, in
+                            the project <strong>{SocietyFlatData?.name}</strong>{" "}
+                            located at{" "}
+                            <strong>{SocietyFlatData?.address}</strong>.
                         </p>
                     </div>
                     <table className={styles.receiptTable}>
@@ -277,28 +277,124 @@ const Page: React.FC<PageProps> = ({ receiptData, onClose }) => {
                             </tr>
                         </thead>
                         <tbody>
+                            {receiptData.receipt.map((receipt, index) => {
+                                const status = receipt.failed
+                                    ? "Failed"
+                                    : receipt.cleared
+                                    ? "Paid"
+                                    : "Pending";
+                                const bankName =
+                                    receipt.bankName ||
+                                    receipt.cleared?.bank?.name ||
+                                    "N/A";
+                                const instrumentDate = new Date(
+                                    receipt.dateIssued
+                                ).toLocaleDateString();
+
+                                return (
+                                    <tr key={receipt.id}>
+                                        <td>{index + 1}</td>
+                                        <td>{receipt.mode}</td>
+                                        <td>{instrumentDate}</td>
+                                        <td>{status}</td>
+                                        <td>{bankName}</td>
+                                        <td>
+                                            {formatIndianCurrencyWithDecimals(
+                                                Number(receipt.amount)
+                                            )}
+                                        </td>
+                                        <td>
+                                            {formatIndianCurrencyWithDecimals(
+                                                Number(receipt.cgst)
+                                            )}
+                                        </td>
+                                        <td>
+                                            {formatIndianCurrencyWithDecimals(
+                                                Number(receipt.sgst)
+                                            )}
+                                        </td>
+                                        <td>
+                                            {formatIndianCurrencyWithDecimals(
+                                                Number(receipt.totalAmount)
+                                            )}
+                                        </td>
+                                    </tr>
+                                );
+                            })}
+
+                            {/* Totals Row */}
                             <tr>
-                                <td>1</td>
-                                <td>{mode}</td>
-                                <td>{instrumentDate}</td>
-                                <td>{status}</td>
-                                <td>{bankName}</td>
-                                <td>
-                                    {formatIndianCurrencyWithDecimals(amount)}
+                                <td colSpan={5}>
+                                    <strong>Total</strong>
                                 </td>
                                 <td>
-                                    {formatIndianCurrencyWithDecimals(cgst)}
+                                    <strong>
+                                        {formatIndianCurrencyWithDecimals(
+                                            receiptData.receipt
+                                                .reduce(
+                                                    (acc, r) =>
+                                                        acc + Number(r.amount),
+                                                    0
+                                                )
+                                                .toFixed(2)
+                                        )}
+                                    </strong>
                                 </td>
                                 <td>
-                                    {formatIndianCurrencyWithDecimals(sgst)}
+                                    <strong>
+                                        {formatIndianCurrencyWithDecimals(
+                                            receiptData.receipt
+                                                .reduce(
+                                                    (acc, r) =>
+                                                        acc + Number(r.cgst),
+                                                    0
+                                                )
+                                                .toFixed(2)
+                                        )}
+                                    </strong>
                                 </td>
                                 <td>
-                                    {formatIndianCurrencyWithDecimals(total)}
+                                    <strong>
+                                        {formatIndianCurrencyWithDecimals(
+                                            receiptData.receipt
+                                                .reduce(
+                                                    (acc, r) =>
+                                                        acc + Number(r.sgst),
+                                                    0
+                                                )
+                                                .toFixed(2)
+                                        )}
+                                    </strong>
+                                </td>
+                                <td>
+                                    <strong>
+                                        {formatIndianCurrencyWithDecimals(
+                                            receiptData.receipt
+                                                .reduce(
+                                                    (acc, r) =>
+                                                        acc +
+                                                        Number(r.totalAmount),
+                                                    0
+                                                )
+                                                .toFixed(2)
+                                        )}
+                                    </strong>
                                 </td>
                             </tr>
                         </tbody>
                     </table>
-
+                    <div>
+                        <strong>
+                            Amount in words:{" "}
+                            {numberToWords(
+                                receiptData.receipt.reduce(
+                                    (acc, r) => acc + Number(r.totalAmount),
+                                    0
+                                )
+                            ).toUpperCase()}{" "}
+                            ONLY
+                        </strong>
+                    </div>
                     <div className={styles.signature}>
                         <p>For DSD HOMES PVT. LTD.</p>
                         <p className={styles.authorized}>
@@ -308,19 +404,7 @@ const Page: React.FC<PageProps> = ({ receiptData, onClose }) => {
 
                     <div className={styles.terms}>
                         <ul>
-                            <li>
-                                This receipt is subject to realization of
-                                cheque/draft.
-                            </li>
-                            <li>
-                                The receipts are not transferable without
-                                written consent of the company.
-                            </li>
-                            <li>
-                                This is only the receipt for the remittance and
-                                does not entitle ownership unless confirmed by
-                                the company.
-                            </li>
+                            <li>With tax as per Govt. rule</li>
                         </ul>
                     </div>
                 </div>

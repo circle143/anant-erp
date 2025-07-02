@@ -574,6 +574,7 @@ const Page = () => {
                                             >
                                                 <thead>
                                                     <tr>
+                                                        <th>Receipt Id</th>
                                                         <th>Date</th>
                                                         <th>Amount</th>
                                                         <th>Mode</th>
@@ -595,6 +596,9 @@ const Page = () => {
                                                                         : ""
                                                                 }
                                                             >
+                                                                <td>
+                                                                    {receipt.id}
+                                                                </td>
                                                                 <td>
                                                                     {formatDate(
                                                                         receipt.dateIssued

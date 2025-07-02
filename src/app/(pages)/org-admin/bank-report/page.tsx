@@ -375,6 +375,7 @@ const Page = () => {
                             <table className={styles.detailsTable}>
                                 <thead>
                                     <tr>
+                                        <th>Receipt Id</th>
                                         <th>Date</th>
                                         <th>Amount</th>
                                         <th>Mode</th>
@@ -390,6 +391,9 @@ const Page = () => {
                                     {report.data.Details.clearedReceipts.map(
                                         (clearedReceipt: ClearedReceipt) => (
                                             <tr key={clearedReceipt.receiptId}>
+                                                <td>
+                                                    {clearedReceipt.receipt.id}
+                                                </td>
                                                 <td>
                                                     {formatDate(
                                                         clearedReceipt.receipt
@@ -492,6 +496,7 @@ const Page = () => {
                                                                                 {
                                                                                     owner.panNumber
                                                                                 }
+
                                                                                 )
                                                                             </>
                                                                         )}
@@ -503,6 +508,7 @@ const Page = () => {
                                                                                 {
                                                                                     owner.aadharNumber
                                                                                 }
+
                                                                                 )
                                                                             </>
                                                                         )}

@@ -384,8 +384,9 @@ const Page = () => {
                                                     <strong>
                                                         Salable Area:
                                                     </strong>{" "}
-                                                    {org.salableArea ??
-                                                        "Not Available"}
+                                                    {org.salableArea
+                                                        ? `${org.salableArea} Sq.Ft`
+                                                        : "Not Available"}
                                                 </div>
                                                 <div>
                                                     <strong>Type:</strong>{" "}
@@ -935,8 +936,9 @@ const Page = () => {
                                                                                                 Type
                                                                                             </th>
                                                                                             <th>
-                                                                                                Super
+                                                                                                Salable
                                                                                                 Area
+                                                                                                (Sq.Ft)
                                                                                             </th>
                                                                                             <th>
                                                                                                 Total
@@ -976,9 +978,9 @@ const Page = () => {
                                                                                                             "Not Available"}
                                                                                                     </td>
                                                                                                     <td>
-                                                                                                        {item.superArea !=
+                                                                                                        {item.salableArea !=
                                                                                                         null
-                                                                                                            ? item.superArea
+                                                                                                            ? item.salableArea
                                                                                                             : "0.00"}
                                                                                                     </td>
                                                                                                     <td>
