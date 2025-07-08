@@ -50,6 +50,7 @@ import {
     UpdateCustomerDetailsReqBodyInput,
     UpdateCompanyCustomerDetailsReqBodyInput,
     ClearSaleRecord,
+    OtherCharges,
 } from "@/utils/routes/sale/types";
 import {
     GetChargesInput,
@@ -544,7 +545,7 @@ export const updateOrganizationDetails = async (
 export const addCustomer = async (
     societyReraNumber: string,
     flatID: string,
-    optionalCharges: string[],
+    otherCharges: OtherCharges[],
     basicCost: number,
     type: string,
     brokerId: string,
@@ -562,7 +563,7 @@ export const addCustomer = async (
             type,
             details: customers,
             companyBuyer,
-            optionalCharges,
+            otherCharges,
             basicCost: parseFloat(basicCost.toString()),
             brokerId,
         };

@@ -889,7 +889,7 @@ const Sale = () => {
                                                     className="error"
                                                 />
                                             </div>
-                                            <div>
+                                            {/* <div>
                                                 <label>Optional Charges:</label>
                                                 <Select
                                                     multiple
@@ -986,7 +986,7 @@ const Sale = () => {
                                                     component="div"
                                                     className="error"
                                                 />
-                                            </div>
+                                            </div> */}
                                             <button
                                                 type="button"
                                                 onClick={() =>
