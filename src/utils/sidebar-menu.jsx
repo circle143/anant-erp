@@ -14,12 +14,12 @@ export const sidebarAdminItems = [
 ];
 
 export const sidebarOrgAdminItems = [
-    {
-        eventKey: "Create Socity",
-        icon: "bx bx-building-house", // Society icon
-        text: "Create Society",
-        paths: ["/org-admin/new-society"],
-    },
+    // {
+    //     eventKey: "Create Socity",
+    //     icon: "bx bx-building-house", // Society icon
+    //     text: "Create Society",
+    //     paths: ["/org-admin/new-society"],
+    // },
     {
         eventKey: "Societies",
         icon: "bx bx-buildings", // Societies list

@@ -9,7 +9,7 @@ import { useSearchParams } from "next/navigation";
 import CustomBreadcrumbs from "@/components/Breadcrumbs/Breadcrumbs";
 const validationSchema = Yup.object({
     name: Yup.string()
-        .min(3, "Name must be at least 3 characters")
+        .min(1, "Name must be at least 1 characters")
         .required("Tower name is required"),
     floorCount: Yup.number()
         .transform((value, originalValue) =>

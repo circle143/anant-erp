@@ -210,7 +210,7 @@ const Page = () => {
                             </p>
                         </>
                     )}
-
+                    {/* 
                     <div className={styles.buttonGroup}>
                         {editMode ? (
                             <>
@@ -237,7 +237,7 @@ const Page = () => {
                                 Edit
                             </button>
                         )}
-                    </div>
+                    </div> */}
                 </div>
             </div>
         </div>

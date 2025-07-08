@@ -419,12 +419,10 @@ export const createTower = async (
         const response = await axios.post(createURL(url), reqBody, {
             headers: { Authorization: `Bearer ${token}` },
         });
+        console.log("response of creaing error", response);
         return response.data;
     } catch (error: any) {
-        console.error(
-            "Error creating tower:",
-            error.response?.data || error.message
-        );
+        console.error("Error creating tower:", error);
         return { error: true, message: error.message };
     }
 };
