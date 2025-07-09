@@ -30,13 +30,74 @@ import Checkbox from "@mui/material/Checkbox";
 import ListItemText from "@mui/material/ListItemText";
 import { CustomerDetails } from "@/utils/routes/sale/types";
 import { broker } from "@/utils/routes/broker/broker";
-
+import { OtherCharges } from "@/utils/routes/sale/types";
 const StepOneSchema = Yup.object().shape({
     society: Yup.string().required("Society is required"),
     broker: Yup.string().required("Broker is required"),
     tower: Yup.string().required("Tower is required"),
     flat: Yup.string().required("Flat is required"),
-    charges: Yup.array(),
+    floorPlc: Yup.number()
+        .typeError("Floor PLC must be a number")
+        .min(0, "Value cannot be negative")
+        .test("is-decimal", "Max 2 decimal places", (value) =>
+            /^\d+(\.\d{1,2})?$/.test(String(value ?? 0))
+        ),
+
+    frontPlc: Yup.number()
+        .typeError("Front PLC must be a number")
+        .min(0, "Value cannot be negative")
+        .test("is-decimal", "Max 2 decimal places", (value) =>
+            /^\d+(\.\d{1,2})?$/.test(String(value ?? 0))
+        ),
+
+    edc: Yup.number()
+        .typeError("EDC must be a number")
+        .min(0, "Value cannot be negative")
+        .test("is-decimal", "Max 2 decimal places", (value) =>
+            /^\d+(\.\d{1,2})?$/.test(String(value ?? 0))
+        ),
+
+    ffc: Yup.number()
+        .typeError("FFC must be a number")
+        .min(0, "Value cannot be negative")
+        .test("is-decimal", "Max 2 decimal places", (value) =>
+            /^\d+(\.\d{1,2})?$/.test(String(value ?? 0))
+        ),
+
+    eec: Yup.number()
+        .typeError("EEC must be a number")
+        .min(0, "Value cannot be negative")
+        .test("is-decimal", "Max 2 decimal places", (value) =>
+            /^\d+(\.\d{1,2})?$/.test(String(value ?? 0))
+        ),
+
+    clubCharges: Yup.number()
+        .typeError("Club Charges must be a number")
+        .min(0, "Value cannot be negative")
+        .test("is-decimal", "Max 2 decimal places", (value) =>
+            /^\d+(\.\d{1,2})?$/.test(String(value ?? 0))
+        ),
+
+    powerBackup: Yup.number()
+        .typeError("Power Backup must be a number")
+        .min(0, "Value cannot be negative")
+        .test("is-decimal", "Max 2 decimal places", (value) =>
+            /^\d+(\.\d{1,2})?$/.test(String(value ?? 0))
+        ),
+
+    parkingCharges: Yup.number()
+        .typeError("Parking Charges must be a number")
+        .min(0, "Value cannot be negative")
+        .test("is-decimal", "Max 2 decimal places", (value) =>
+            /^\d+(\.\d{1,2})?$/.test(String(value ?? 0))
+        ),
+
+    maintenanceCharges: Yup.number()
+        .typeError("Maintenance Charges must be a number")
+        .min(0, "Value cannot be negative")
+        .test("is-decimal", "Max 2 decimal places", (value) =>
+            /^\d+(\.\d{1,2})?$/.test(String(value ?? 0))
+        ),
     basicCost: Yup.number()
         .required("Basic Cost is required")
         .min(1, "Basic Cost must be at least 1")
@@ -201,7 +262,15 @@ const initialValues = {
     tower: "",
     flat: "",
     seller: "",
-    charges: [] as string[],
+    floorPlc: 0,
+    frontPlc: 0,
+    edc: 0,
+    ffc: 0,
+    eec: 0,
+    clubCharges: 0,
+    powerBackup: 0,
+    parkingCharges: 0,
+    maintenanceCharges: 0,
     basicCost: 0,
     type: "user",
     customers: [
@@ -371,22 +440,22 @@ const Sale = () => {
         const towerData = await fetchAllTowers();
         setTowers(towerData);
 
-        const fetchAllCharges = async () => {
-            const response = await getAllOtherOptionalCharges(reraNumber);
-            if (response?.error) return [];
+        // const fetchAllCharges = async () => {
+        //     const response = await getAllOtherOptionalCharges(reraNumber);
+        //     if (response?.error) return [];
 
-            return (
-                response?.data?.map(
-                    ({ id, summary }: { id: string; summary: string }) => ({
-                        id,
-                        summary,
-                    })
-                ) || []
-            );
-        };
+        //     return (
+        //         response?.data?.map(
+        //             ({ id, summary }: { id: string; summary: string }) => ({
+        //                 id,
+        //                 summary,
+        //             })
+        //         ) || []
+        //     );
+        // };
 
-        const optionalCharges = await fetchAllCharges();
-        setSkillOptions(optionalCharges);
+        // const optionalCharges = await fetchAllCharges();
+        // setSkillOptions(optionalCharges);
 
         const fetchAllBrokers = async (
             cursor: string | null = null,
@@ -410,7 +479,7 @@ const Sale = () => {
         const brokerData = await fetchAllBrokers();
         setBrokers(brokerData);
 
-        console.log("Optional Charges:", optionalCharges);
+        // console.log("Optional Charges:", optionalCharges);
         console.log("Brokers:", brokerData);
 
         setLoading(false);
@@ -487,7 +556,15 @@ const Sale = () => {
                 society,
                 broker,
                 flat,
-                charges,
+                floorPlc,
+                frontPlc,
+                edc,
+                ffc,
+                eec,
+                clubCharges,
+                powerBackup,
+                parkingCharges,
+                maintenanceCharges,
                 basicCost,
                 type,
                 companyBuyer,
@@ -535,17 +612,17 @@ const Sale = () => {
                                   .toISOString()
                                   .slice(0, 10)
                             : "";
-                        console.log("Formatted DOB:", formattedDOB);
-                        console.log(
-                            "Type of formattedDOB:",
-                            typeof formattedDOB
-                        );
+                        // console.log("Formatted DOB:", formattedDOB);
+                        // console.log(
+                        //     "Type of formattedDOB:",
+                        //     typeof formattedDOB
+                        // );
 
-                        console.log("Customer DOB:", customer.dateOfBirth);
-                        console.log(
-                            "Type of customer.dateOfBirth:",
-                            typeof customer.dateOfBirth
-                        );
+                        // console.log("Customer DOB:", customer.dateOfBirth);
+                        // console.log(
+                        //     "Type of customer.dateOfBirth:",
+                        //     typeof customer.dateOfBirth
+                        // );
                         let formattedAnniversary = "";
                         if (customer.anniversaryDate) {
                             formattedAnniversary = new Date(
@@ -582,12 +659,32 @@ const Sale = () => {
                     })
                 );
             }
-
+            const otherCharges: OtherCharges[] = [
+                { name: "Floor PLC", totalCost: Number(floorPlc) || 0 },
+                { name: "Front PLC", totalCost: Number(frontPlc) || 0 },
+                { name: "EDC", totalCost: Number(edc) || 0 },
+                { name: "FFC", totalCost: Number(ffc) || 0 },
+                { name: "EEC", totalCost: Number(eec) || 0 },
+                { name: "Club Charges", totalCost: Number(clubCharges) || 0 },
+                {
+                    name: "Power Backup Charges",
+                    totalCost: Number(powerBackup) || 0,
+                },
+                {
+                    name: "Parking Charges",
+                    totalCost: Number(parkingCharges) || 0,
+                },
+                {
+                    name: "Maintenance Charges",
+                    totalCost: Number(maintenanceCharges) || 0,
+                },
+            ];
+            console.log("Other Charges:", otherCharges);
             // Make API call with parameters in correct order
             const response = await addCustomer(
                 society, // societyReraNumber: string
                 flat, // flatID: string
-                charges, // optionalCharges: string[]
+                otherCharges, // optionalCharges: string[]
                 parseFloat(basicCost.toString()), // basicCost: number
                 type, // type: string
                 broker,
@@ -889,6 +986,257 @@ const Sale = () => {
                                                     className="error"
                                                 />
                                             </div>
+                                            <div>
+                                                <label>Floor PLC:</label>
+                                                <TextField
+                                                    id="floor-plc"
+                                                    type="number"
+                                                    value={
+                                                        values.floorPlc || ""
+                                                    }
+                                                    onChange={(e) =>
+                                                        setFieldValue(
+                                                            "floorPlc",
+                                                            e.target.value
+                                                        )
+                                                    }
+                                                    fullWidth
+                                                    size="small"
+                                                    className={
+                                                        styles.multiselect
+                                                    }
+                                                />
+                                                <ErrorMessage
+                                                    name="floorPlc"
+                                                    component="div"
+                                                    className="error"
+                                                />
+                                            </div>
+
+                                            <div>
+                                                <label>Front PLC:</label>
+                                                <TextField
+                                                    id="front-plc"
+                                                    type="number"
+                                                    value={
+                                                        values.frontPlc || ""
+                                                    }
+                                                    onChange={(e) =>
+                                                        setFieldValue(
+                                                            "frontPlc",
+                                                            e.target.value
+                                                        )
+                                                    }
+                                                    fullWidth
+                                                    size="small"
+                                                    className={
+                                                        styles.multiselect
+                                                    }
+                                                />
+                                                <ErrorMessage
+                                                    name="frontPlc"
+                                                    component="div"
+                                                    className="error"
+                                                />
+                                            </div>
+
+                                            <div>
+                                                <label>
+                                                    External Development Charges
+                                                    (EDC):
+                                                </label>
+                                                <TextField
+                                                    id="edc"
+                                                    type="number"
+                                                    value={values.edc || ""}
+                                                    onChange={(e) =>
+                                                        setFieldValue(
+                                                            "edc",
+                                                            e.target.value
+                                                        )
+                                                    }
+                                                    fullWidth
+                                                    size="small"
+                                                    className={
+                                                        styles.multiselect
+                                                    }
+                                                />
+                                                <ErrorMessage
+                                                    name="edc"
+                                                    component="div"
+                                                    className="error"
+                                                />
+                                            </div>
+
+                                            <div>
+                                                <label>
+                                                    Fire Fighting Charges (FFC):
+                                                </label>
+                                                <TextField
+                                                    id="ffc"
+                                                    type="number"
+                                                    value={values.ffc || ""}
+                                                    onChange={(e) =>
+                                                        setFieldValue(
+                                                            "ffc",
+                                                            e.target.value
+                                                        )
+                                                    }
+                                                    fullWidth
+                                                    size="small"
+                                                    className={
+                                                        styles.multiselect
+                                                    }
+                                                />
+                                                <ErrorMessage
+                                                    name="ffc"
+                                                    component="div"
+                                                    className="error"
+                                                />
+                                            </div>
+
+                                            <div>
+                                                <label>
+                                                    Electric Development Charges
+                                                    (EEC):
+                                                </label>
+                                                <TextField
+                                                    id="eec"
+                                                    type="number"
+                                                    value={values.eec || ""}
+                                                    onChange={(e) =>
+                                                        setFieldValue(
+                                                            "eec",
+                                                            e.target.value
+                                                        )
+                                                    }
+                                                    fullWidth
+                                                    size="small"
+                                                    className={
+                                                        styles.multiselect
+                                                    }
+                                                />
+                                                <ErrorMessage
+                                                    name="eec"
+                                                    component="div"
+                                                    className="error"
+                                                />
+                                            </div>
+
+                                            <div>
+                                                <label>Club Charges:</label>
+                                                <TextField
+                                                    id="club-charges"
+                                                    type="number"
+                                                    value={
+                                                        values.clubCharges || ""
+                                                    }
+                                                    onChange={(e) =>
+                                                        setFieldValue(
+                                                            "clubCharges",
+                                                            e.target.value
+                                                        )
+                                                    }
+                                                    fullWidth
+                                                    size="small"
+                                                    className={
+                                                        styles.multiselect
+                                                    }
+                                                />
+                                                <ErrorMessage
+                                                    name="clubCharges"
+                                                    component="div"
+                                                    className="error"
+                                                />
+                                            </div>
+
+                                            <div>
+                                                <label>
+                                                    Power Backup Charges:
+                                                </label>
+                                                <TextField
+                                                    id="power-backup"
+                                                    type="number"
+                                                    value={
+                                                        values.powerBackup || ""
+                                                    }
+                                                    onChange={(e) =>
+                                                        setFieldValue(
+                                                            "powerBackup",
+                                                            e.target.value
+                                                        )
+                                                    }
+                                                    fullWidth
+                                                    size="small"
+                                                    className={
+                                                        styles.multiselect
+                                                    }
+                                                />
+                                                <ErrorMessage
+                                                    name="powerBackup"
+                                                    component="div"
+                                                    className="error"
+                                                />
+                                            </div>
+
+                                            <div>
+                                                <label>Parking Charges:</label>
+                                                <TextField
+                                                    id="parking-charges"
+                                                    type="number"
+                                                    value={
+                                                        values.parkingCharges ||
+                                                        ""
+                                                    }
+                                                    onChange={(e) =>
+                                                        setFieldValue(
+                                                            "parkingCharges",
+                                                            e.target.value
+                                                        )
+                                                    }
+                                                    fullWidth
+                                                    size="small"
+                                                    className={
+                                                        styles.multiselect
+                                                    }
+                                                />
+                                                <ErrorMessage
+                                                    name="parkingCharges"
+                                                    component="div"
+                                                    className="error"
+                                                />
+                                            </div>
+
+                                            <div>
+                                                <label>
+                                                    Maintenance Charges (MRMC):
+                                                </label>
+                                                <TextField
+                                                    id="maintenance-charges"
+                                                    type="number"
+                                                    value={
+                                                        values.maintenanceCharges ||
+                                                        ""
+                                                    }
+                                                    onChange={(e) =>
+                                                        setFieldValue(
+                                                            "maintenanceCharges",
+                                                            e.target.value
+                                                        )
+                                                    }
+                                                    fullWidth
+                                                    size="small"
+                                                    className={
+                                                        styles.multiselect
+                                                    }
+                                                />
+                                                <ErrorMessage
+                                                    name="maintenanceCharges"
+                                                    component="div"
+                                                    className="error"
+                                                />
+                                            </div>
+
                                             {/* <div>
                                                 <label>Optional Charges:</label>
                                                 <Select

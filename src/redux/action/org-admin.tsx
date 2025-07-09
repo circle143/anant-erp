@@ -558,7 +558,14 @@ export const addCustomer = async (
             societyReraNumber,
             flatID,
         };
-
+        console.log("req body", {
+            type,
+            details: customers,
+            companyBuyer,
+            otherCharges,
+            basicCost,
+            brokerId,
+        });
         const reqBody: AddCustomerToFlatRequestBodyInput = {
             type,
             details: customers,
