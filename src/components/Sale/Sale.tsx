@@ -531,7 +531,12 @@ const Sale = () => {
         };
 
         const flatData = await fetchAllUnsoldFlats();
-        setFlats(flatData);
+        const sortedFlatData = flatData.sort((a, b) => {
+            return a.name.localeCompare(b.name);
+        });
+
+        console.log("Flats:", flatData);
+        setFlats(sortedFlatData);
         setLoading(false);
     };
 
