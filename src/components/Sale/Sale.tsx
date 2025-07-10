@@ -156,7 +156,7 @@ const CustomerSchema = Yup.object()
         ),
 
         maritalStatus: Yup.string().required("Marital Status is required"),
-        nationality: Yup.string().required("Nationality is required"),
+        nationality: Yup.string(),
         email: Yup.string()
             .email("Invalid email")
             .required("Email is required"),
@@ -727,6 +727,7 @@ const Sale = () => {
                     errors,
                     touched,
                 }) => {
+                    console.log("errors:", errors);
                     const handleFileChange =
                         (index: number) =>
                         async (e: React.ChangeEvent<HTMLInputElement>) => {
