@@ -678,7 +678,8 @@ const Sale = () => {
                     name: "Maintenance Charges",
                     totalCost: Number(maintenanceCharges) || 0,
                 },
-            ];
+            ].filter((charge) => charge.totalCost > 0);
+
             console.log("Other Charges:", otherCharges);
             // Make API call with parameters in correct order
             const response = await addCustomer(
