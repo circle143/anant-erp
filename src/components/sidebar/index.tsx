@@ -10,54 +10,61 @@ import { RootState } from "../../redux/store";
 import { closeSidebar } from "../../redux/slice/sidebarSlice";
 
 type MenuItem = {
-  eventKey: string;
-  paths: string[];
-  icon: string;
-  text: string;
+    eventKey: string;
+    paths: string[];
+    icon: string;
+    text: string;
 };
 
 type SidebarProps = {
-  menuItems: MenuItem[];
+    menuItems: MenuItem[];
 };
 
 const Index = ({ menuItems }: SidebarProps) => {
-  const pathname = usePathname();
-  const dispatch = useDispatch();
-  const isOpen = useSelector((state: RootState) => state.sidebar.isOpen);
+    const pathname = usePathname();
+    const dispatch = useDispatch();
+    const isOpen = useSelector((state: RootState) => state.sidebar.isOpen);
 
-  return (
-    <div className={`${styles.sidebarWrapper} ${isOpen ? styles.open : ""}`}>
-      <aside className={styles.sidebar} onClick={(e) => e.stopPropagation()}>
-        <X size={24} onClick={() => dispatch(closeSidebar())} />
-        <div className={styles.logo}>
-          <Link href="/" onClick={() => dispatch(closeSidebar())}>
-            <img src="/Logo.svg" alt="Logo" />
-          </Link>
-        </div>
-        <ul className={styles.menu}>
-          {menuItems.map((item) => (
-            <li
-              key={item.eventKey}
-              className={`${styles.menuItem} ${
-                item.paths.some((path) => pathname.startsWith(path))
-                  ? styles.active
-                  : ""
-              }`}
+    return (
+        <div
+            className={`${styles.sidebarWrapper} ${isOpen ? styles.open : ""}`}
+        >
+            <aside
+                className={styles.sidebar}
+                onClick={(e) => e.stopPropagation()}
             >
-              <Link
-                href={item.paths[0]}
-                className={styles.menuLink}
-                onClick={() => dispatch(closeSidebar())}
-              >
-                <i className={`menu-icon ${item.icon}`}></i>
-                <span>{item.text}</span>
-              </Link>
-            </li>
-          ))}
-        </ul>
-      </aside>
-    </div>
-  );
+                <X size={24} onClick={() => dispatch(closeSidebar())} />
+                <div className={styles.logo}>
+                    <Link href="/" onClick={() => dispatch(closeSidebar())}>
+                        <img src="/Logo.png" alt="Logo" />
+                    </Link>
+                </div>
+                <ul className={styles.menu}>
+                    {menuItems.map((item) => (
+                        <li
+                            key={item.eventKey}
+                            className={`${styles.menuItem} ${
+                                item.paths.some((path) =>
+                                    pathname.startsWith(path)
+                                )
+                                    ? styles.active
+                                    : ""
+                            }`}
+                        >
+                            <Link
+                                href={item.paths[0]}
+                                className={styles.menuLink}
+                                onClick={() => dispatch(closeSidebar())}
+                            >
+                                <i className={`menu-icon ${item.icon}`}></i>
+                                <span>{item.text}</span>
+                            </Link>
+                        </li>
+                    ))}
+                </ul>
+            </aside>
+        </div>
+    );
 };
 
 export default Index;

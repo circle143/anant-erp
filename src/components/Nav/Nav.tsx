@@ -72,17 +72,18 @@ const Nav = () => {
             {showDropdown && (
                 <div className={styles.dropdownMenu}>
                     <button
-                        className="btn btn-outline-danger btn-sm"
-                        onClick={signOut}
-                    >
-                        Sign out
-                    </button>
-                    <button
                         className="btn btn-outline-primary btn-sm"
                         onClick={handleProfileClick}
                     >
                         Go to Profile
                     </button>
+                    <button
+                        className="btn btn-outline-danger btn-sm"
+                        onClick={signOut}
+                    >
+                        Sign out
+                    </button>
+
                     {/* <button
             className="btn btn-outline-primary btn-sm"
             onClick={async () => {

@@ -32,12 +32,12 @@ export const sidebarOrgAdminItems = [
         text: "Create New User",
         paths: ["/org-admin/new-user"],
     },
-    {
-        eventKey: "users",
-        icon: "bx bx-user", // Users icon
-        text: "Users",
-        paths: ["/org-admin/users"],
-    },
+    // {
+    //     eventKey: "users",
+    //     icon: "bx bx-user", // Users icon
+    //     text: "Users",
+    //     paths: ["/org-admin/users"],
+    // },
     {
         eventKey: "report",
         icon: "bx bx-bar-chart-square", // Sales report
