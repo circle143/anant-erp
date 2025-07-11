@@ -26,12 +26,12 @@ export const sidebarOrgAdminItems = [
         text: "Societies",
         paths: ["/org-admin/society", "/org-admin/society/flat"],
     },
-    {
-        eventKey: "new user",
-        icon: "bx bx-user-plus", // New user icon
-        text: "Create New User",
-        paths: ["/org-admin/new-user"],
-    },
+    // {
+    //     eventKey: "new user",
+    //     icon: "bx bx-user-plus", // New user icon
+    //     text: "Create New User",
+    //     paths: ["/org-admin/new-user"],
+    // },
     // {
     //     eventKey: "users",
     //     icon: "bx bx-user", // Users icon
