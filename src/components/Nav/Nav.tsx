@@ -8,6 +8,7 @@ import { useDispatch } from "react-redux";
 import { toggleSidebar } from "../../redux/slice/sidebarSlice";
 import { getAccessToken, getIdToken } from "@/utils/get_user_tokens";
 import { usePathname, useRouter } from "next/navigation";
+import { useSelector } from "react-redux";
 const Nav = () => {
     const { user, signOut } = useAuthenticator((context) => [context.user]);
     const [showDropdown, setShowDropdown] = useState(false);
@@ -34,7 +35,8 @@ const Nav = () => {
             router.push("/user/profile");
         }
     };
-
+    const name = useSelector((state: any) => state.self.name);
+    const initial = name ? name.charAt(0).toUpperCase() : "";
     useEffect(() => {
         const handleClickOutside = (event: MouseEvent) => {
             if (
@@ -61,12 +63,7 @@ const Nav = () => {
                 className={styles.profile}
                 onClick={() => setShowDropdown(!showDropdown)}
             >
-                <Image
-                    src="/assets/images/user.png"
-                    alt="Profile"
-                    width={40}
-                    height={40}
-                />
+                <div className={styles.profileCircle}>{initial}</div>
             </div>
 
             {showDropdown && (
