@@ -13,6 +13,7 @@ export interface AddSaleReceiptInput {
     if mode value is online, cheque, demand-draft
 */
 export interface AddSaleReceiptRequestBody {
+	receiptNumber: string;
 	totalAmount: number;
 	mode: string;
 	dateIssued: string;

@@ -40,6 +40,7 @@ export interface OtherCharges {
 }
 
 export interface AddCustomerToFlatRequestBodyInput {
+	saleNumber: string;
 	type: string; // company or user. If user than details are required and if company than companyBuyer is required
 	details?: CustomerDetails[];
 	companyBuyer?: CompanyDetails;
