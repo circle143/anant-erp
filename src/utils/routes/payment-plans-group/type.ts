@@ -5,8 +5,24 @@ export interface CreatePaymentPlanInput {
 
 export interface PaymentPlanRatioItemInput {
 	ratio: number; // e.g. 20.5
-	scope: string; // e.g. "CARPET"
-	conditionType: string; // e.g. "MIN"
+
+	/**
+	 * scope values:
+	 * - "sale"
+	 * - "tower"
+	 * - "flat"
+	 */
+	scope: string;
+
+	/**
+	 * conditionType values:
+	 * - "on-booking"
+	 * - "within-days"
+	 * - "on-tower-stage"
+	 * - "on-flat-stage"
+	 */
+	conditionType: string;
+
 	conditionValue: number;
 }
 
