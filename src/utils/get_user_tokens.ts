@@ -5,15 +5,17 @@ export const getAccessToken = async () => {
 };
 
 export const getIdToken = async () => {
-	return (await fetchAuthSession()).tokens?.idToken?.toString(); 
+	const idToken = (await fetchAuthSession()).tokens?.idToken?.toString();
+	// console.log(idToken);
+	return idToken;
 };
 
 export const decodeAccessToken = async () => {
-  const token = (await fetchAuthSession()).tokens?.idToken?.toString();
-  if (!token) return null;
+	const token = (await fetchAuthSession()).tokens?.idToken?.toString();
+	if (!token) return null;
 
-  const payloadBase64 = token.split(".")[1];
-  const decodedPayload = JSON.parse(atob(payloadBase64));
+	const payloadBase64 = token.split(".")[1];
+	const decodedPayload = JSON.parse(atob(payloadBase64));
 
-  return decodedPayload;
+	return decodedPayload;
 };

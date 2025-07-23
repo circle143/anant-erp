@@ -48,6 +48,7 @@ export interface AddCustomerToFlatRequestBodyInput {
 	otherCharges: OtherCharges[];
 	basicCost: number;
 	brokerId: string;
+	paymentId: string;
 }
 
 // get sale payment breakdown
