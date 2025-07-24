@@ -1,39 +1,39 @@
 // create plan
 export interface CreatePaymentPlanInput {
-	societyReraNumber: string;
+  societyReraNumber: string;
 }
 
 export interface PaymentPlanRatioItemInput {
-	ratio: number; // e.g. 20.5
+  ratio: number; // e.g. 20.5
 
-	/**
-	 * scope values:
-	 * - "sale"
-	 * - "tower"
-	 * - "flat"
-	 */
-	scope: string;
+  /**
+   * scope values:
+   * - "sale"
+   * - "tower"
+   * - "flat"
+   */
+  scope: string;
 
-	/**
-	 * conditionType values:
-	 * - "on-booking"
-	 * - "within-days"
-	 * - "on-tower-stage"
-	 * - "on-flat-stage"
-	 */
-	conditionType: string;
+  /**
+   * conditionType values:
+   * - "on-booking"
+   * - "within-days"
+   * - "on-tower-stage"
+   * - "on-flat-stage"
+   */
+  conditionType: string;
 
-	conditionValue: number;
+  conditionValue: number;
 }
 
 export interface PaymentPlanRatioInput {
-	items: PaymentPlanRatioItemInput[];
+  items: PaymentPlanRatioItemInput[];
 }
 
 export interface CreatePaymentPlanRequestBodyInput {
-	name: string;
-	abbr: string;
-	ratios: PaymentPlanRatioInput[];
+  name: string;
+  abbr: string;
+  ratios: PaymentPlanRatioInput[];
 }
 
 // export interface CreatePaymentPlanRequestBodyInput {
@@ -52,8 +52,8 @@ export interface CreatePaymentPlanRequestBodyInput {
 
 // get plan
 export interface GetPaymentPlans {
-	societyReraNumber: string;
-	cursor?: string;
+  societyReraNumber: string;
+  cursor?: string;
 }
 
 // export interface GetTowerPaymentPlans {
