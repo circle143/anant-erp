@@ -4,6 +4,7 @@ import {
   planDetailsItem,
   planRatioElements,
   RatioContainerProps,
+  planRatioInputOnly,
 } from "./types";
 import styles from "./payment-plan.module.css";
 import { Typography, Button } from "@mui/material";
@@ -31,30 +32,58 @@ const RatioItem = ({ id, children }: RatioContainerProps) => {
 
         {children}
       </div>
-      // TODO: handle conditions here
       <form data-item={id} className={styles["form-elements"]}>
-        {planRatioElements.map((item) => {
-          if (item.elementType === "input") {
-            const { elementType, ...inputProps } = item;
-            return <Input {...inputProps} key={inputProps.label} />;
-          }
+        {planRatioInputOnly.map((item) => {
+          const { elementType, ...inputProps } = item;
+          return <Input {...inputProps} key={inputProps.label} />;
 
-          const { elementType, label, options, ...selectProps } = item;
-          return (
-            <label className={styles["label"]}>
-              <span className={styles["label-text"]}>{label}</span>
-              <select {...selectProps} className={styles["input"]}>
-                {options.map((option) => {
-                  return (
-                    <option key={option.key} value={option.key}>
-                      {option.displayValue}
-                    </option>
-                  );
-                })}
-              </select>
-            </label>
-          );
+          {
+            /* const { elementType, label, options, ...selectProps } = item; */
+          }
+          {
+            /* return ( */
+          }
+          {
+            /*   <label className={styles["label"]}> */
+          }
+          {
+            /*     <span className={styles["label-text"]}>{label}</span> */
+          }
+          {
+            /*     <select {...selectProps} className={styles["input"]}> */
+          }
+          {
+            /*       {options.map((option) => { */
+          }
+          {
+            /*         return ( */
+          }
+          {
+            /*           <option key={option.key} value={option.key}> */
+          }
+          {
+            /*             {option.displayValue} */
+          }
+          {
+            /*           </option> */
+          }
+          {
+            /*         ); */
+          }
+          {
+            /*       })} */
+          }
+          {
+            /*     </select> */
+          }
+          {
+            /*   </label> */
+          }
+          {
+            /* ); */
+          }
         })}
+        {/* TODO: handle select here line 87 start */}
       </form>
     </div>
   );
@@ -169,6 +198,7 @@ export const PaymentPlanCreate = ({ societyRera }: PaymentPlanCreateProps) => {
 
     const result: CreatePaymentPlanRequestBodyInput = { name, abbr, ratios };
     console.log("✅ Valid:", result);
+    createPaymentPlan(result);
   };
 
   return (

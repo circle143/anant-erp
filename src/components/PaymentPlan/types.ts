@@ -38,6 +38,21 @@ interface SelectElement extends SelectHTMLAttributes<HTMLSelectElement> {
   label: string;
 }
 
+export const planRatioInputOnly: InputElement[] = [
+  {
+    label: "Description",
+    name: "description",
+    required: true,
+    elementType: "input",
+  },
+  {
+    label: "Ratio",
+    name: "ratio",
+    required: true,
+    elementType: "input",
+  },
+];
+
 export const planRatioElements: (InputElement | SelectElement)[] = [
   {
     label: "Description",
