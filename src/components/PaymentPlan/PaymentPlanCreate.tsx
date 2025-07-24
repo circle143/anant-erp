@@ -7,8 +7,9 @@ import {
 } from "./types";
 import styles from "./payment-plan.module.css";
 import { Typography, Button } from "@mui/material";
-import { FormEvent, useState } from "react";
+import { useState } from "react";
 import { uniqueId } from "lodash";
+import { CreatePaymentPlanRequestBodyInput } from "@/utils/routes/payment-plans-group/type";
 
 const Input = ({ label, ...props }: InputProps) => {
   return (
@@ -30,7 +31,7 @@ const RatioItem = ({ id, children }: RatioContainerProps) => {
 
         {children}
       </div>
-
+      // TODO: handle conditions here
       <form data-item={id} className={styles["form-elements"]}>
         {planRatioElements.map((item) => {
           if (item.elementType === "input") {
@@ -115,6 +116,10 @@ export const PaymentPlanCreate = ({ societyRera }: PaymentPlanCreateProps) => {
     setRatios((prev) => prev.filter((key) => key !== ratioKey));
   };
 
+  const createPaymentPlan = (value: CreatePaymentPlanRequestBodyInput) => {
+    // call backend from here
+  };
+
   const handleSubmit = () => {
     const form = document.getElementById("main-form") as HTMLFormElement;
 
@@ -148,7 +153,6 @@ export const PaymentPlanCreate = ({ societyRera }: PaymentPlanCreateProps) => {
 
       // Round to handle floating point issues like 99.99999999
       if (Math.round(percentSum) !== 100) {
-        console.error(percentSum);
         container.setAttribute("data-error", "true");
         hasError = true;
       } else {
@@ -163,7 +167,7 @@ export const PaymentPlanCreate = ({ societyRera }: PaymentPlanCreateProps) => {
       return;
     }
 
-    const result = { name, abbr, ratios };
+    const result: CreatePaymentPlanRequestBodyInput = { name, abbr, ratios };
     console.log("✅ Valid:", result);
   };
 
@@ -225,136 +229,3 @@ export const PaymentPlanCreate = ({ societyRera }: PaymentPlanCreateProps) => {
     </div>
   );
 };
-
-// import { PaymentPlanCreateProps, InputProps, planDetailsItem } from "./types";
-// import styles from "./payment-plan.module.css";
-//
-// import { Typography, Button } from "@mui/material";
-// import { FormEvent, useRef, useState, forwardRef } from "react";
-//
-// export const Input = forwardRef<HTMLInputElement, InputProps>(
-//   ({ label, ...props }, ref) => {
-//     return (
-//       <label className={styles["label"]}>
-//         <span className={styles["label-text"]}>{label}</span>
-//         <input {...props} ref={ref} className={styles["input"]} />
-//       </label>
-//     );
-//   },
-// );
-//
-// export const PaymentPlanCreate = ({ societyRera }: PaymentPlanCreateProps) => {
-//   const [ratios, setRatios] = useState([{}]); // At least one
-//   const ratioRefs = useRef<any[][]>([]); // [ratioIndex][fieldName]
-//
-//
-//
-//   const addRatio = () => {
-//
-//     setRatios((prev) => [...prev, {}]);
-//   };
-//
-//   const removeRatio = (index: number) => {
-//     if (ratios.length === 1) return; // Prevent removing last
-//     setRatios((prev) => prev.filter((_, i) => i !== index));
-//     ratioRefs.current.splice(index, 1);
-//   };
-//
-//   const onSubmit = (e: FormEvent<HTMLFormElement>) => {
-//     e.preventDefault();
-//
-//     const ratioData = ratioRefs.current.map((refSet) => ({
-//       stage: refSet[0]?.value || "",
-//       percentage: refSet[1]?.value || "",
-//       amount: refSet[2]?.value || "",
-//       remarks: refSet[3]?.value || "",
-//     }));
-//
-//     console.log("Plan Ratio Data:", ratioData);
-//   };
-//
-//   return (
-//     <div className={`${styles["container"]} container`}>
-//       <Typography variant="h4" fontWeight={600}>
-//         Create Payment Plan
-//       </Typography>
-//
-//       <form className={styles["form"]} onSubmit={onSubmit}>
-//         <div className={styles["form-group"]}>
-//           <Typography variant="h5" fontWeight={500}>
-//             Plan details
-//           </Typography>
-//
-//           <div className={styles["form-elements"]}>
-//             {planDetailsItem.map((item) => (
-//               <Input {...item} key={item.label} />
-//             ))}
-//           </div>
-//         </div>
-//
-//         <div className={styles["form-group"]}>
-//           <div className={styles["form-header"]}>
-//             <Typography variant="h5" fontWeight={500}>
-//               Plan Ratio
-//             </Typography>
-//             <Button variant="outlined" onClick={addRatio}>
-//               Add another
-//             </Button>
-//           </div>
-//
-//           <div className={styles["form-elements"]}>
-//             {ratios.map((_, idx) => {
-//               if (!ratioRefs.current[idx]) ratioRefs.current[idx] = [];
-//
-//               return (
-//                 <div key={idx} className={styles["ratio-item"]}>
-//                   <Input
-//                     label="Stage"
-//                     ref={(el: HTMLInputElement | null) => {
-//                       if (!ratioRefs.current[idx]) ratioRefs.current[idx] = [];
-//                       ratioRefs.current[idx][0] = el;
-//                     }}
-//                   />
-//                   <Input
-//                     label="Percentage"
-//                     ref={(el: HTMLInputElement | null) => {
-//                       if (!ratioRefs.current[idx]) ratioRefs.current[idx] = [];
-//                       ratioRefs.current[idx][0] = el;
-//                     }}
-//                   />
-//                   <Input
-//                     label="Amount"
-//                     ref={(el: HTMLInputElement | null) => {
-//                       if (!ratioRefs.current[idx]) ratioRefs.current[idx] = [];
-//                       ratioRefs.current[idx][0] = el;
-//                     }}
-//                   />
-//                   <Input
-//                     label="Remarks"
-//                     ref={(el: HTMLInputElement | null) => {
-//                       if (!ratioRefs.current[idx]) ratioRefs.current[idx] = [];
-//                       ratioRefs.current[idx][0] = el;
-//                     }}
-//                   />
-//                   {ratios.length > 1 && (
-//                     <Button
-//                       variant="text"
-//                       color="error"
-//                       onClick={() => removeRatio(idx)}
-//                     >
-//                       Remove
-//                     </Button>
-//                   )}
-//                 </div>
-//               );
-//             })}
-//           </div>
-//         </div>
-//
-//         <Button variant="contained" type="submit">
-//           Submit
-//         </Button>
-//       </form>
-//     </div>
-//   );
-// };
