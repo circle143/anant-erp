@@ -2,9 +2,12 @@ import {
   PaymentPlanCreateProps,
   InputProps,
   planDetailsItem,
-  planRatioElements,
   RatioContainerProps,
   planRatioInputOnly,
+  Scope,
+  scopeSelect,
+  conditionTypeSelect,
+  condtionValueInput,
 } from "./types";
 import styles from "./payment-plan.module.css";
 import { Typography, Button } from "@mui/material";
@@ -23,6 +26,9 @@ const Input = ({ label, ...props }: InputProps) => {
 };
 
 const RatioItem = ({ id, children }: RatioContainerProps) => {
+  const [scope, setScope] = useState<Scope>(Scope.sale);
+  const [conditionType, setCondtionType] = useState("");
+
   return (
     <div className={styles["ratio-container"]}>
       <div className={styles["form-header"]}>
@@ -36,54 +42,51 @@ const RatioItem = ({ id, children }: RatioContainerProps) => {
         {planRatioInputOnly.map((item) => {
           const { elementType, ...inputProps } = item;
           return <Input {...inputProps} key={inputProps.label} />;
-
-          {
-            /* const { elementType, label, options, ...selectProps } = item; */
-          }
-          {
-            /* return ( */
-          }
-          {
-            /*   <label className={styles["label"]}> */
-          }
-          {
-            /*     <span className={styles["label-text"]}>{label}</span> */
-          }
-          {
-            /*     <select {...selectProps} className={styles["input"]}> */
-          }
-          {
-            /*       {options.map((option) => { */
-          }
-          {
-            /*         return ( */
-          }
-          {
-            /*           <option key={option.key} value={option.key}> */
-          }
-          {
-            /*             {option.displayValue} */
-          }
-          {
-            /*           </option> */
-          }
-          {
-            /*         ); */
-          }
-          {
-            /*       })} */
-          }
-          {
-            /*     </select> */
-          }
-          {
-            /*   </label> */
-          }
-          {
-            /* ); */
-          }
         })}
+
         {/* TODO: handle select here line 87 start */}
+        <label className={styles["label"]}>
+          <span className={styles["label-text"]}>{scopeSelect.label}</span>
+          <select
+            className={styles["input"]}
+            name={scopeSelect.name}
+            value={scope}
+            onChange={(e) => setScope(() => e.target.value as Scope)}
+            required
+          >
+            {scopeSelect.options.map((option) => {
+              return (
+                <option key={option.key} value={option.key}>
+                  {option.displayValue}
+                </option>
+              );
+            })}
+          </select>
+        </label>
+
+        <label className={styles["label"]}>
+          <span className={styles["label-text"]}>
+            {conditionTypeSelect.label}
+          </span>
+          <select
+            required
+            className={styles["input"]}
+            name={conditionTypeSelect.name}
+            onChange={(e) => setCondtionType(e.target.value)}
+          >
+            {conditionTypeSelect.options(scope).map((option) => {
+              return (
+                <option key={option.key} value={option.key}>
+                  {option.displayValue}
+                </option>
+              );
+            })}
+          </select>
+        </label>
+
+        {conditionType === "within-days" && (
+          <Input {...condtionValueInput} key={condtionValueInput.label} />
+        )}
       </form>
     </div>
   );
@@ -174,6 +177,9 @@ export const PaymentPlanCreate = ({ societyRera }: PaymentPlanCreateProps) => {
 
         const data = new FormData(form);
         const entries = Object.fromEntries(data.entries());
+        if (!entries[condtionValueInput.name]) {
+          entries[condtionValueInput.name] = "0";
+        }
 
         items.push(entries);
         percentSum +=
@@ -214,7 +220,7 @@ export const PaymentPlanCreate = ({ societyRera }: PaymentPlanCreateProps) => {
           </Typography>
 
           <form className={styles["form-elements"]} id="main-form">
-            {planDetailsItem.map((item) => {
+            {planDetailsItem.map(({ elementType: _, ...item }) => {
               return <Input {...item} key={item.label} />;
             })}
           </form>
