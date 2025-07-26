@@ -53,6 +53,74 @@ export const planRatioInputOnly: InputElement[] = [
   },
 ];
 
+export enum Scope {
+  sale = "sale",
+  tower = "tower",
+  flat = "flat",
+}
+
+export const scopeSelect = {
+  label: "Scope",
+  name: "scope",
+  required: true,
+  options: [
+    {
+      key: "sale",
+      displayValue: "Sale",
+    },
+    {
+      key: "tower",
+      displayValue: "Tower",
+    },
+    {
+      key: "flat",
+      displayValue: "Flat",
+    },
+  ],
+};
+
+export const conditionTypeSelect = {
+  label: "Condtion Type",
+  name: "conditionType",
+  required: true,
+  options: (scope: Scope) => {
+    switch (scope) {
+      case Scope.sale:
+        return [
+          {
+            key: "on-booking",
+            displayValue: "On Booking",
+          },
+          {
+            key: "within-days",
+            displayValue: "Within Days",
+          },
+        ];
+
+      case Scope.flat:
+        return [
+          {
+            key: "on-flat-stage",
+            displayValue: "On Flat Stage",
+          },
+        ];
+
+      case Scope.tower:
+        return [
+          {
+            key: "on-tower-stage",
+            displayValue: "On Tower Stage",
+          },
+        ];
+    }
+  },
+};
+
+export const condtionValueInput = {
+  label: "Condtion Value",
+  name: "conditionValue",
+};
+
 export const planRatioElements: (InputElement | SelectElement)[] = [
   {
     label: "Description",

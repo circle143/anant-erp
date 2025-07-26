@@ -3,7 +3,6 @@ import {
   PaymentPlanCreateProps,
   InputProps,
   planDetailsItem,
-  planRatioElements,
   RatioContainerProps,
 } from "./types";
 import { createPaymentPlan } from "../../redux/action/org-admin"
