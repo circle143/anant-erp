@@ -62,9 +62,8 @@ import {
     UpdateOtherChargeDetailsRequestBodyInput,
 } from "@/utils/routes/charges/types";
 import {
-    GetPaymentPlans,
-    GetTowerPaymentPlans,
-} from "@/utils/routes/payment-plans/type";
+    PaymentPlanRatioInput,GetPaymentPlans
+} from "@/utils/routes/payment-plans-group/type";
 import { charges } from "@/utils/routes/charges/charges";
 import { customer } from "@/utils/routes/sale/sale";
 import { society } from "@/utils/routes/society/society";
@@ -74,7 +73,7 @@ import { organization } from "@/utils/routes/organization/organization";
 import { getIdToken } from "@/utils/get_user_tokens";
 // import { flatType } from "@/utils/routes/flat-type/flat_type";
 import { sum } from "lodash";
-import { paymentPlans } from "@/utils/routes/payment-plans/payment_plans";
+import { paymentPlans } from "@/utils/routes/payment-plans-group/payment_plans";
 import {
     BrokerByIdRouteInput,
     BrokerDetailsReqBodyInput,
@@ -543,6 +542,8 @@ export const updateOrganizationDetails = async (
 };
 
 export const addCustomer = async (
+    paymentId: string,
+    saleNumber: string,
     societyReraNumber: string,
     flatID: string,
     otherCharges: OtherCharges[],
@@ -567,6 +568,8 @@ export const addCustomer = async (
             brokerId,
         });
         const reqBody: AddCustomerToFlatRequestBodyInput = {
+            paymentId, // Added missing required paymentId property
+            saleNumber,
             type,
             details: customers,
             companyBuyer,
@@ -989,16 +992,15 @@ export const getPaymentPlans = async (
 export const createPaymentPlan = async (
     societyReraNumber: string,
     payload: {
-        summary: string;
-        scope: string; // Direct or Tower
-        conditionType: string; // On-Booking or After-Days or On-Tower-Stage
-        conditionValue: number;
-        amount: number;
+        name: string,
+        abbr: string,
+        ratios: PaymentPlanRatioInput[],
     }
 ) => {
     try {
         const token = await getIdToken();
         const input = { societyReraNumber };
+
         const url = paymentPlans.createPaymentPlan.getEndpoint(input);
 
         const response = await axios.post(createURL(url), payload, {
@@ -1014,52 +1016,52 @@ export const createPaymentPlan = async (
         return { error: true, message: error.message };
     }
 };
-export const getTowerPaymentPlans = async (
-    societyReraNumber: string,
-    towerId: string,
-    cursor: string | null = null
-) => {
-    try {
-        const token = await getIdToken();
-        const input: GetTowerPaymentPlans = {
-            societyReraNumber,
-            towerId,
-            cursor: cursor ?? "",
-        };
-        const url = paymentPlans.getTowerPaymentPlans.getEndpoint(input);
-        const response = await axios.get(createURL(url), {
-            headers: { Authorization: `Bearer ${token}` },
-        });
-        return response.data;
-    } catch (error: any) {
-        console.error(
-            "Error fetching payment plan:",
-            error.response?.data || error.message
-        );
-        return { error: true, message: error.message };
-    }
-};
-export const markPaymentPlanActiveForTower = async (
-    societyReraNumber: string,
-    towerId: string,
-    paymentId: string
-) => {
-    try {
-        const token = await getIdToken();
-        const input = { societyReraNumber, towerId, paymentId };
-        const url =
-            paymentPlans.markPaymentPlanActiveForTower.getEndpoint(input);
+// export const getTowerPaymentPlans = async (
+//     societyReraNumber: string,
+//     towerId: string,
+//     cursor: string | null = null
+// ) => {
+//     try {
+//         const token = await getIdToken();
+//         const input: GetTowerPaymentPlans = {
+//             societyReraNumber,
+//             towerId,
+//             cursor: cursor ?? "",
+//         };
+//         const url = paymentPlans.getTowerPaymentPlans.getEndpoint(input);
+//         const response = await axios.get(createURL(url), {
+//             headers: { Authorization: `Bearer ${token}` },
+//         });
+//         return response.data;
+//     } catch (error: any) {
+//         console.error(
+//             "Error fetching payment plan:",
+//             error.response?.data || error.message
+//         );
+//         return { error: true, message: error.message };
+//     }
+// };
+// export const markPaymentPlanActiveForTower = async (
+//     societyReraNumber: string,
+//     towerId: string,
+//     paymentId: string
+// ) => {
+//     try {
+//         const token = await getIdToken();
+//         const input = { societyReraNumber, towerId, paymentId };
+//         const url =
+//             paymentPlans.markPaymentPlanActiveForTower.getEndpoint(input);
 
-        const response = await axios.post(createURL(url), null, {
-            headers: { Authorization: `Bearer ${token}` },
-        });
+//         const response = await axios.post(createURL(url), null, {
+//             headers: { Authorization: `Bearer ${token}` },
+//         });
 
-        return response.data;
-    } catch (error: any) {
-        console.error("Error :", error.response?.data || error.message);
-        return { error: true, message: error.message };
-    }
-};
+//         return response.data;
+//     } catch (error: any) {
+//         console.error("Error :", error.response?.data || error.message);
+//         return { error: true, message: error.message };
+//     }
+// };
 export const getSalePaymentBreakDown = async (
     societyReraNumber: string,
     saleId: string
@@ -1508,6 +1510,7 @@ export const getAllSocietyBanks = async (
 };
 //receipt
 export const addSaleReceipt = async (
+    receiptNumber: string,
     societyRera: string,
     saleId: string,
     totalAmount: number,
@@ -1520,6 +1523,7 @@ export const addSaleReceipt = async (
         const token = await getIdToken();
         const input: AddSaleReceiptInput = { societyRera, saleId };
         const reqBody: AddSaleReceiptRequestBody = {
+            receiptNumber,
             totalAmount,
             mode,
             dateIssued,

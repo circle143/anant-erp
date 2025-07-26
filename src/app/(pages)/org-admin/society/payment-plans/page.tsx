@@ -23,6 +23,7 @@ const Page = () => {
         const response = await getPaymentPlans(rera, cursor);
 
         setOrgData(response.data.items || []);
+        console.log(response.data.items)
         setHasNextPage(response.data.pageInfo?.nextPage || false);
         setCursor(response.data.pageInfo?.cursor || null);
 
@@ -74,41 +75,66 @@ const Page = () => {
                             <li key={org.id} className={styles.orgItem}>
                                 <div className={styles.rightSection}>
                                     <div className={styles.details}>
-                                        <div>
-                                            <strong>Summary:</strong>{" "}
-                                            {org.summary}
-                                        </div>
-                                        <div>
-                                            <strong>Amount:</strong>{" "}
-                                            {org.amount}%
-                                        </div>
-                                        <div>
-                                            <strong>Condition Type:</strong>{" "}
-                                            {org.conditionType}
-                                        </div>
-                                        <div>
-                                            <strong>Condition Value:</strong>{" "}
-                                            {org.conditionValue ?? "N/A"}
-                                        </div>
-                                        <div>
-                                            <strong>Scope:</strong> {org.scope}
-                                        </div>
+                                        <div><strong>Name:</strong> {org.name}</div>
+                                        <div><strong>Abbreviation:</strong> {org.abbr}</div>
 
                                         <div>
-                                            <strong>Society ID:</strong>{" "}
-                                            {org.societyId}
-                                        </div>
-                                        <div>
-                                            <strong>Created At:</strong>{" "}
-                                            {new Date(
-                                                org.createdAt
-                                            ).toLocaleString()}
+                                            <strong>Ratios:</strong>
+                                            {org.ratios?.length > 0 ? (
+                                                <ul className={styles.ratioList}>
+                                                    {org.ratios.map(
+                                                        (
+                                                            ratioObj: {
+                                                                id: string;
+                                                                ratio: string;
+                                                                items: Array<{
+                                                                    id: string;
+                                                                    conditionType: string;
+                                                                    conditionValue: string | null;
+                                                                    ratio: string;
+                                                                    scope: string;
+                                                                }>;
+                                                            },
+                                                        ) => (
+                                                            <li key={ratioObj.id} className={styles.ratioItem}>
+                                                                <div>
+                                                                    <strong>Group Ratio:</strong>{" "}
+                                                                    {ratioObj.ratio.split(",").map(r => parseFloat(r)).join(":")}
+                                                                </div>
+                                                                <ul className={styles.itemList}>
+                                                                    {ratioObj.items.map((item) => (
+                                                                        <li key={item.id} className={styles.item}>
+                                                                            <div>
+                                                                                <strong>Condition Type:</strong> {item.conditionType}
+                                                                            </div>
+                                                                            <div>
+                                                                                <strong>Condition Value:</strong>{" "}
+                                                                                {item.conditionValue ? item.conditionValue + " days" : "N/A"}
+                                                                            </div>
+                                                                            <div>
+                                                                                <strong>Ratio:</strong> {parseFloat(item.ratio)}
+                                                                            </div>
+                                                                            <div>
+                                                                                <strong>Scope:</strong> {item.scope}
+                                                                            </div>
+                                                                        </li>
+                                                                    ))}
+                                                                </ul>
+                                                            </li>
+                                                        )
+                                                    )}
+                                                </ul>
+
+                                            ) : (
+                                                <div>No ratios available</div>
+                                            )}
                                         </div>
                                     </div>
                                 </div>
                             </li>
                         ))}
                     </ul>
+
 
                     <div className={styles.paginationControls}>
                         <button

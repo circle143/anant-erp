@@ -3,7 +3,6 @@ export const getAmplifyConfig = () => {
 	const userPoolId = process.env.NEXT_PUBLIC_USER_POOL_ID;
 	const clientId = process.env.NEXT_PUBLIC_CLIENT_ID;
 	const domain = process.env.NEXT_PUBLIC_DOMAIN;
-
 	return {
 		aws_project_region: "ap-south-1",
 		aws_cognito_identity_pool_id: identityPoolId,

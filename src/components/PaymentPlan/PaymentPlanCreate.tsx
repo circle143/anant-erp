@@ -1,261 +1,412 @@
+// Converted to Formik + Yup and replaced with planRatioElements
 import {
   PaymentPlanCreateProps,
   InputProps,
   planDetailsItem,
   planRatioElements,
   RatioContainerProps,
-  planRatioInputOnly,
 } from "./types";
+import { createPaymentPlan } from "../../redux/action/org-admin"
 import styles from "./payment-plan.module.css";
-import { Typography, Button } from "@mui/material";
-import { useState } from "react";
+import { Typography, Button, MenuItem } from "@mui/material";
 import { uniqueId } from "lodash";
-import { CreatePaymentPlanRequestBodyInput } from "@/utils/routes/payment-plans-group/type";
+import { useFormik, FormikProvider, Form, FieldArray, useFormikContext } from "formik";
+import * as Yup from "yup";
+import { useState, useEffect } from "react";
 
-const Input = ({ label, ...props }: InputProps) => {
-  return (
-    <label className={styles["label"]}>
-      <span className={styles["label-text"]}>{label}</span>
+const Input = ({ label, ...props }: InputProps) => (
+  <label className={styles["label"]}>
+    <span className={styles["label-text"]}>{label}</span>
+    <input {...props} className={styles["input"]} />
+  </label>
+);
 
-      <input {...props} className={styles["input"]} />
-    </label>
-  );
+const getConditionOptions = (scope: string) => {
+  switch (scope) {
+    case "tower":
+      return [{ key: "on-tower-stage", displayValue: "On Tower Stage" }];
+    case "flat":
+      return [{ key: "on-flat-stage", displayValue: "On Flat Stage" }];
+    case "sale":
+    default:
+      return [
+        { key: "on-booking", displayValue: "On Booking" },
+        { key: "within-days", displayValue: "Within Days" },
+      ];
+  }
 };
 
-const RatioItem = ({ id, children }: RatioContainerProps) => {
+const PlanRatioForm = ({ index, remove }: { index: number; remove: () => void }) => {
+  const { values, setFieldValue } = useFormikContext<any>();
+  const currentScope = values.ratios[index].scope;
+
+  useEffect(() => {
+    if (currentScope === "tower") {
+      setFieldValue(`ratios[${index}].conditionType`, "on-tower-stage");
+    } else if (currentScope === "flat") {
+      setFieldValue(`ratios[${index}].conditionType`, "on-flat-stage");
+    } else if (currentScope === "sale") {
+      const existing = values.ratios[index].conditionType;
+      if (!["on-booking", "within-days"].includes(existing)) {
+        setFieldValue(`ratios[${index}].conditionType`, "");
+      }
+    }
+  }, [currentScope, index, setFieldValue]);
+
+  const conditionOptions = getConditionOptions(currentScope);
+
   return (
     <div className={styles["ratio-container"]}>
       <div className={styles["form-header"]}>
-        <Typography variant="h6" fontWeight={500}>
-          Plan Ratio Item
-        </Typography>
-
-        {children}
+        <Typography variant="h6">Plan Ratio</Typography>
+        {remove && (
+          <Button color="error" onClick={remove}>
+            Remove Ratio
+          </Button>
+        )}
       </div>
-      <form data-item={id} className={styles["form-elements"]}>
-        {planRatioInputOnly.map((item) => {
-          const { elementType, ...inputProps } = item;
-          return <Input {...inputProps} key={inputProps.label} />;
+      {/* Items */}
+      <FieldArray
+        name={`ratios[${index}].items`}
+        render={(itemHelpers) => (
+          <div className={styles["form-elements"]}>
+            {values.ratios[index].items.map((item: any, itemIndex: number) => {
+              const itemPath = `ratios[${index}].items[${itemIndex}]`;
+              const currentScope = item.scope;
+              const conditionOptions = getConditionOptions(currentScope);
 
-          {
-            /* const { elementType, label, options, ...selectProps } = item; */
-          }
-          {
-            /* return ( */
-          }
-          {
-            /*   <label className={styles["label"]}> */
-          }
-          {
-            /*     <span className={styles["label-text"]}>{label}</span> */
-          }
-          {
-            /*     <select {...selectProps} className={styles["input"]}> */
-          }
-          {
-            /*       {options.map((option) => { */
-          }
-          {
-            /*         return ( */
-          }
-          {
-            /*           <option key={option.key} value={option.key}> */
-          }
-          {
-            /*             {option.displayValue} */
-          }
-          {
-            /*           </option> */
-          }
-          {
-            /*         ); */
-          }
-          {
-            /*       })} */
-          }
-          {
-            /*     </select> */
-          }
-          {
-            /*   </label> */
-          }
-          {
-            /* ); */
-          }
-        })}
-        {/* TODO: handle select here line 87 start */}
-      </form>
-    </div>
-  );
-};
+              return (
+                <div key={itemIndex} className={styles["ratio-container"]}>
+                  <div className={styles["form-header"]}>
+                    <Typography variant="subtitle1">Plan Ratio Item</Typography>
+                    {values.ratios[index].items.length > 1 && (
+                      <Button
+                        color="error"
+                        onClick={() => itemHelpers.remove(itemIndex)}
+                      >
+                        Remove Item
+                      </Button>
+                    )}
+                  </div>
 
-const RatioContainer = ({ id, children }: RatioContainerProps) => {
-  const [items, setItems] = useState<string[]>(() => [uniqueId()]);
+                  <div className={styles["form-elements"]}>
 
-  const addItem = () => {
-    setItems((prev) => [...prev, uniqueId()]);
-  };
 
-  const removeItem = (itemKey: string) => {
-    if (items.length === 1) return;
+                    {/* Scope */}
+                    {planRatioElements.map((field) => {
+                      const fieldPath = `${itemPath}.${field.name}`;
 
-    setItems((prev) => prev.filter((key) => key !== itemKey));
-  };
-  return (
-    <div className={styles["ratio-container"]}>
-      <div className={styles["form-header"]}>
-        <Typography variant="h6" fontWeight={500}>
-          Plan Ratio
-        </Typography>
+                      // Custom handling for Scope dropdown
+                      if (field.name === "scope") {
+                        return (
+                          <label key={field.name} className={styles["label"]}>
+                            <span className={styles["label-text"]}>{field.label}</span>
+                            <select
+                              name={fieldPath}
+                              className={styles["input"]}
+                              value={item.scope}
+                              onChange={(e) => {
+                                const newScope = e.target.value;
+                                setFieldValue(fieldPath, newScope);
 
-        {children}
-      </div>
+                                // Set default conditionType based on scope
+                                const newOptions = getConditionOptions(newScope);
+                                const defaultCond = newOptions?.[0]?.key || "";
+                                setFieldValue(`${itemPath}.conditionType`, defaultCond);
+                              }}
+                              required={field.required}
+                            >
+                              <option value="">Select</option>
+                              {('options' in field ? field.options : []).map((option) => (
+                                <option key={option.key} value={option.key}>
+                                  {option.displayValue}
+                                </option>
+                              ))}
+                            </select>
+                          </label>
+                        );
+                      }
 
-      <div className={styles["form-elements"]} data-ratio={id}>
-        {items.map((item) => {
-          return (
-            <RatioItem key={item} id={item}>
-              {items.length > 1 && (
-                <Button color="error" onClick={() => removeItem(item)}>
-                  Remove
-                </Button>
-              )}{" "}
-            </RatioItem>
-          );
-        })}
-      </div>
+                      // Custom handling for Condition Type dropdown (based on Scope)
+                      if (field.name === "conditionType") {
+                        const options = getConditionOptions(item.scope);
+                        return (
+                          <label key={field.name} className={styles["label"]}>
+                            <span className={styles["label-text"]}>{field.label}</span>
+                            <select
+                              name={fieldPath}
+                              className={styles["input"]}
+                              value={item.conditionType}
+                              onChange={(e) => setFieldValue(fieldPath, e.target.value)}
+                              required={field.required}
+                            >
+                              <option value="">Select</option>
+                              {options.map((option) => (
+                                <option key={option.key} value={option.key}>
+                                  {option.displayValue}
+                                </option>
+                              ))}
+                            </select>
+                          </label>
+                        );
+                      }
+                      // Inside planRatioElements.map(...)
+                      if (field.name === "conditionValue") {
+                        if (item.conditionType !== "within-days") return null;
 
-      <div>
-        <Button onClick={addItem}>Add item</Button>
-      </div>
+                        return (
+                          <label key={field.name} className={styles["label"]}>
+                            <span className={styles["label-text"]}>{field.label}</span>
+                            <input
+                              type="number"
+                              name={fieldPath}
+                              className={styles["input"]}
+                              value={item.conditionValue}
+                              onChange={(e) => setFieldValue(fieldPath, e.target.value)}
+                              required={field.required}
+                            />
+                          </label>
+                        );
+                      }
+
+                      // Default input/select rendering
+                      return (
+                        <label key={field.name} className={styles["label"]}>
+                          <span className={styles["label-text"]}>{field.label}</span>
+                          {field.elementType === "input" ? (
+                            <input
+                              name={fieldPath}
+                              className={styles["input"]}
+                              value={item[field.name as keyof typeof item] ?? ""}
+                              onChange={(e) => setFieldValue(fieldPath, e.target.value)}
+                              required={field.required}
+                            />
+                          ) : (
+                            <select
+                              name={fieldPath}
+                              className={styles["input"]}
+                              value={item[field.name as keyof typeof item] ?? ""}
+                              onChange={(e) => setFieldValue(fieldPath, e.target.value)}
+                              required={field.required}
+                            >
+                              <option value="">Select</option>
+                              {(field.options ?? []).map((option) => (
+                                <option key={option.key} value={option.key}>
+                                  {option.displayValue}
+                                </option>
+                              ))}
+                            </select>
+                          )}
+                        </label>
+                      );
+                    })}
+
+
+                  </div>
+                </div>
+              );
+            })}
+
+            <Button
+              onClick={() =>
+                itemHelpers.push({
+                  description: "",
+                  ratio: "",
+                  scope: "",
+                  conditionType: "",
+                  conditionValue: "",
+                })
+              }
+            >
+              Add Item
+            </Button>
+          </div>
+        )}
+      />
+
     </div>
   );
 };
 
 export const PaymentPlanCreate = ({ societyRera }: PaymentPlanCreateProps) => {
-  const [ratios, setRatios] = useState<string[]>(() => [uniqueId()]);
-
-  const addRatio = () => {
-    setRatios((prev) => [...prev, uniqueId()]);
+  const initialValues = {
+    name: "",
+    abbr: "",
+    ratios: [
+      {
+        items: [
+          {
+            description: "",
+            ratio: "",
+            scope: "",
+            conditionType: "",
+            conditionValue: "",
+          },
+        ],
+      },
+    ]
   };
 
-  const removeRatio = (ratioKey: string) => {
-    if (ratios.length === 1) return;
+  const validationSchema = Yup.object().shape({
+    name: Yup.string().required("Required"),
+    abbr: Yup.string().required("Required"),
+    ratios: Yup.array()
+      .of(
+        Yup.object().shape({
+          items: Yup.array()
+            .of(
+              Yup.object().shape({
+                description: Yup.string().required("Required"),
+                ratio: Yup.number().required("Required").min(0).max(100),
+                scope: Yup.string().required("Required"),
+                conditionType: Yup.string().required("Required"),
+                conditionValue: Yup.string(),
+              })
+            )
+            .min(1),
+        })
+      )
+      .min(1)
+    ,
+  });
 
-    setRatios((prev) => prev.filter((key) => key !== ratioKey));
-  };
-
-  const createPaymentPlan = (value: CreatePaymentPlanRequestBodyInput) => {
-    // call backend from here
-  };
-
-  const handleSubmit = () => {
-    const form = document.getElementById("main-form") as HTMLFormElement;
-
-    if (!form.reportValidity()) return;
-
-    const formData = new FormData(form);
-    const name = formData.get("name") as string;
-    const abbr = formData.get("abbr") as string;
-
-    const ratioContainers = document.querySelectorAll("[data-ratio]");
-    const ratios: { items: any[] }[] = [];
-
-    let hasError = false;
-
-    for (const container of ratioContainers) {
-      const items: any[] = [];
-      const itemForms = container.getElementsByTagName("form");
-
-      let percentSum = 0;
-
-      for (const form of itemForms) {
-        if (!form.reportValidity()) return;
-
-        const data = new FormData(form);
-        const entries = Object.fromEntries(data.entries());
-
-        items.push(entries);
-        percentSum +=
-          typeof entries.ratio === "string" ? Number(entries.ratio) : 0;
+  const formik = useFormik({
+    initialValues,
+    validationSchema,
+    onSubmit: (values) => {
+      const isValid = values.ratios.every((group, i) => {
+        const total = group.items.reduce((sum, item) => sum + Number(item.ratio || 0), 0);
+        if (Math.round(total) !== 100) {
+          alert(`Total ratio in Plan Ratio ${i + 1} should be 100% (currently ${total}%)`);
+          return false;
+        }
+        return true;
+      });
+      if (!isValid) {
+        return;
       }
 
-      // Round to handle floating point issues like 99.99999999
-      if (Math.round(percentSum) !== 100) {
-        container.setAttribute("data-error", "true");
-        hasError = true;
-      } else {
-        container.removeAttribute("data-error");
+      console.log("✅ Valid:", values);
+      const payload = {
+        name: values.name,
+        abbr: values.abbr,
+        ratios: values.ratios.map((ratioGroup) => ({
+          items: ratioGroup.items.map((item) => ({
+            ratio: Number(item.ratio),
+            scope: item.scope,
+            conditionType: item.conditionType,
+            conditionValue: item.conditionType === "within-days"
+              ? Number(item.conditionValue || 0)
+              : 0,
+          })),
+        })),
+      };
+
+      try {
+        createPaymentPlan(societyRera, payload)
+          .then(response => {
+            console.log("✅ API Response:", response);
+            alert("Payment plan created successfully!");
+          })
+          .catch(error => {
+            console.error("❌ API Error:", error);
+            alert("Failed to create payment plan.");
+          });
+        alert("Payment plan created successfully!");
+        // Optionally reset the form here
+        // formik.resetForm();
+      } catch (error) {
+        console.error("❌ API Error:", error);
+        alert("Failed to create payment plan.");
       }
+    },
+  });
 
-      ratios.push({ items });
+  useEffect(() => {
+    const name = formik.values.name;
+    if (name) {
+      const abbr = name
+        .split(" ")
+        .map((word) => word[0])
+        .join("")
+        .toUpperCase();
+      formik.setFieldValue("abbr", abbr);
     }
-
-    if (hasError) {
-      alert("One or more Plan Ratios do not sum to 100%");
-      return;
-    }
-
-    const result: CreatePaymentPlanRequestBodyInput = { name, abbr, ratios };
-    console.log("✅ Valid:", result);
-    createPaymentPlan(result);
-  };
+  }, [formik.values.name]);
 
   return (
-    <div className={`${styles["container"]} container`}>
-      <Typography variant="h4" fontWeight={600}>
-        Create Payment Plan
-      </Typography>
+    <FormikProvider value={formik}>
+      <Form className={`${styles["container"]} container`}>
+        <Typography variant="h4" fontWeight={600}>
+          Create Payment Plan
+        </Typography>
 
-      <div className={styles["form"]}>
-        <div className={styles["form-group"]}>
-          <Typography variant="h5" fontWeight={500}>
-            Plan details
-          </Typography>
+        <div className={styles["form"]}>
+          <div className={styles["form-group"]}>
+            <Typography variant="h5">Plan Details</Typography>
+            <div className={styles["form-elements"]}>
+              {planDetailsItem.map((item) => {
+                const fieldName = item.name as keyof typeof formik.values;
+                return (
+                  <label className={styles["label"]} key={item.name}>
+                    <span className={styles["label-text"]}>{item.label}</span>
+                    <input
+                      name={item.name}
+                      className={styles["input"]}
+                      required={item.required}
+                      value={formik.values[fieldName] as string}
+                      onChange={formik.handleChange}
+                    />
+                  </label>
+                );
+              })}
 
-          <form className={styles["form-elements"]} id="main-form">
-            {planDetailsItem.map((item) => {
-              return <Input {...item} key={item.label} />;
-            })}
-          </form>
-        </div>
 
-        <div className={styles["form-group"]}>
-          <div className={styles["form-header"]}>
-            <Typography variant="h5" fontWeight={500}>
-              Plan Ratios
-            </Typography>
-
-            <Button variant="outlined" onClick={addRatio}>
-              Add another
-            </Button>
+            </div>
           </div>
 
-          <div className={styles["form-elements"]}>
-            {ratios.map((ratio) => {
-              return (
-                <RatioContainer key={ratio} id={ratio}>
-                  {ratios.length > 1 && (
-                    <Button color="error" onClick={() => removeRatio(ratio)}>
-                      Remove ratio
-                    </Button>
-                  )}
-                </RatioContainer>
-              );
-            })}
+          <div className={styles["form-group"]}>
+            <div className={styles["form-header"]}>
+
+              <Button
+                variant="outlined"
+                onClick={() =>
+                  formik.setFieldValue("ratios", [...formik.values.ratios, initialValues.ratios[0]])
+                }
+              >
+                Add another
+              </Button>
+            </div>
+
+            <FieldArray
+              name="ratios"
+              render={(arrayHelpers) => (
+                <div className={styles["form-elements"]}>
+                  {formik.values.ratios.map((ratio, index) => (
+
+                    <PlanRatioForm
+                      key={index}
+                      index={index}
+                      remove={() =>
+                        formik.values.ratios.length > 1 &&
+                        arrayHelpers.remove(index)
+                      }
+                    />
+                  ))}
+                </div>
+
+              )}
+            />
+
           </div>
         </div>
-      </div>
 
-      <div
-        style={{
-          textAlign: "center",
-        }}
-      >
-        <Button variant="contained" onClick={handleSubmit}>
-          Create payment Plan
-        </Button>
-      </div>
-    </div>
+        <div style={{ textAlign: "center" }}>
+          <Button variant="contained" type="submit">
+            Create payment Plan
+          </Button>
+        </div>
+      </Form>
+    </FormikProvider>
   );
 };
