@@ -48,13 +48,16 @@ const validationSchema = Yup.object().shape({
 interface CreateReceiptFormProps {
   rera: string;
   saleId: string;
-  towerId?: string; // Optional if needed in the future
+  towerId?: string;
+  onSuccess: () => void; // ✅ Add this
 }
+
 
 const CreateReceiptForm: React.FC<CreateReceiptFormProps> = ({
   rera,
   saleId,
-  towerId, // Optional if needed in the future
+  towerId,
+  onSuccess,
 }) => {
   const router = useRouter();
 
@@ -72,19 +75,9 @@ const CreateReceiptForm: React.FC<CreateReceiptFormProps> = ({
       );
 
       if (response?.error === false) {
-  toast.success("Receipt created successfully!");
-  if (towerId) {
-    router.push(
-      `/org-admin/society/towers/flats?rera=${rera}&saleId=${saleId}&towerId=${towerId}`
-    );
-  } else {
-    router.push(
-      `/org-admin/society/flats?rera=${rera}&saleId=${saleId}`
-    );
-  }
-}
-
- else {
+        toast.success("Receipt created successfully!");
+        onSuccess(); // ✅ close modal and refresh
+      } else {
         toast.error(response?.message || "Failed to create receipt.");
       }
     } catch (error) {
@@ -95,115 +88,117 @@ const CreateReceiptForm: React.FC<CreateReceiptFormProps> = ({
     }
   };
 
-  return (
-    <Formik
-      initialValues={{
-        receiptNumber: "",
-        totalAmount: "",
-        mode: "",
-        dateIssued: "",
-        bankName: "",
-        transactionNumber: "",
-      }}
-      validationSchema={validationSchema}
-      onSubmit={handleSubmit}
-    >
-      {({ isSubmitting, values }) => (
-        <Form className={styles.form}>
-          <div className={styles.formGroup}>
-            <label htmlFor="receiptNumber">Receipt Number</label>
-            <Field
-              name="receiptNumber"
-              type="text"
-              className={styles.formControl}
-            />
-            <ErrorMessage
-              name="receiptNumber"
-              component="p"
-              className={styles.error}
-            />
-          </div>
-          <div className={styles.formGroup}>
+return (
+  <Formik
+    initialValues={{
+      receiptNumber: "",
+      totalAmount: "",
+      mode: "",
+      dateIssued: "",
+      bankName: "",
+      transactionNumber: "",
+    }}
+    validationSchema={validationSchema}
+    onSubmit={handleSubmit}
+  >
+    {({ isSubmitting, values }) => (
+      <Form className={styles.form}>
+        <h2 className={styles.formHeading}>Create New Receipt</h2>
 
-            <label htmlFor="totalAmount">Total Amount</label>
-            <Field
-              name="totalAmount"
-              type="number"
-              className={styles.formControl}
-            />
-            <ErrorMessage
-              name="totalAmount"
-              component="p"
-              className={styles.error}
-            />
-          </div>
+        <div className={styles.formGroup}>
+          <label htmlFor="receiptNumber">Receipt Number</label>
+          <Field
+            name="receiptNumber"
+            type="text"
+            className={styles.formControl}
+          />
+          <ErrorMessage
+            name="receiptNumber"
+            component="p"
+            className={styles.error}
+          />
+        </div>
+        <div className={styles.formGroup}>
 
-          <div className={styles.formGroup}>
-            <label htmlFor="mode">Mode</label>
-            <Field as="select" name="mode" className={styles.formControl}>
-              <option value="">Select mode</option>
-              {modeOptions.map((option) => (
-                <option key={option.value} value={option.value}>
-                  {option.label}
-                </option>
-              ))}
-            </Field>
-            <ErrorMessage name="mode" component="p" className={styles.error} />
-          </div>
+          <label htmlFor="totalAmount">Total Amount</label>
+          <Field
+            name="totalAmount"
+            type="number"
+            className={styles.formControl}
+          />
+          <ErrorMessage
+            name="totalAmount"
+            component="p"
+            className={styles.error}
+          />
+        </div>
 
-          <div className={styles.formGroup}>
-            <label htmlFor="dateIssued">Date Issued</label>
-            <Field
-              name="dateIssued"
-              type="date"
-              className={styles.formControl}
-            />
-            <ErrorMessage
-              name="dateIssued"
-              component="p"
-              className={styles.error}
-            />
-          </div>
+        <div className={styles.formGroup}>
+          <label htmlFor="mode">Mode</label>
+          <Field as="select" name="mode" className={styles.formControl}>
+            <option value="">Select mode</option>
+            {modeOptions.map((option) => (
+              <option key={option.value} value={option.value}>
+                {option.label}
+              </option>
+            ))}
+          </Field>
+          <ErrorMessage name="mode" component="p" className={styles.error} />
+        </div>
 
-          {["online", "cheque", "demand-draft"].includes(values.mode) && (
-            <>
-              <div className={styles.formGroup}>
-                <label htmlFor="bankName">Bank Name</label>
-                <Field
-                  name="bankName"
-                  type="text"
-                  className={styles.formControl}
-                />
-                <ErrorMessage
-                  name="bankName"
-                  component="p"
-                  className={styles.error}
-                />
-              </div>
+        <div className={styles.formGroup}>
+          <label htmlFor="dateIssued">Date Issued</label>
+          <Field
+            name="dateIssued"
+            type="date"
+            className={styles.formControl}
+          />
+          <ErrorMessage
+            name="dateIssued"
+            component="p"
+            className={styles.error}
+          />
+        </div>
 
-              <div className={styles.formGroup}>
-                <label htmlFor="transactionNumber">Transaction Number</label>
-                <Field
-                  name="transactionNumber"
-                  type="text"
-                  className={styles.formControl}
-                />
-                <ErrorMessage
-                  name="transactionNumber"
-                  component="p"
-                  className={styles.error}
-                />
-              </div>
-            </>
-          )}
+        {["online", "cheque", "demand-draft"].includes(values.mode) && (
+          <>
+            <div className={styles.formGroup}>
+              <label htmlFor="bankName">Bank Name</label>
+              <Field
+                name="bankName"
+                type="text"
+                className={styles.formControl}
+              />
+              <ErrorMessage
+                name="bankName"
+                component="p"
+                className={styles.error}
+              />
+            </div>
 
-          <button type="submit" disabled={isSubmitting}>
-            {isSubmitting ? "Submitting..." : "Create Receipt"}
-          </button>
-        </Form>
-      )}
-    </Formik>
-  );
+            <div className={styles.formGroup}>
+              <label htmlFor="transactionNumber">Transaction Number</label>
+              <Field
+                name="transactionNumber"
+                type="text"
+                className={styles.formControl}
+              />
+              <ErrorMessage
+                name="transactionNumber"
+                component="p"
+                className={styles.error}
+              />
+            </div>
+          </>
+        )}
+
+        <button type="submit" disabled={isSubmitting}>
+          {isSubmitting ? "Submitting..." : "Create Receipt"}
+        </button>
+      </Form>
+    )}
+  </Formik>
+);
 };
 
 export default CreateReceiptForm;

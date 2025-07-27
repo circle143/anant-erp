@@ -13,21 +13,24 @@ import {
     markReceiptAsFailed,
 } from "@/redux/action/org-admin";
 import toast from "react-hot-toast";
-import Spinner from "react-bootstrap/Spinner";
+import Loader from "../Loader/Loader";
 import ReceiptDocModal from "@/components/ReceiptDocModal/page";
 import LedgerModal from "../LedgerModal/page";
+import CreateReceiptForm from "@/components/Receipts/CreateReceiptForm";
 const ReceiptContent = ({
     id,
     rera,
     towerId,
     handleClose,
     fetchData,
+     onCreateReceipt,
 }: {
     id: string;
     rera: string;
     towerId?: string;
     handleClose: () => void;
     fetchData: () => void;
+    onCreateReceipt: () => void;
 }) => {
     const [clearModalOpen, setClearModalOpen] = useState(false);
     const [selectedReceiptId, setSelectedReceiptId] = useState<string | null>(
@@ -122,21 +125,18 @@ const ReceiptContent = ({
         setLoading(false);
     };
 
-    if (pageLoading) {
+    if (pageLoading || loading) {
         return (
-            <div className={styles.loader}>
-                <Spinner animation="border" role="status">
-                    <span className="visually-hidden">Loading...</span>
-                </Spinner>
-            </div>
+            <Loader/>
         );
     }
+
 
     return (
         <div className={styles.container}>
             <h1>Receipts</h1>
             <div className={styles.buttonContainer}>
-                <button
+                {/* <button
                     className={styles.createButton}
                     onClick={() =>
                         router.push(
@@ -147,7 +147,15 @@ const ReceiptContent = ({
                     }
                 >
                     Create Receipt
+                </button> */}
+                <button
+                    className={styles.createButton}
+                     onClick={onCreateReceipt}
+                >
+                    Create Receipt
                 </button>
+
+
                 <LedgerModal
                     receiptData={{
                         receipt: matchingUnit?.saleDetail?.receipts || [],
@@ -155,25 +163,25 @@ const ReceiptContent = ({
                         customerId: matchingUnit?.saleDetail?.companyCustomer
                             ? matchingUnit.saleDetail.companyCustomer.id
                             : matchingUnit?.saleDetail?.owners
-                                  ?.map((o) => o.id)
-                                  .filter(Boolean)
-                                  .join(", ") || "N/A",
+                                ?.map((o) => o.id)
+                                .filter(Boolean)
+                                .join(", ") || "N/A",
                         name: matchingUnit?.saleDetail?.companyCustomer
                             ? matchingUnit.saleDetail.companyCustomer.name
                             : matchingUnit?.saleDetail?.owners
-                                  ?.map((o) =>
-                                      [o.firstName, o.middleName, o.lastName]
-                                          .filter(Boolean)
-                                          .join(" ")
-                                  )
-                                  .join(", ") || "N/A",
+                                ?.map((o) =>
+                                    [o.firstName, o.middleName, o.lastName]
+                                        .filter(Boolean)
+                                        .join(" ")
+                                )
+                                .join(", ") || "N/A",
 
                         phone: matchingUnit?.saleDetail?.companyCustomer
                             ? "N/A"
                             : matchingUnit?.saleDetail?.owners
-                                  ?.map((o) => o.phoneNumber)
-                                  .filter(Boolean)
-                                  .join(", ") || "N/A",
+                                ?.map((o) => o.phoneNumber)
+                                .filter(Boolean)
+                                .join(", ") || "N/A",
                         // date: new Date(receipt.dateIssued).toLocaleDateString(),
                         amount: Number(matchingUnit?.saleDetail?.totalPrice),
                         amountRemaining: Number(
@@ -181,14 +189,14 @@ const ReceiptContent = ({
                         ),
                         bookingDate: matchingUnit?.saleDetail?.createdAt
                             ? new Date(
-                                  matchingUnit.saleDetail.createdAt
-                              ).toLocaleDateString()
+                                matchingUnit.saleDetail.createdAt
+                            ).toLocaleDateString()
                             : "Not Available",
 
                         superArea: Number(matchingUnit?.salableArea) || 0,
                         floor:
                             matchingUnit?.floorNumber !== undefined &&
-                            matchingUnit?.floorNumber !== null
+                                matchingUnit?.floorNumber !== null
                                 ? String(matchingUnit.floorNumber)
                                 : "N/A",
                         tower: matchingUnit?.name
@@ -304,37 +312,37 @@ const ReceiptContent = ({
                                             customerId: matchingUnit?.saleDetail
                                                 ?.companyCustomer
                                                 ? matchingUnit.saleDetail
-                                                      .companyCustomer.id
+                                                    .companyCustomer.id
                                                 : matchingUnit?.saleDetail?.owners
-                                                      ?.map((o) => o.id)
-                                                      .filter(Boolean)
-                                                      .join(", ") || "N/A",
+                                                    ?.map((o) => o.id)
+                                                    .filter(Boolean)
+                                                    .join(", ") || "N/A",
                                             name: matchingUnit?.saleDetail
                                                 ?.companyCustomer
                                                 ? matchingUnit.saleDetail
-                                                      .companyCustomer.name
+                                                    .companyCustomer.name
                                                 : matchingUnit?.saleDetail?.owners
-                                                      ?.map((o) =>
-                                                          [
-                                                              o.firstName,
-                                                              o.middleName,
-                                                              o.lastName,
-                                                          ]
-                                                              .filter(Boolean)
-                                                              .join(" ")
-                                                      )
-                                                      .join(", ") || "N/A",
+                                                    ?.map((o) =>
+                                                        [
+                                                            o.firstName,
+                                                            o.middleName,
+                                                            o.lastName,
+                                                        ]
+                                                            .filter(Boolean)
+                                                            .join(" ")
+                                                    )
+                                                    .join(", ") || "N/A",
 
                                             address: "N/A",
                                             phone: matchingUnit?.saleDetail
                                                 ?.companyCustomer
                                                 ? "N/A"
                                                 : matchingUnit?.saleDetail?.owners
-                                                      ?.map(
-                                                          (o) => o.phoneNumber
-                                                      )
-                                                      .filter(Boolean)
-                                                      .join(", ") || "N/A",
+                                                    ?.map(
+                                                        (o) => o.phoneNumber
+                                                    )
+                                                    .filter(Boolean)
+                                                    .join(", ") || "N/A",
                                             date: new Date(
                                                 receipt.dateIssued
                                             ).toLocaleDateString(),
@@ -349,11 +357,11 @@ const ReceiptContent = ({
                                             floor:
                                                 matchingUnit?.floorNumber !==
                                                     undefined &&
-                                                matchingUnit?.floorNumber !==
+                                                    matchingUnit?.floorNumber !==
                                                     null
                                                     ? String(
-                                                          matchingUnit.floorNumber
-                                                      )
+                                                        matchingUnit.floorNumber
+                                                    )
                                                     : "N/A",
                                             tower: matchingUnit?.name
                                                 ? matchingUnit.name.charAt(0)
@@ -367,8 +375,8 @@ const ReceiptContent = ({
                                             status: receipt.failed
                                                 ? "Failed"
                                                 : receipt.cleared
-                                                ? "Paid"
-                                                : "Pending",
+                                                    ? "Paid"
+                                                    : "Pending",
                                             mode: receipt.mode,
                                         }}
                                     />
@@ -393,9 +401,7 @@ const ReceiptContent = ({
                                                 className={styles.failedButton}
                                                 disabled={loading}
                                             >
-                                                {loading
-                                                    ? "Processing..."
-                                                    : "Mark as Failed"}
+                                                Mark as Failed
                                             </button>
                                         </>
                                     )}
@@ -446,40 +452,67 @@ const ReceiptContent = ({
 };
 
 interface ReceiptModalProps {
-    id: string;
-    rera: string;
-    towerId?: string;
-    fetchData: () => void;
+  id: string;
+  rera: string;
+  towerId?: string;
+  fetchData: () => void;
+  open: boolean;
+  onClose: () => void;
+  createReceiptOpen: boolean;
+  onCreateReceiptOpen: () => void;
+  onCreateReceiptClose: () => void;
 }
 
-const ReceiptModal: React.FC<ReceiptModalProps> = ({
-    id,
-    rera,
-    towerId,
-    fetchData,
-}) => {
-    const [open, setOpen] = useState(false);
-    const handleOpen = () => setOpen(true);
-    const handleClose = () => setOpen(false);
 
-    return (
-        <div>
-            <button onClick={handleOpen} className={styles.button}>
-                View Receipts
-            </button>
-            <Modal open={open} onClose={handleClose}>
-                <Box className={styles.modal}>
-                    <ReceiptContent
-                        id={id}
-                        rera={rera}
-                        towerId={towerId}
-                        handleClose={handleClose}
-                        fetchData={fetchData}
-                    />
-                </Box>
-            </Modal>
-        </div>
-    );
+const ReceiptModal: React.FC<ReceiptModalProps> = ({
+  id,
+  rera,
+  towerId,
+  fetchData,
+  open, // ✅ controlled by parent
+  onClose,
+  createReceiptOpen,
+  onCreateReceiptOpen,
+  onCreateReceiptClose,
+}) => {
+  return (
+    <>
+      <Modal open={open} onClose={onClose}>
+        <Box className={styles.modal}>
+          <ReceiptContent
+            id={id}
+            rera={rera}
+            towerId={towerId}
+            handleClose={onClose}
+            fetchData={fetchData}
+            onCreateReceipt={onCreateReceiptOpen}
+          />
+        </Box>
+      </Modal>
+
+      <Modal open={createReceiptOpen} onClose={onCreateReceiptClose}>
+        <Box className={styles.modal}>
+          <button
+            onClick={onCreateReceiptClose}
+            className={styles.closeButton}
+          >
+            ✕
+          </button>
+          <CreateReceiptForm
+            rera={rera}
+            saleId={id}
+            towerId={towerId}
+            onSuccess={() => {
+              onCreateReceiptClose();
+              fetchData(); // still works!
+            }}
+          />
+        </Box>
+      </Modal>
+    </>
+  );
 };
+
+
 
 export default ReceiptModal;

@@ -1,12 +1,12 @@
 .loader {
-  position: fixed; // Overlay the entire screen
+  position: fixed; // ✅ Changed from absolute to fixed
   top: 0;
   left: 0;
   width: 100vw;
   height: 100vh;
-  background-color: rgba(255, 255, 255, 0.7); // Optional: semi-transparent background
+  background-color: rgba(255, 255, 255, 0.7);
   display: flex;
   justify-content: center;
   align-items: center;
-  z-index: 9999; // Ensure it's on top of navbar/sidebar
+  z-index: 9999;
 }

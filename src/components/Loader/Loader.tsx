@@ -1,13 +1,14 @@
 import React from "react";
+import ReactDOM from "react-dom";
 import Spinner from "react-bootstrap/Spinner";
 import styles from "./loader.module.scss";
+
 const Loader = () => {
-  return (
+  return ReactDOM.createPortal(
     <div className={styles.loader}>
-      <Spinner animation="border" role="status">
-        <span className="visually-hidden">Loading...</span>
-      </Spinner>
-    </div>
+      <Spinner animation="border" />
+    </div>,
+    document.body // ⬅️ Appends directly to the body
   );
 };
 

@@ -44,6 +44,8 @@ const Page = () => {
     const [showAdditionalDetails, setShowAdditionalDetails] = useState<
         number | null
     >(null);
+    const [receiptModalOpen, setReceiptModalOpen] = useState(false);
+    const [createReceiptModalOpen, setCreateReceiptModalOpen] = useState(false);
     const [userToDelete, setUserToDelete] = useState<{
         flatId: string;
         name: string;
@@ -51,6 +53,7 @@ const Page = () => {
     } | null>(null);
     const [showDeletePopup, setShowDeletePopup] = useState(false);
     const units = useSelector((state: RootState) => state.TowerFlats.units);
+
     const dispatch = useDispatch();
     const fetchData = async (filter: string = "all") => {
         setLoading(true);
@@ -159,13 +162,13 @@ const Page = () => {
         units.filter((item) =>
             searchQuery
                 ? item.name
-                      ?.toLowerCase()
-                      .includes(searchQuery.toLowerCase()) ||
-                  item.saleDetail?.owners?.some((owner: any) =>
-                      `${owner.firstName} ${owner.lastName}`
-                          .toLowerCase()
-                          .includes(searchQuery.toLowerCase())
-                  )
+                    ?.toLowerCase()
+                    .includes(searchQuery.toLowerCase()) ||
+                item.saleDetail?.owners?.some((owner: any) =>
+                    `${owner.firstName} ${owner.lastName}`
+                        .toLowerCase()
+                        .includes(searchQuery.toLowerCase())
+                )
                 : true
         ).length / ITEMS_PER_PAGE
     );
@@ -290,7 +293,7 @@ const Page = () => {
         } catch (error: any) {
             toast.error(
                 error?.message ||
-                    "An unexpected error occurred during flat upload"
+                "An unexpected error occurred during flat upload"
             );
         }
     };
@@ -402,8 +405,8 @@ const Page = () => {
                                                     <strong>Created At:</strong>{" "}
                                                     {org.createdAt
                                                         ? new Date(
-                                                              org.createdAt
-                                                          ).toLocaleString()
+                                                            org.createdAt
+                                                        ).toLocaleString()
                                                         : "Not Available"}
                                                 </div>
 
@@ -429,7 +432,7 @@ const Page = () => {
                                                                 }
                                                             >
                                                                 {expandedOwnerIndex ===
-                                                                index
+                                                                    index
                                                                     ? "Hide Owner Details"
                                                                     : "Show Owner Details"}
                                                             </button>
@@ -456,94 +459,39 @@ const Page = () => {
 
                                                         {expandedOwnerIndex ===
                                                             index && (
-                                                            <div
-                                                                className={
-                                                                    styles.ownerCards
-                                                                }
-                                                            >
                                                                 <div
                                                                     className={
-                                                                        styles.ownerCard
+                                                                        styles.ownerCards
                                                                     }
                                                                 >
-                                                                    <h4>
-                                                                        Broker
-                                                                        Details:
-                                                                    </h4>
-                                                                    <p>
-                                                                        <strong>
-                                                                            Name:
-                                                                        </strong>{" "}
-                                                                        {org
-                                                                            .saleDetail
-                                                                            .broker
-                                                                            .name ||
-                                                                            "Not Available"}
-                                                                    </p>
-                                                                    <p>
-                                                                        <strong>
-                                                                            Aadhar
-                                                                            Number:
-                                                                        </strong>{" "}
-                                                                        {org
-                                                                            .saleDetail
-                                                                            .broker
-                                                                            .aadharNumber ||
-                                                                            "Not Available"}
-                                                                    </p>
-                                                                    <p>
-                                                                        <strong>
-                                                                            PAN:
-                                                                        </strong>{" "}
-                                                                        {org
-                                                                            .saleDetail
-                                                                            .broker
-                                                                            .panNumber ||
-                                                                            "Not Available"}
-                                                                    </p>
-                                                                </div>
-
-                                                                {org.saleDetail
-                                                                    ?.companyCustomer ? (
                                                                     <div
                                                                         className={
                                                                             styles.ownerCard
                                                                         }
                                                                     >
                                                                         <h4>
-                                                                            Company
+                                                                            Broker
+                                                                            Details:
                                                                         </h4>
                                                                         <p>
                                                                             <strong>
-                                                                                Company
                                                                                 Name:
                                                                             </strong>{" "}
                                                                             {org
                                                                                 .saleDetail
-                                                                                .companyCustomer
+                                                                                .broker
                                                                                 .name ||
                                                                                 "Not Available"}
                                                                         </p>
                                                                         <p>
                                                                             <strong>
-                                                                                Company
-                                                                                GST:
+                                                                                Aadhar
+                                                                                Number:
                                                                             </strong>{" "}
                                                                             {org
                                                                                 .saleDetail
-                                                                                .companyCustomer
-                                                                                .companyGst ||
-                                                                                "Not Available"}
-                                                                        </p>
-                                                                        <p>
-                                                                            <strong>
-                                                                                Company
-                                                                                PAN:
-                                                                            </strong>{" "}
-                                                                            {org
-                                                                                .saleDetail
-                                                                                .companyCustomer
-                                                                                .companyPan ||
+                                                                                .broker
+                                                                                .aadharNumber ||
                                                                                 "Not Available"}
                                                                         </p>
                                                                         <p>
@@ -552,499 +500,559 @@ const Page = () => {
                                                                             </strong>{" "}
                                                                             {org
                                                                                 .saleDetail
-                                                                                .companyCustomer
+                                                                                .broker
                                                                                 .panNumber ||
                                                                                 "Not Available"}
                                                                         </p>
-                                                                        <p>
-                                                                            <strong>
-                                                                                Sale
-                                                                                Date:
-                                                                            </strong>{" "}
-                                                                            {org
-                                                                                .saleDetail
-                                                                                ?.companyCustomer
-                                                                                ?.createdAt
-                                                                                ? new Date(
-                                                                                      org.saleDetail.companyCustomer.createdAt
-                                                                                  ).toLocaleString(
-                                                                                      "en-IN",
-                                                                                      {
-                                                                                          timeZone:
-                                                                                              "Asia/Kolkata",
-                                                                                          day: "2-digit",
-                                                                                          month: "2-digit",
-                                                                                          year: "numeric",
-                                                                                          hour: "2-digit",
-                                                                                          minute: "2-digit",
-                                                                                          hour12: true,
-                                                                                      }
-                                                                                  )
-                                                                                : "Not Available"}
-                                                                        </p>
-                                                                        {rera &&
-                                                                            towerID &&
-                                                                            org
-                                                                                .saleDetail
-                                                                                ?.companyCustomer
-                                                                                ?.id && (
-                                                                                <button
-                                                                                    className={
-                                                                                        styles.toggleButton
+                                                                    </div>
+
+                                                                    {org.saleDetail
+                                                                        ?.companyCustomer ? (
+                                                                        <div
+                                                                            className={
+                                                                                styles.ownerCard
+                                                                            }
+                                                                        >
+                                                                            <h4>
+                                                                                Company
+                                                                            </h4>
+                                                                            <p>
+                                                                                <strong>
+                                                                                    Company
+                                                                                    Name:
+                                                                                </strong>{" "}
+                                                                                {org
+                                                                                    .saleDetail
+                                                                                    .companyCustomer
+                                                                                    .name ||
+                                                                                    "Not Available"}
+                                                                            </p>
+                                                                            <p>
+                                                                                <strong>
+                                                                                    Company
+                                                                                    GST:
+                                                                                </strong>{" "}
+                                                                                {org
+                                                                                    .saleDetail
+                                                                                    .companyCustomer
+                                                                                    .companyGst ||
+                                                                                    "Not Available"}
+                                                                            </p>
+                                                                            <p>
+                                                                                <strong>
+                                                                                    Company
+                                                                                    PAN:
+                                                                                </strong>{" "}
+                                                                                {org
+                                                                                    .saleDetail
+                                                                                    .companyCustomer
+                                                                                    .companyPan ||
+                                                                                    "Not Available"}
+                                                                            </p>
+                                                                            <p>
+                                                                                <strong>
+                                                                                    PAN:
+                                                                                </strong>{" "}
+                                                                                {org
+                                                                                    .saleDetail
+                                                                                    .companyCustomer
+                                                                                    .panNumber ||
+                                                                                    "Not Available"}
+                                                                            </p>
+                                                                            <p>
+                                                                                <strong>
+                                                                                    Sale
+                                                                                    Date:
+                                                                                </strong>{" "}
+                                                                                {org
+                                                                                    .saleDetail
+                                                                                    ?.companyCustomer
+                                                                                    ?.createdAt
+                                                                                    ? new Date(
+                                                                                        org.saleDetail.companyCustomer.createdAt
+                                                                                    ).toLocaleString(
+                                                                                        "en-IN",
+                                                                                        {
+                                                                                            timeZone:
+                                                                                                "Asia/Kolkata",
+                                                                                            day: "2-digit",
+                                                                                            month: "2-digit",
+                                                                                            year: "numeric",
+                                                                                            hour: "2-digit",
+                                                                                            minute: "2-digit",
+                                                                                            hour12: true,
+                                                                                        }
+                                                                                    )
+                                                                                    : "Not Available"}
+                                                                            </p>
+                                                                            {rera &&
+                                                                                towerID &&
+                                                                                org
+                                                                                    .saleDetail
+                                                                                    ?.companyCustomer
+                                                                                    ?.id && (
+                                                                                    <button
+                                                                                        className={
+                                                                                            styles.toggleButton
+                                                                                        }
+                                                                                        onClick={() =>
+                                                                                            handleEditSale(
+                                                                                                rera,
+                                                                                                org
+                                                                                                    .saleDetail
+                                                                                                    .companyCustomer
+                                                                                                    .id,
+                                                                                                "company",
+                                                                                                towerID
+                                                                                            )
+                                                                                        }
+                                                                                    >
+                                                                                        Edit
+                                                                                        Company's
+                                                                                        Details
+                                                                                    </button>
+                                                                                )}
+                                                                        </div>
+                                                                    ) : (
+                                                                        org.saleDetail?.owners?.map(
+                                                                            (
+                                                                                owner: any,
+                                                                                i: number
+                                                                            ) => (
+                                                                                <div
+                                                                                    key={
+                                                                                        i
                                                                                     }
-                                                                                    onClick={() =>
-                                                                                        handleEditSale(
-                                                                                            rera,
-                                                                                            org
-                                                                                                .saleDetail
-                                                                                                .companyCustomer
-                                                                                                .id,
-                                                                                            "company",
-                                                                                            towerID
-                                                                                        )
+                                                                                    className={
+                                                                                        styles.ownerCard
                                                                                     }
                                                                                 >
-                                                                                    Edit
-                                                                                    Company's
-                                                                                    Details
-                                                                                </button>
-                                                                            )}
-                                                                    </div>
-                                                                ) : (
-                                                                    org.saleDetail?.owners?.map(
-                                                                        (
-                                                                            owner: any,
-                                                                            i: number
-                                                                        ) => (
-                                                                            <div
-                                                                                key={
-                                                                                    i
-                                                                                }
-                                                                                className={
-                                                                                    styles.ownerCard
-                                                                                }
-                                                                            >
-                                                                                <h4>
-                                                                                    Applicant{" "}
-                                                                                    {i +
-                                                                                        1}
-                                                                                </h4>
+                                                                                    <h4>
+                                                                                        Applicant{" "}
+                                                                                        {i +
+                                                                                            1}
+                                                                                    </h4>
+                                                                                    <div
+                                                                                        className={
+                                                                                            styles.imgContainer
+                                                                                        }
+                                                                                    >
+                                                                                        {owner.photo ? (
+                                                                                            <img
+                                                                                                src={
+                                                                                                    owner.photo
+                                                                                                }
+                                                                                                alt={`Owner ${i +
+                                                                                                    1
+                                                                                                    }`}
+                                                                                                className={
+                                                                                                    styles.ownerImage
+                                                                                                }
+                                                                                            />
+                                                                                        ) : (
+                                                                                            <div
+                                                                                                className={
+                                                                                                    styles.noLogo
+                                                                                                }
+                                                                                            >
+                                                                                                No
+                                                                                                Logo
+                                                                                            </div>
+                                                                                        )}
+                                                                                    </div>
+                                                                                    <p>
+                                                                                        <strong>
+                                                                                            Full
+                                                                                            Name:
+                                                                                        </strong>{" "}
+                                                                                        {[
+                                                                                            owner.salutation,
+                                                                                            owner.firstName,
+                                                                                            owner.middleName,
+                                                                                            owner.lastName,
+                                                                                        ]
+                                                                                            .filter(
+                                                                                                Boolean
+                                                                                            )
+                                                                                            .join(
+                                                                                                " "
+                                                                                            ) ||
+                                                                                            "Not Available"}
+                                                                                    </p>
+                                                                                    <p>
+                                                                                        <strong>
+                                                                                            Email:
+                                                                                        </strong>{" "}
+                                                                                        {owner.email ||
+                                                                                            "Not Available"}
+                                                                                    </p>
+                                                                                    <p>
+                                                                                        <strong>
+                                                                                            Phone:
+                                                                                        </strong>{" "}
+                                                                                        {owner.phoneNumber ||
+                                                                                            "Not Available"}
+                                                                                    </p>
+                                                                                    <p>
+                                                                                        <strong>
+                                                                                            Gender:
+                                                                                        </strong>{" "}
+                                                                                        {owner.gender ||
+                                                                                            "Not Available"}
+                                                                                    </p>
+                                                                                    <p>
+                                                                                        <strong>
+                                                                                            DOB:
+                                                                                        </strong>{" "}
+                                                                                        {owner.dateOfBirth
+                                                                                            ? new Date(
+                                                                                                owner.dateOfBirth
+                                                                                            ).toLocaleDateString()
+                                                                                            : "Not Available"}
+                                                                                    </p>
+                                                                                    <p>
+                                                                                        <strong>
+                                                                                            Nationality:
+                                                                                        </strong>{" "}
+                                                                                        {owner.nationality ||
+                                                                                            "Not Available"}
+                                                                                    </p>
+                                                                                    <p>
+                                                                                        <strong>
+                                                                                            Marital
+                                                                                            Status:
+                                                                                        </strong>{" "}
+                                                                                        {owner.maritalStatus ||
+                                                                                            "Not Available"}
+                                                                                    </p>
+                                                                                    <p>
+                                                                                        <strong>
+                                                                                            Number
+                                                                                            of
+                                                                                            Children:
+                                                                                        </strong>{" "}
+                                                                                        {owner.numberOfChildren ??
+                                                                                            "Not Available"}
+                                                                                    </p>
+                                                                                    <p>
+                                                                                        <strong>
+                                                                                            Profession:
+                                                                                        </strong>{" "}
+                                                                                        {owner.profession ||
+                                                                                            "Not Available"}
+                                                                                    </p>
+                                                                                    <p>
+                                                                                        <strong>
+                                                                                            Designation:
+                                                                                        </strong>{" "}
+                                                                                        {owner.designation ||
+                                                                                            "Not Available"}
+                                                                                    </p>
+                                                                                    <p>
+                                                                                        <strong>
+                                                                                            Company
+                                                                                            Name:
+                                                                                        </strong>{" "}
+                                                                                        {owner.companyName ||
+                                                                                            "Not Available"}
+                                                                                    </p>
+                                                                                    <p>
+                                                                                        <strong>
+                                                                                            Passport
+                                                                                            Number:
+                                                                                        </strong>{" "}
+                                                                                        {owner.passportNumber ||
+                                                                                            "Not Available"}
+                                                                                    </p>
+                                                                                    <p>
+                                                                                        <strong>
+                                                                                            PAN
+                                                                                            Number:
+                                                                                        </strong>{" "}
+                                                                                        {owner.panNumber ||
+                                                                                            "Not Available"}
+                                                                                    </p>
+                                                                                    <p>
+                                                                                        <strong>
+                                                                                            Aadhar
+                                                                                            Number:
+                                                                                        </strong>{" "}
+                                                                                        {owner.aadharNumber ||
+                                                                                            "Not Available"}
+                                                                                    </p>
+                                                                                    <p>
+                                                                                        <strong>
+                                                                                            Sale
+                                                                                            Date:
+                                                                                        </strong>{" "}
+                                                                                        {owner.createdAt
+                                                                                            ? new Date(
+                                                                                                owner.createdAt
+                                                                                            ).toLocaleString(
+                                                                                                "en-IN",
+                                                                                                {
+                                                                                                    timeZone:
+                                                                                                        "Asia/Kolkata",
+                                                                                                    day: "2-digit",
+                                                                                                    month: "2-digit",
+                                                                                                    year: "numeric",
+                                                                                                    hour: "2-digit",
+                                                                                                    minute: "2-digit",
+                                                                                                    hour12: true,
+                                                                                                }
+                                                                                            )
+                                                                                            : "Not Available"}
+                                                                                    </p>
+                                                                                    {rera &&
+                                                                                        towerID &&
+                                                                                        owner.id && (
+                                                                                            <button
+                                                                                                className={
+                                                                                                    styles.toggleButton
+                                                                                                }
+                                                                                                onClick={() =>
+                                                                                                    handleEditSale(
+                                                                                                        rera,
+                                                                                                        owner.id,
+                                                                                                        "user",
+                                                                                                        towerID,
+                                                                                                        org
+                                                                                                            .saleDetail
+                                                                                                            ?.flatId ??
+                                                                                                        "",
+                                                                                                        i
+                                                                                                    )
+                                                                                                }
+                                                                                            >
+                                                                                                Edit
+                                                                                                Applicant's
+                                                                                                Details
+                                                                                            </button>
+                                                                                        )}
+                                                                                </div>
+                                                                            )
+                                                                        )
+                                                                    )}
+
+                                                                    {showAdditionalDetails ===
+                                                                        index && (
+                                                                            <>
                                                                                 <div
                                                                                     className={
-                                                                                        styles.imgContainer
+                                                                                        styles.totalPriceSection
                                                                                     }
                                                                                 >
-                                                                                    {owner.photo ? (
-                                                                                        <img
-                                                                                            src={
-                                                                                                owner.photo
-                                                                                            }
-                                                                                            alt={`Owner ${
-                                                                                                i +
-                                                                                                1
-                                                                                            }`}
+                                                                                    <h4>
+                                                                                        Paid
+                                                                                    </h4>
+                                                                                    <p>
+                                                                                        {formatIndianCurrencyWithDecimals(
+                                                                                            org
+                                                                                                .saleDetail
+                                                                                                ?.paid !=
+                                                                                                null
+                                                                                                ? org
+                                                                                                    .saleDetail
+                                                                                                    .paid
+                                                                                                : "0.00"
+                                                                                        )}
+                                                                                    </p>
+                                                                                </div>
+                                                                                <div
+                                                                                    className={
+                                                                                        styles.totalPriceSection
+                                                                                    }
+                                                                                >
+                                                                                    <h4>
+                                                                                        Remaining
+                                                                                    </h4>
+                                                                                    <p>
+                                                                                        {formatIndianCurrencyWithDecimals(
+                                                                                            org
+                                                                                                .saleDetail
+                                                                                                ?.paid !=
+                                                                                                null
+                                                                                                ? org
+                                                                                                    .saleDetail
+                                                                                                    .remaining
+                                                                                                : "0.00"
+                                                                                        )}
+                                                                                    </p>
+                                                                                </div>
+                                                                                {/* Total Price */}
+                                                                                <div
+                                                                                    className={
+                                                                                        styles.totalPriceSection
+                                                                                    }
+                                                                                >
+                                                                                    <h4>
+                                                                                        Total
+                                                                                        Price
+                                                                                    </h4>
+                                                                                    <p>
+                                                                                        {formatIndianCurrencyWithDecimals(
+                                                                                            org
+                                                                                                .saleDetail
+                                                                                                ?.paid !=
+                                                                                                null
+                                                                                                ? org
+                                                                                                    .saleDetail
+                                                                                                    .totalPrice
+                                                                                                : "0.00"
+                                                                                        )}
+                                                                                    </p>
+                                                                                </div>
+                                                                                {/* Price Breakdown */}
+                                                                                <div
+                                                                                    className={
+                                                                                        styles.priceBreakdownSection
+                                                                                    }
+                                                                                >
+                                                                                    <h4>
+                                                                                        Price
+                                                                                        Breakdown
+                                                                                    </h4>
+                                                                                    {org
+                                                                                        .saleDetail
+                                                                                        ?.priceBreakdown
+                                                                                        ?.length >
+                                                                                        0 ? (
+                                                                                        <table
                                                                                             className={
-                                                                                                styles.ownerImage
-                                                                                            }
-                                                                                        />
-                                                                                    ) : (
-                                                                                        <div
-                                                                                            className={
-                                                                                                styles.noLogo
+                                                                                                styles.breakdownTable
                                                                                             }
                                                                                         >
-                                                                                            No
-                                                                                            Logo
-                                                                                        </div>
+                                                                                            <thead>
+                                                                                                <tr>
+                                                                                                    <th>
+                                                                                                        #
+                                                                                                    </th>
+                                                                                                    <th>
+                                                                                                        Summary
+                                                                                                    </th>
+                                                                                                    <th>
+                                                                                                        Price
+                                                                                                    </th>
+
+                                                                                                    <th>
+                                                                                                        Type
+                                                                                                    </th>
+                                                                                                    <th>
+                                                                                                        Salable
+                                                                                                        Area
+                                                                                                        (Sq.Ft)
+                                                                                                    </th>
+                                                                                                    <th>
+                                                                                                        Total
+                                                                                                    </th>
+                                                                                                </tr>
+                                                                                            </thead>
+                                                                                            <tbody>
+                                                                                                {org.saleDetail.priceBreakdown.map(
+                                                                                                    (
+                                                                                                        item: any,
+                                                                                                        index: number
+                                                                                                    ) => (
+                                                                                                        <tr
+                                                                                                            key={
+                                                                                                                index
+                                                                                                            }
+                                                                                                        >
+                                                                                                            <td>
+                                                                                                                {index +
+                                                                                                                    1}
+                                                                                                            </td>
+                                                                                                            <td>
+                                                                                                                {
+                                                                                                                    item.summary
+                                                                                                                }
+                                                                                                            </td>
+                                                                                                            <td>
+                                                                                                                {formatIndianCurrencyWithDecimals(
+                                                                                                                    item.price !=
+                                                                                                                        null
+                                                                                                                        ? item.price
+                                                                                                                        : "0.00"
+                                                                                                                )}
+                                                                                                            </td>
+                                                                                                            <td>
+                                                                                                                {item.type ||
+                                                                                                                    "Not Available"}
+                                                                                                            </td>
+                                                                                                            <td>
+                                                                                                                {item.salableArea !=
+                                                                                                                    null
+                                                                                                                    ? item.salableArea
+                                                                                                                    : "0.00"}
+                                                                                                            </td>
+                                                                                                            <td>
+                                                                                                                {formatIndianCurrencyWithDecimals(
+                                                                                                                    item.total !=
+                                                                                                                        null
+                                                                                                                        ? item.total
+                                                                                                                        : "0.00"
+                                                                                                                )}
+                                                                                                            </td>
+                                                                                                        </tr>
+                                                                                                    )
+                                                                                                )}
+                                                                                            </tbody>
+                                                                                        </table>
+                                                                                    ) : (
+                                                                                        <p>
+                                                                                            Not
+                                                                                            Available
+                                                                                        </p>
                                                                                     )}
                                                                                 </div>
-                                                                                <p>
-                                                                                    <strong>
-                                                                                        Full
-                                                                                        Name:
-                                                                                    </strong>{" "}
-                                                                                    {[
-                                                                                        owner.salutation,
-                                                                                        owner.firstName,
-                                                                                        owner.middleName,
-                                                                                        owner.lastName,
-                                                                                    ]
-                                                                                        .filter(
-                                                                                            Boolean
-                                                                                        )
-                                                                                        .join(
-                                                                                            " "
-                                                                                        ) ||
-                                                                                        "Not Available"}
-                                                                                </p>
-                                                                                <p>
-                                                                                    <strong>
-                                                                                        Email:
-                                                                                    </strong>{" "}
-                                                                                    {owner.email ||
-                                                                                        "Not Available"}
-                                                                                </p>
-                                                                                <p>
-                                                                                    <strong>
-                                                                                        Phone:
-                                                                                    </strong>{" "}
-                                                                                    {owner.phoneNumber ||
-                                                                                        "Not Available"}
-                                                                                </p>
-                                                                                <p>
-                                                                                    <strong>
-                                                                                        Gender:
-                                                                                    </strong>{" "}
-                                                                                    {owner.gender ||
-                                                                                        "Not Available"}
-                                                                                </p>
-                                                                                <p>
-                                                                                    <strong>
-                                                                                        DOB:
-                                                                                    </strong>{" "}
-                                                                                    {owner.dateOfBirth
-                                                                                        ? new Date(
-                                                                                              owner.dateOfBirth
-                                                                                          ).toLocaleDateString()
-                                                                                        : "Not Available"}
-                                                                                </p>
-                                                                                <p>
-                                                                                    <strong>
-                                                                                        Nationality:
-                                                                                    </strong>{" "}
-                                                                                    {owner.nationality ||
-                                                                                        "Not Available"}
-                                                                                </p>
-                                                                                <p>
-                                                                                    <strong>
-                                                                                        Marital
-                                                                                        Status:
-                                                                                    </strong>{" "}
-                                                                                    {owner.maritalStatus ||
-                                                                                        "Not Available"}
-                                                                                </p>
-                                                                                <p>
-                                                                                    <strong>
-                                                                                        Number
-                                                                                        of
-                                                                                        Children:
-                                                                                    </strong>{" "}
-                                                                                    {owner.numberOfChildren ??
-                                                                                        "Not Available"}
-                                                                                </p>
-                                                                                <p>
-                                                                                    <strong>
-                                                                                        Profession:
-                                                                                    </strong>{" "}
-                                                                                    {owner.profession ||
-                                                                                        "Not Available"}
-                                                                                </p>
-                                                                                <p>
-                                                                                    <strong>
-                                                                                        Designation:
-                                                                                    </strong>{" "}
-                                                                                    {owner.designation ||
-                                                                                        "Not Available"}
-                                                                                </p>
-                                                                                <p>
-                                                                                    <strong>
-                                                                                        Company
-                                                                                        Name:
-                                                                                    </strong>{" "}
-                                                                                    {owner.companyName ||
-                                                                                        "Not Available"}
-                                                                                </p>
-                                                                                <p>
-                                                                                    <strong>
-                                                                                        Passport
-                                                                                        Number:
-                                                                                    </strong>{" "}
-                                                                                    {owner.passportNumber ||
-                                                                                        "Not Available"}
-                                                                                </p>
-                                                                                <p>
-                                                                                    <strong>
-                                                                                        PAN
-                                                                                        Number:
-                                                                                    </strong>{" "}
-                                                                                    {owner.panNumber ||
-                                                                                        "Not Available"}
-                                                                                </p>
-                                                                                <p>
-                                                                                    <strong>
-                                                                                        Aadhar
-                                                                                        Number:
-                                                                                    </strong>{" "}
-                                                                                    {owner.aadharNumber ||
-                                                                                        "Not Available"}
-                                                                                </p>
-                                                                                <p>
-                                                                                    <strong>
-                                                                                        Sale
-                                                                                        Date:
-                                                                                    </strong>{" "}
-                                                                                    {owner.createdAt
-                                                                                        ? new Date(
-                                                                                              owner.createdAt
-                                                                                          ).toLocaleString(
-                                                                                              "en-IN",
-                                                                                              {
-                                                                                                  timeZone:
-                                                                                                      "Asia/Kolkata",
-                                                                                                  day: "2-digit",
-                                                                                                  month: "2-digit",
-                                                                                                  year: "numeric",
-                                                                                                  hour: "2-digit",
-                                                                                                  minute: "2-digit",
-                                                                                                  hour12: true,
-                                                                                              }
-                                                                                          )
-                                                                                        : "Not Available"}
-                                                                                </p>
-                                                                                {rera &&
-                                                                                    towerID &&
-                                                                                    owner.id && (
-                                                                                        <button
-                                                                                            className={
-                                                                                                styles.toggleButton
-                                                                                            }
-                                                                                            onClick={() =>
-                                                                                                handleEditSale(
-                                                                                                    rera,
-                                                                                                    owner.id,
-                                                                                                    "user",
-                                                                                                    towerID,
-                                                                                                    org
-                                                                                                        .saleDetail
-                                                                                                        ?.flatId ??
-                                                                                                        "",
-                                                                                                    i
-                                                                                                )
-                                                                                            }
-                                                                                        >
-                                                                                            Edit
-                                                                                            Applicant's
-                                                                                            Details
-                                                                                        </button>
-                                                                                    )}
-                                                                            </div>
-                                                                        )
-                                                                    )
-                                                                )}
-
-                                                                {showAdditionalDetails ===
-                                                                    index && (
-                                                                    <>
-                                                                        <div
-                                                                            className={
-                                                                                styles.totalPriceSection
-                                                                            }
-                                                                        >
-                                                                            <h4>
-                                                                                Paid
-                                                                            </h4>
-                                                                            <p>
-                                                                                {formatIndianCurrencyWithDecimals(
-                                                                                    org
-                                                                                        .saleDetail
-                                                                                        ?.paid !=
-                                                                                        null
-                                                                                        ? org
-                                                                                              .saleDetail
-                                                                                              .paid
-                                                                                        : "0.00"
-                                                                                )}
-                                                                            </p>
-                                                                        </div>
-                                                                        <div
-                                                                            className={
-                                                                                styles.totalPriceSection
-                                                                            }
-                                                                        >
-                                                                            <h4>
-                                                                                Remaining
-                                                                            </h4>
-                                                                            <p>
-                                                                                {formatIndianCurrencyWithDecimals(
-                                                                                    org
-                                                                                        .saleDetail
-                                                                                        ?.paid !=
-                                                                                        null
-                                                                                        ? org
-                                                                                              .saleDetail
-                                                                                              .remaining
-                                                                                        : "0.00"
-                                                                                )}
-                                                                            </p>
-                                                                        </div>
-                                                                        {/* Total Price */}
-                                                                        <div
-                                                                            className={
-                                                                                styles.totalPriceSection
-                                                                            }
-                                                                        >
-                                                                            <h4>
-                                                                                Total
-                                                                                Price
-                                                                            </h4>
-                                                                            <p>
-                                                                                {formatIndianCurrencyWithDecimals(
-                                                                                    org
-                                                                                        .saleDetail
-                                                                                        ?.paid !=
-                                                                                        null
-                                                                                        ? org
-                                                                                              .saleDetail
-                                                                                              .totalPrice
-                                                                                        : "0.00"
-                                                                                )}
-                                                                            </p>
-                                                                        </div>
-                                                                        {/* Price Breakdown */}
-                                                                        <div
-                                                                            className={
-                                                                                styles.priceBreakdownSection
-                                                                            }
-                                                                        >
-                                                                            <h4>
-                                                                                Price
-                                                                                Breakdown
-                                                                            </h4>
-                                                                            {org
-                                                                                .saleDetail
-                                                                                ?.priceBreakdown
-                                                                                ?.length >
-                                                                            0 ? (
-                                                                                <table
-                                                                                    className={
-                                                                                        styles.breakdownTable
-                                                                                    }
-                                                                                >
-                                                                                    <thead>
-                                                                                        <tr>
-                                                                                            <th>
-                                                                                                #
-                                                                                            </th>
-                                                                                            <th>
-                                                                                                Summary
-                                                                                            </th>
-                                                                                            <th>
-                                                                                                Price
-                                                                                            </th>
-
-                                                                                            <th>
-                                                                                                Type
-                                                                                            </th>
-                                                                                            <th>
-                                                                                                Salable
-                                                                                                Area
-                                                                                                (Sq.Ft)
-                                                                                            </th>
-                                                                                            <th>
-                                                                                                Total
-                                                                                            </th>
-                                                                                        </tr>
-                                                                                    </thead>
-                                                                                    <tbody>
-                                                                                        {org.saleDetail.priceBreakdown.map(
-                                                                                            (
-                                                                                                item: any,
-                                                                                                index: number
-                                                                                            ) => (
-                                                                                                <tr
-                                                                                                    key={
-                                                                                                        index
-                                                                                                    }
-                                                                                                >
-                                                                                                    <td>
-                                                                                                        {index +
-                                                                                                            1}
-                                                                                                    </td>
-                                                                                                    <td>
-                                                                                                        {
-                                                                                                            item.summary
-                                                                                                        }
-                                                                                                    </td>
-                                                                                                    <td>
-                                                                                                        {formatIndianCurrencyWithDecimals(
-                                                                                                            item.price !=
-                                                                                                                null
-                                                                                                                ? item.price
-                                                                                                                : "0.00"
-                                                                                                        )}
-                                                                                                    </td>
-                                                                                                    <td>
-                                                                                                        {item.type ||
-                                                                                                            "Not Available"}
-                                                                                                    </td>
-                                                                                                    <td>
-                                                                                                        {item.salableArea !=
-                                                                                                        null
-                                                                                                            ? item.salableArea
-                                                                                                            : "0.00"}
-                                                                                                    </td>
-                                                                                                    <td>
-                                                                                                        {formatIndianCurrencyWithDecimals(
-                                                                                                            item.total !=
-                                                                                                                null
-                                                                                                                ? item.total
-                                                                                                                : "0.00"
-                                                                                                        )}
-                                                                                                    </td>
-                                                                                                </tr>
-                                                                                            )
-                                                                                        )}
-                                                                                    </tbody>
-                                                                                </table>
-                                                                            ) : (
-                                                                                <p>
-                                                                                    Not
-                                                                                    Available
-                                                                                </p>
-                                                                            )}
-                                                                        </div>
-                                                                    </>
-                                                                )}
-                                                                <div
-                                                                    className={
-                                                                        styles.buttonGroup
-                                                                    }
-                                                                >
-                                                                    <button
+                                                                            </>
+                                                                        )}
+                                                                    <div
                                                                         className={
-                                                                            styles.toggleButton
-                                                                        }
-                                                                        onClick={() =>
-                                                                            toggleAdditionalDetails(
-                                                                                index
-                                                                            )
+                                                                            styles.buttonGroup
                                                                         }
                                                                     >
-                                                                        {showAdditionalDetails ===
-                                                                        index
-                                                                            ? "Show Less"
-                                                                            : "Show More"}
-                                                                    </button>
-                                                                    <ReceiptModal
-                                                                        id={
-                                                                            org
-                                                                                .saleDetail
-                                                                                ?.id
-                                                                        }
-                                                                        rera={
-                                                                            rera ??
-                                                                            ""
-                                                                        }
-                                                                        towerId={
-                                                                            towerID ??
-                                                                            ""
-                                                                        }
-                                                                        fetchData={() =>
-                                                                            fetchData(
-                                                                                selectedFilter
-                                                                            )
-                                                                        }
-                                                                    />
+                                                                        <button
+                                                                            className={
+                                                                                styles.toggleButton
+                                                                            }
+                                                                            onClick={() =>
+                                                                                toggleAdditionalDetails(
+                                                                                    index
+                                                                                )
+                                                                            }
+                                                                        >
+                                                                            {showAdditionalDetails ===
+                                                                                index
+                                                                                ? "Show Less"
+                                                                                : "Show More"}
+                                                                        </button>
+                                                                        <button  className={
+                                                                                styles.toggleButton
+                                                                            } onClick={() => setReceiptModalOpen(true)}>View Receipts</button>
+
+                                                                        <ReceiptModal
+                                                                             id={
+                                                                                org
+                                                                                    .saleDetail
+                                                                                    ?.id
+                                                                            }
+                                                                            rera={
+                                                                                rera ??
+                                                                                ""
+                                                                            }
+                                                                            towerId={
+                                                                                towerID ??
+                                                                                ""
+                                                                            }
+                                                                            open={receiptModalOpen}
+                                                                            onClose={() => setReceiptModalOpen(false)}
+                                                                            fetchData={fetchData}
+                                                                           createReceiptOpen={createReceiptModalOpen}
+                                                                            onCreateReceiptOpen={() => setCreateReceiptModalOpen(true)}
+                                                                            onCreateReceiptClose={() => setCreateReceiptModalOpen(false)}
+                                                                        />
+                                                                 
                                                                     <PaymentBreakdownModal
                                                                         id={
                                                                             org
@@ -1075,117 +1083,120 @@ const Page = () => {
                                                                         }
                                                                     />
                                                                 </div>
-                                                            </div>
-                                                        )}
-                                                    </div>
+                                                                </div>
                                                 )}
                                             </div>
-                                            <div
-                                                className={styles.groupButtons}
-                                            >
-                                                <i
-                                                    className="bx bxs-trash"
-                                                    onClick={() =>
-                                                        handleDelete(
-                                                            org.id,
-                                                            org.name,
-                                                            index
-                                                        )
-                                                    }
-                                                ></i>
-                                            </div>
+                                                )}
                                         </div>
+                                        <div
+                                            className={styles.groupButtons}
+                                        >
+                                            <i
+                                                className="bx bxs-trash"
+                                                onClick={() =>
+                                                    handleDelete(
+                                                        org.id,
+                                                        org.name,
+                                                        index
+                                                    )
+                                                }
+                                            ></i>
+                                        </div>
+                                    </div>
                                     </li>
                                 ))}
-                            </ul>
+                        </ul>
 
-                            <div className={styles.paginationControls}>
-                                <button
-                                    onClick={() => {
-                                        if (
-                                            currentPage > 1 &&
-                                            totalPages !== 0
-                                        ) {
-                                            setCurrentPage((prev) =>
-                                                Math.max(prev - 1, 1)
-                                            );
-                                            window.scrollTo({
-                                                top: 0,
-                                                behavior: "smooth",
-                                            });
-                                        }
-                                    }}
-                                    disabled={
-                                        currentPage === 1 || totalPages === 0
-                                    }
-                                    className={styles.navButton}
-                                >
-                                    Previous
-                                </button>
-                                {/* <span>
+                    <div className={styles.paginationControls}>
+                        <button
+                            onClick={() => {
+                                if (
+                                    currentPage > 1 &&
+                                    totalPages !== 0
+                                ) {
+                                    setCurrentPage((prev) =>
+                                        Math.max(prev - 1, 1)
+                                    );
+                                    window.scrollTo({
+                                        top: 0,
+                                        behavior: "smooth",
+                                    });
+                                }
+                            }}
+                            disabled={
+                                currentPage === 1 || totalPages === 0
+                            }
+                            className={styles.navButton}
+                        >
+                            Previous
+                        </button>
+                        {/* <span>
                                     Page {totalPages === 0 ? 0 : currentPage} of{" "}
                                     {totalPages}
                                 </span> */}
-                                <button
-                                    onClick={() => {
-                                        if (
-                                            currentPage < totalPages &&
-                                            totalPages !== 0
-                                        ) {
-                                            setCurrentPage((prev) =>
-                                                Math.min(prev + 1, totalPages)
-                                            );
-                                            window.scrollTo({
-                                                top: 0,
-                                                behavior: "smooth",
-                                            });
-                                        }
-                                    }}
-                                    disabled={
-                                        currentPage === totalPages ||
-                                        totalPages === 0
-                                    }
-                                    className={styles.navButton}
-                                >
-                                    Next
-                                </button>
-                            </div>
-                        </>
-                    )}
+                        <button
+                            onClick={() => {
+                                if (
+                                    currentPage < totalPages &&
+                                    totalPages !== 0
+                                ) {
+                                    setCurrentPage((prev) =>
+                                        Math.min(prev + 1, totalPages)
+                                    );
+                                    window.scrollTo({
+                                        top: 0,
+                                        behavior: "smooth",
+                                    });
+                                }
+                            }}
+                            disabled={
+                                currentPage === totalPages ||
+                                totalPages === 0
+                            }
+                            className={styles.navButton}
+                        >
+                            Next
+                        </button>
+                    </div>
                 </>
             )}
-            {showDeletePopup && userToDelete && (
-                <div className={styles.popupOverlay}>
-                    <div className={styles.popup}>
-                        <h4>Confirm Delete</h4>
-                        <p>
-                            Are you sure you want to remove
-                            <strong> {userToDelete.name}</strong>?
-                        </p>
-                        <div className={styles.popupButtons}>
-                            <button
-                                className={styles.confirmButton}
-                                onClick={confirmDelete}
-                            >
-                                Yes, Delete
-                            </button>
-                            <button
-                                className={styles.cancelButton}
-                                onClick={cancelDelete}
-                            >
-                                Cancel
-                            </button>
-                        </div>
-                    </div>
+        </>
+    )
+}
+{
+    showDeletePopup && userToDelete && (
+        <div className={styles.popupOverlay}>
+            <div className={styles.popup}>
+                <h4>Confirm Delete</h4>
+                <p>
+                    Are you sure you want to remove
+                    <strong> {userToDelete.name}</strong>?
+                </p>
+                <div className={styles.popupButtons}>
+                    <button
+                        className={styles.confirmButton}
+                        onClick={confirmDelete}
+                    >
+                        Yes, Delete
+                    </button>
+                    <button
+                        className={styles.cancelButton}
+                        onClick={cancelDelete}
+                    >
+                        Cancel
+                    </button>
                 </div>
-            )}
-            <ExcelUploadModal
-                open={isFlatModalOpen}
-                onClose={() => setIsFlatModalOpen(false)}
-                title="Upload Flat Excel"
-                onUpload={handleFlatUpload}
-            />
+            </div>
         </div>
+    )
+}
+<ExcelUploadModal
+    open={isFlatModalOpen}
+    onClose={() => setIsFlatModalOpen(false)}
+    title="Upload Flat Excel"
+    onUpload={handleFlatUpload}
+/>
+        </div >
     );
 };
 
