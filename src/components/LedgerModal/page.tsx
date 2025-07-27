@@ -36,6 +36,7 @@ interface SingleReceipt {
 
 interface LedgerProps {
     receipt: SingleReceipt[];
+    saleNumber: string;
     customerId: string;
     name: string;
     phone: string;

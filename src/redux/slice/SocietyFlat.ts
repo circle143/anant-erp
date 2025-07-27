@@ -68,6 +68,7 @@ interface cleared {
     receiptId: string;
 }
 interface receipt {
+    receiptNumber: string;
     amount: string;
     bankName?: string;
     cgst: string;
@@ -84,6 +85,7 @@ interface receipt {
 }
 interface SaleDetail {
     id: string;
+    saleNumber: string;
     brokerId: string;
     broker: broker;
     flatId: string;

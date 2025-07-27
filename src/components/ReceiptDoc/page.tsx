@@ -9,6 +9,7 @@ import { useSelector } from "react-redux";
 import { RootState } from "@/redux/store";
 import { useSearchParams } from "next/navigation";
 interface ReceiptData {
+    saleNumber: string;
     receiptNo: string;
     customerId: string;
     name: string;
@@ -39,6 +40,7 @@ interface PageProps {
 const Page: React.FC<PageProps> = ({ receiptData, onClose }) => {
     const {
         receiptNo,
+        saleNumber,
         customerId,
         name,
         address,
@@ -211,7 +213,7 @@ const Page: React.FC<PageProps> = ({ receiptData, onClose }) => {
                         <p>
                             <strong>Receipt No:</strong> {receiptNo}
                         </p>
-                        <p>
+                        {/* <p>
                             <strong>
                                 {customerId.includes(",")
                                     ? "Owner ID(s)"
@@ -219,6 +221,9 @@ const Page: React.FC<PageProps> = ({ receiptData, onClose }) => {
                                 :
                             </strong>{" "}
                             {customerId}
+                        </p> */}
+                        <p>
+                            <strong>Sale Number:</strong> {saleNumber}
                         </p>
                         <p>
                             <strong>

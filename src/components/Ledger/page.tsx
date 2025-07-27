@@ -39,6 +39,7 @@ interface SingleReceipt {
 
 interface LedgerProps {
     receipt: SingleReceipt[];
+    saleNumber: string;
     customerId: string;
     name: string;
     phone: string;
@@ -207,7 +208,7 @@ const Page: React.FC<PageProps> = ({ receiptData, onClose }) => {
                     </div>
 
                     <div className={styles.customerInfo}>
-                        <p>
+                        {/* <p>
                             <strong>
                                 {receiptData.customerId.includes(",")
                                     ? "Owner ID(s)"
@@ -215,6 +216,9 @@ const Page: React.FC<PageProps> = ({ receiptData, onClose }) => {
                                 :
                             </strong>{" "}
                             {receiptData.customerId}
+                        </p> */}
+                        <p>
+                            <strong>Sale Number:</strong> {receiptData.saleNumber}
                         </p>
                         <p>
                             <strong>

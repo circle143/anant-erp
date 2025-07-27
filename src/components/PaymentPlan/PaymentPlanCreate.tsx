@@ -3,7 +3,7 @@ import {
   PaymentPlanCreateProps,
   InputProps,
   planDetailsItem,
-   planRatioElements,
+  planRatioElements,
   RatioContainerProps,
 } from "./types";
 import { createPaymentPlan } from "../../redux/action/org-admin"
@@ -13,6 +13,8 @@ import { uniqueId } from "lodash";
 import { useFormik, FormikProvider, Form, FieldArray, useFormikContext } from "formik";
 import * as Yup from "yup";
 import { useState, useEffect } from "react";
+import { useRouter } from "next/navigation";
+import Loader from "../Loader/Loader";
 
 const Input = ({ label, ...props }: InputProps) => (
   <label className={styles["label"]}>
@@ -229,6 +231,9 @@ const PlanRatioForm = ({ index, remove }: { index: number; remove: () => void })
 };
 
 export const PaymentPlanCreate = ({ societyRera }: PaymentPlanCreateProps) => {
+  const router = useRouter();
+  const [loading, setLoading] = useState(false);
+
   const initialValues = {
     name: "",
     abbr: "",
@@ -270,6 +275,7 @@ export const PaymentPlanCreate = ({ societyRera }: PaymentPlanCreateProps) => {
     ,
   });
 
+
   const formik = useFormik({
     initialValues,
     validationSchema,
@@ -282,11 +288,9 @@ export const PaymentPlanCreate = ({ societyRera }: PaymentPlanCreateProps) => {
         }
         return true;
       });
-      if (!isValid) {
-        return;
-      }
 
-      console.log("✅ Valid:", values);
+      if (!isValid) return;
+
       const payload = {
         name: values.name,
         abbr: values.abbr,
@@ -295,31 +299,31 @@ export const PaymentPlanCreate = ({ societyRera }: PaymentPlanCreateProps) => {
             ratio: Number(item.ratio),
             scope: item.scope,
             conditionType: item.conditionType,
-            conditionValue: item.conditionType === "within-days"
-              ? Number(item.conditionValue || 0)
-              : 0,
+            conditionValue:
+              item.conditionType === "within-days"
+                ? Number(item.conditionValue || 0)
+                : 0,
           })),
         })),
       };
 
-      try {
-        createPaymentPlan(societyRera, payload)
-          .then(response => {
-            console.log("✅ API Response:", response);
-            alert("Payment plan created successfully!");
-          })
-          .catch(error => {
-            console.error("❌ API Error:", error);
-            alert("Failed to create payment plan.");
-          });
-        alert("Payment plan created successfully!");
-        // Optionally reset the form here
-        // formik.resetForm();
-      } catch (error) {
-        console.error("❌ API Error:", error);
-        alert("Failed to create payment plan.");
-      }
-    },
+      setLoading(true); // 🟡 Show loader
+
+      createPaymentPlan(societyRera, payload)
+        .then((response) => {
+          alert("Payment plan created successfully!");
+          formik.resetForm();
+          router.push(`/org-admin/society/payment-plans?rera=${societyRera}`);
+        })
+        .catch((error) => {
+          console.error("API Error:", error);
+          alert("Failed to create payment plan.");
+        })
+        .finally(() => {
+          setLoading(false); // 🟢 Hide loader
+        });
+    }
+
   });
 
   useEffect(() => {
@@ -335,78 +339,85 @@ export const PaymentPlanCreate = ({ societyRera }: PaymentPlanCreateProps) => {
   }, [formik.values.name]);
 
   return (
-    <FormikProvider value={formik}>
-      <Form className={`${styles["container"]} container`}>
-        <Typography variant="h4" fontWeight={600}>
-          Create Payment Plan
-        </Typography>
+    <>
+      {loading ? (
+        <Loader /> // 👈 This is your existing Loader component
+      ) : (
+        <FormikProvider value={formik}>
+          <Form className={`${styles["container"]} container`}>
+            <Typography variant="h4" fontWeight={600}>
+              Create Payment Plan
+            </Typography>
 
-        <div className={styles["form"]}>
-          <div className={styles["form-group"]}>
-            <Typography variant="h5">Plan Details</Typography>
-            <div className={styles["form-elements"]}>
-              {planDetailsItem.map((item) => {
-                const fieldName = item.name as keyof typeof formik.values;
-                return (
-                  <label className={styles["label"]} key={item.name}>
-                    <span className={styles["label-text"]}>{item.label}</span>
-                    <input
-                      name={item.name}
-                      className={styles["input"]}
-                      required={item.required}
-                      value={formik.values[fieldName] as string}
-                      onChange={formik.handleChange}
-                    />
-                  </label>
-                );
-              })}
-
-
-            </div>
-          </div>
-
-          <div className={styles["form-group"]}>
-            <div className={styles["form-header"]}>
-
-              <Button
-                variant="outlined"
-                onClick={() =>
-                  formik.setFieldValue("ratios", [...formik.values.ratios, initialValues.ratios[0]])
-                }
-              >
-                Add another
-              </Button>
-            </div>
-
-            <FieldArray
-              name="ratios"
-              render={(arrayHelpers) => (
+            <div className={styles["form"]}>
+              <div className={styles["form-group"]}>
+                <Typography variant="h5">Plan Details</Typography>
                 <div className={styles["form-elements"]}>
-                  {formik.values.ratios.map((ratio, index) => (
+                  {planDetailsItem.map((item) => {
+                    const fieldName = item.name as keyof typeof formik.values;
+                    return (
+                      <label className={styles["label"]} key={item.name}>
+                        <span className={styles["label-text"]}>{item.label}</span>
+                        <input
+                          name={item.name}
+                          className={styles["input"]}
+                          required={item.required}
+                          value={formik.values[fieldName] as string}
+                          onChange={formik.handleChange}
+                        />
+                      </label>
+                    );
+                  })}
 
-                    <PlanRatioForm
-                      key={index}
-                      index={index}
-                      remove={() =>
-                        formik.values.ratios.length > 1 &&
-                        arrayHelpers.remove(index)
-                      }
-                    />
-                  ))}
+
+                </div>
+              </div>
+
+              <div className={styles["form-group"]}>
+                <div className={styles["form-header"]}>
+
+                  <Button
+                    variant="outlined"
+                    onClick={() =>
+                      formik.setFieldValue("ratios", [...formik.values.ratios, initialValues.ratios[0]])
+                    }
+                  >
+                    Add another
+                  </Button>
                 </div>
 
-              )}
-            />
+                <FieldArray
+                  name="ratios"
+                  render={(arrayHelpers) => (
+                    <div className={styles["form-elements"]}>
+                      {formik.values.ratios.map((ratio, index) => (
 
-          </div>
-        </div>
+                        <PlanRatioForm
+                          key={index}
+                          index={index}
+                          remove={() =>
+                            formik.values.ratios.length > 1 &&
+                            arrayHelpers.remove(index)
+                          }
+                        />
+                      ))}
+                    </div>
 
-        <div style={{ textAlign: "center" }}>
-          <Button variant="contained" type="submit">
-            Create payment Plan
-          </Button>
-        </div>
-      </Form>
-    </FormikProvider>
+                  )}
+                />
+
+              </div>
+            </div>
+
+            <div style={{ textAlign: "center" }}>
+              <Button variant="contained" type="submit">
+                Create payment Plan
+              </Button>
+            </div>
+          </Form>
+        </FormikProvider>
+      )}
+    </>
+
   );
 };

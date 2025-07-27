@@ -17,6 +17,7 @@ const modeOptions = [
 ];
 
 const validationSchema = Yup.object().shape({
+  receiptNumber: Yup.string().required("Receipt number is required"),
   totalAmount: Yup.number()
     .required("Total amount is required")
     .positive("Amount must be positive"),
@@ -60,6 +61,7 @@ const CreateReceiptForm: React.FC<CreateReceiptFormProps> = ({
   const handleSubmit = async (values: any, { setSubmitting }: any) => {
     try {
       const response = await addSaleReceipt(
+        values.receiptNumber,
         rera,
         saleId,
         values.totalAmount,
@@ -96,6 +98,7 @@ const CreateReceiptForm: React.FC<CreateReceiptFormProps> = ({
   return (
     <Formik
       initialValues={{
+        receiptNumber: "",
         totalAmount: "",
         mode: "",
         dateIssued: "",
@@ -108,6 +111,20 @@ const CreateReceiptForm: React.FC<CreateReceiptFormProps> = ({
       {({ isSubmitting, values }) => (
         <Form className={styles.form}>
           <div className={styles.formGroup}>
+            <label htmlFor="receiptNumber">Receipt Number</label>
+            <Field
+              name="receiptNumber"
+              type="text"
+              className={styles.formControl}
+            />
+            <ErrorMessage
+              name="receiptNumber"
+              component="p"
+              className={styles.error}
+            />
+          </div>
+          <div className={styles.formGroup}>
+
             <label htmlFor="totalAmount">Total Amount</label>
             <Field
               name="totalAmount"

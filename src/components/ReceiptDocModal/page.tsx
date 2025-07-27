@@ -7,6 +7,7 @@ import styles from "./ReceiptDocModal.module.scss"; // create this SCSS file as 
 
 interface ReceiptData {
     receiptNo: string;
+    saleNumber: string;
     customerId: string;
     name: string;
     address: string;

@@ -9,6 +9,7 @@ import {
     getAllOtherOptionalCharges,
     getAllSocietyBrokers,
     addCustomer,
+    getPaymentPlans,
 } from "@/redux/action/org-admin";
 import InputLabel from "@mui/material/InputLabel";
 import FormHelperText from "@mui/material/FormHelperText";
@@ -32,7 +33,9 @@ import { CustomerDetails } from "@/utils/routes/sale/types";
 import { broker } from "@/utils/routes/broker/broker";
 import { OtherCharges } from "@/utils/routes/sale/types";
 const StepOneSchema = Yup.object().shape({
+    saleNumber: Yup.string().required("Sale Number is required"),
     society: Yup.string().required("Society is required"),
+    paymentPlan:Yup.string().required("Paymnet Plan is Required"),
     broker: Yup.string().required("Broker is required"),
     tower: Yup.string().required("Tower is required"),
     flat: Yup.string().required("Flat is required"),
@@ -257,7 +260,9 @@ const StepTwoSchema = Yup.object().shape({
 });
 
 const initialValues = {
+    saleNumber: "",
     society: "",
+    paymentPlan: "",
     broker: "",
     tower: "",
     flat: "",
@@ -342,12 +347,12 @@ function TabPanel(props: any) {
 type CompanyBuyerErrors =
     | string
     | {
-          name?: string;
-          companyPan?: string;
-          companyGST?: string;
-          aadharNumber?: string;
-          panNumber?: string;
-      };
+        name?: string;
+        companyPan?: string;
+        companyGST?: string;
+        aadharNumber?: string;
+        panNumber?: string;
+    };
 const Sale = () => {
     const [skillOptions, setSkillOptions] = useState<SkillOption[]>([]);
     const [step, setStep] = useState(1);
@@ -357,6 +362,10 @@ const Sale = () => {
     const [towers, setTowers] = useState<
         { id: string; name: string; societyId: string }[]
     >([]);
+ const [paymentPlan, setPaymentPlan] = useState<
+  { id: string; name: string; ratio: string }[]
+>([]);
+
     const [brokers, setBrokers] = useState<{ id: string; name: string }[]>([]);
     const [loading, setLoading] = useState(false);
     const [selectedSocietyRera, setSelectedSocietyRera] = useState<string>("");
@@ -440,6 +449,47 @@ const Sale = () => {
         const towerData = await fetchAllTowers();
         setTowers(towerData);
 
+        const fetchAllPaymentPlan = async (
+            cursor: string | null = null,
+            accumulated: any[] = []
+        ) => {
+            const response = await getPaymentPlans(reraNumber, cursor);
+            if (response?.error) return accumulated;
+
+            const items = response?.data?.items || [];
+            const newData = [...accumulated, ...items];
+            const hasNext = response?.data?.pageInfo?.nextPage;
+            const nextCursor = response?.data?.pageInfo?.cursor;
+
+            if (hasNext && nextCursor) {
+                return await fetchAllTowers(nextCursor, newData);
+            }
+
+            return newData;
+        };
+
+        const paymentPlanData = await fetchAllPaymentPlan();
+
+
+        const formattedData = paymentPlanData.flatMap((plan: any) =>
+            plan.ratios.map((ratioObj: any) => {
+                const itemRatios = ratioObj.items
+                    .map((item: any) => {
+                        const parsed = parseFloat(item.ratio);
+                        return isNaN(parsed) ? null : String(parsed % 1 === 0 ? parsed.toFixed(0) : parsed);
+                    })
+                    .filter((r: string | null) => r !== null); // remove invalid
+
+                const combinedRatios = itemRatios.join(":");
+
+                return {id:ratioObj.id, name:plan.abbr, ratio:combinedRatios};
+            })
+        );
+
+        console.log(formattedData);
+        setPaymentPlan(formattedData);
+        // console.log("Formatted Ratio Data:", formattedData);
+        console.log("Ratio Data:", paymentPlanData);
         // const fetchAllCharges = async () => {
         //     const response = await getAllOtherOptionalCharges(reraNumber);
         //     if (response?.error) return [];
@@ -558,6 +608,8 @@ const Sale = () => {
         try {
             setLoading(true);
             const {
+                saleNumber,
+                paymentPlan,
                 society,
                 broker,
                 flat,
@@ -614,8 +666,8 @@ const Sale = () => {
                         // Format dates
                         const formattedDOB = customer.dateOfBirth
                             ? new Date(customer.dateOfBirth)
-                                  .toISOString()
-                                  .slice(0, 10)
+                                .toISOString()
+                                .slice(0, 10)
                             : "";
                         // console.log("Formatted DOB:", formattedDOB);
                         // console.log(
@@ -688,6 +740,8 @@ const Sale = () => {
             console.log("Other Charges:", otherCharges);
             // Make API call with parameters in correct order
             const response = await addCustomer(
+                paymentPlan,
+                saleNumber,
                 society, // societyReraNumber: string
                 flat, // flatID: string
                 otherCharges, // optionalCharges: string[]
@@ -736,37 +790,37 @@ const Sale = () => {
                     console.log("errors:", errors);
                     const handleFileChange =
                         (index: number) =>
-                        async (e: React.ChangeEvent<HTMLInputElement>) => {
-                            const file = e.target.files?.[0];
-                            if (!file) return;
+                            async (e: React.ChangeEvent<HTMLInputElement>) => {
+                                const file = e.target.files?.[0];
+                                if (!file) return;
 
-                            const SUPPORTED_FORMATS = [
-                                "image/jpg",
-                                "image/jpeg",
-                                "image/png",
-                                "image/webp",
-                            ];
+                                const SUPPORTED_FORMATS = [
+                                    "image/jpg",
+                                    "image/jpeg",
+                                    "image/png",
+                                    "image/webp",
+                                ];
 
-                            if (!SUPPORTED_FORMATS.includes(file.type)) {
-                                alert(
-                                    "Only JPG, JPEG, PNG, and WEBP files are allowed"
-                                );
-                                return;
-                            }
-                            // console.log("Customer photo:", file);
-                            // Set file (used for upload)
-                            setFieldValue(`customers[${index}].photo`, file);
+                                if (!SUPPORTED_FORMATS.includes(file.type)) {
+                                    alert(
+                                        "Only JPG, JPEG, PNG, and WEBP files are allowed"
+                                    );
+                                    return;
+                                }
+                                // console.log("Customer photo:", file);
+                                // Set file (used for upload)
+                                setFieldValue(`customers[${index}].photo`, file);
 
-                            // Set preview image (used for display only)
-                            const reader = new FileReader();
-                            reader.onloadend = () => {
-                                setFieldValue(
-                                    `customers[${index}].photoPreview`,
-                                    reader.result
-                                ); // just for showing image
+                                // Set preview image (used for display only)
+                                const reader = new FileReader();
+                                reader.onloadend = () => {
+                                    setFieldValue(
+                                        `customers[${index}].photoPreview`,
+                                        reader.result
+                                    ); // just for showing image
+                                };
+                                reader.readAsDataURL(file);
                             };
-                            reader.readAsDataURL(file);
-                        };
 
                     return (
                         <Form>
@@ -777,6 +831,42 @@ const Sale = () => {
                                     ) : (
                                         <>
                                             <div>
+                                                <div>
+                                                    <label>
+                                                        Sale Number :{" "}
+                                                        <span
+                                                            style={{ color: "red" }}
+                                                        >
+                                                            *
+                                                        </span>
+                                                    </label>
+
+                                                    <TextField
+                                                        id="sale-number"
+                                                        type="string"
+                                                        className={
+                                                            styles.multiselect
+                                                        }
+                                                        value={
+                                                            values.saleNumber || ""
+                                                        }
+                                                        onChange={(e) =>
+                                                            setFieldValue(
+                                                                "saleNumber",
+                                                                e.target.value
+                                                            )
+                                                        }
+                                                        // variant="outlined"
+                                                        fullWidth
+                                                        size="small"
+                                                    // placeholder="Basic Cost"
+                                                    />
+                                                    <ErrorMessage
+                                                        name="saleNumber"
+                                                        component="div"
+                                                        className="error"
+                                                    />
+                                                </div>
                                                 <label>
                                                     Society:{" "}
                                                     <span
@@ -825,6 +915,49 @@ const Sale = () => {
                                                 </Select>
                                                 <ErrorMessage
                                                     name="society"
+                                                    component="div"
+                                                    className="error"
+                                                />
+                                            </div>
+                                             <div>
+                                                <label>
+                                                    Payment Plan:{" "}
+                                                    <span
+                                                        style={{ color: "red" }}
+                                                    >
+                                                        *
+                                                    </span>
+                                                </label>
+
+                                                <Select
+                                                    id="paymentPlan-select"
+                                                    value={values.paymentPlan || ""}
+                                                    onChange={
+                                                        (e: any) =>
+                                                            setFieldValue(
+                                                                "paymentPlan",
+                                                                e.target.value
+                                                            ) // ✅
+                                                    }
+                                                    displayEmpty
+                                                    fullWidth
+                                                    // className={styles.multiselect}
+                                                    size="small"
+                                                >
+                                                    <MenuItem value="">
+                                                        Select Payment Plan
+                                                    </MenuItem>
+                                                    {paymentPlan.map((plan) => (
+                                                        <MenuItem
+                                                            key={plan.id}
+                                                            value={plan.id}
+                                                        >
+                                                            {plan.name} - {plan.ratio}
+                                                        </MenuItem>
+                                                    ))}
+                                                </Select>
+                                                <ErrorMessage
+                                                    name="paymentPlan"
                                                     component="div"
                                                     className="error"
                                                 />
@@ -985,7 +1118,7 @@ const Sale = () => {
                                                     // variant="outlined"
                                                     fullWidth
                                                     size="small"
-                                                    // placeholder="Basic Cost"
+                                                // placeholder="Basic Cost"
                                                 />
                                                 <ErrorMessage
                                                     name="basicCost"
@@ -1434,7 +1567,7 @@ const Sale = () => {
                                                                                 isCustomerError(
                                                                                     errors
                                                                                         .customers?.[
-                                                                                        index
+                                                                                    index
                                                                                     ]
                                                                                 ) &&
                                                                                 touched
@@ -1478,7 +1611,7 @@ const Sale = () => {
                                                                             {isCustomerError(
                                                                                 errors
                                                                                     .customers?.[
-                                                                                    index
+                                                                                index
                                                                                 ]
                                                                             ) &&
                                                                                 touched
@@ -1534,7 +1667,7 @@ const Sale = () => {
                                                                                 isCustomerError(
                                                                                     errors
                                                                                         .customers?.[
-                                                                                        index
+                                                                                    index
                                                                                     ]
                                                                                 ) &&
                                                                                 touched
@@ -1554,19 +1687,19 @@ const Sale = () => {
                                                                                 isCustomerError(
                                                                                     errors
                                                                                         .customers?.[
-                                                                                        index
+                                                                                    index
                                                                                     ]
                                                                                 ) &&
-                                                                                touched
-                                                                                    .customers?.[
-                                                                                    index
-                                                                                ]
-                                                                                    ?.firstName &&
-                                                                                errors
-                                                                                    .customers[
-                                                                                    index
-                                                                                ]
-                                                                                    ?.firstName ? (
+                                                                                    touched
+                                                                                        .customers?.[
+                                                                                        index
+                                                                                    ]
+                                                                                        ?.firstName &&
+                                                                                    errors
+                                                                                        .customers[
+                                                                                        index
+                                                                                    ]
+                                                                                        ?.firstName ? (
                                                                                     <span
                                                                                         className={
                                                                                             styles.errorText
@@ -1614,7 +1747,7 @@ const Sale = () => {
                                                                                 isCustomerError(
                                                                                     errors
                                                                                         .customers?.[
-                                                                                        index
+                                                                                    index
                                                                                     ]
                                                                                 ) &&
                                                                                 touched
@@ -1634,19 +1767,19 @@ const Sale = () => {
                                                                                 isCustomerError(
                                                                                     errors
                                                                                         .customers?.[
-                                                                                        index
+                                                                                    index
                                                                                     ]
                                                                                 ) &&
-                                                                                touched
-                                                                                    .customers?.[
-                                                                                    index
-                                                                                ]
-                                                                                    ?.middleName &&
-                                                                                errors
-                                                                                    .customers[
-                                                                                    index
-                                                                                ]
-                                                                                    ?.middleName ? (
+                                                                                    touched
+                                                                                        .customers?.[
+                                                                                        index
+                                                                                    ]
+                                                                                        ?.middleName &&
+                                                                                    errors
+                                                                                        .customers[
+                                                                                        index
+                                                                                    ]
+                                                                                        ?.middleName ? (
                                                                                     <span
                                                                                         className={
                                                                                             styles.errorText
@@ -1694,7 +1827,7 @@ const Sale = () => {
                                                                                 isCustomerError(
                                                                                     errors
                                                                                         .customers?.[
-                                                                                        index
+                                                                                    index
                                                                                     ]
                                                                                 ) &&
                                                                                 touched
@@ -1714,19 +1847,19 @@ const Sale = () => {
                                                                                 isCustomerError(
                                                                                     errors
                                                                                         .customers?.[
-                                                                                        index
+                                                                                    index
                                                                                     ]
                                                                                 ) &&
-                                                                                touched
-                                                                                    .customers?.[
-                                                                                    index
-                                                                                ]
-                                                                                    ?.lastName &&
-                                                                                errors
-                                                                                    .customers[
-                                                                                    index
-                                                                                ]
-                                                                                    ?.lastName ? (
+                                                                                    touched
+                                                                                        .customers?.[
+                                                                                        index
+                                                                                    ]
+                                                                                        ?.lastName &&
+                                                                                    errors
+                                                                                        .customers[
+                                                                                        index
+                                                                                    ]
+                                                                                        ?.lastName ? (
                                                                                     <span
                                                                                         className={
                                                                                             styles.errorText
@@ -1776,7 +1909,7 @@ const Sale = () => {
                                                                                 isCustomerError(
                                                                                     errors
                                                                                         .customers?.[
-                                                                                        index
+                                                                                    index
                                                                                     ]
                                                                                 ) &&
                                                                                 touched
@@ -1796,19 +1929,19 @@ const Sale = () => {
                                                                                 isCustomerError(
                                                                                     errors
                                                                                         .customers?.[
-                                                                                        index
+                                                                                    index
                                                                                     ]
                                                                                 ) &&
-                                                                                touched
-                                                                                    .customers?.[
-                                                                                    index
-                                                                                ]
-                                                                                    ?.dateOfBirth &&
-                                                                                errors
-                                                                                    .customers[
-                                                                                    index
-                                                                                ]
-                                                                                    ?.dateOfBirth ? (
+                                                                                    touched
+                                                                                        .customers?.[
+                                                                                        index
+                                                                                    ]
+                                                                                        ?.dateOfBirth &&
+                                                                                    errors
+                                                                                        .customers[
+                                                                                        index
+                                                                                    ]
+                                                                                        ?.dateOfBirth ? (
                                                                                     <span
                                                                                         className={
                                                                                             styles.errorText
@@ -1828,14 +1961,14 @@ const Sale = () => {
                                                                             }
                                                                             slotProps={{
                                                                                 inputLabel:
-                                                                                    {
-                                                                                        shrink: true,
-                                                                                    },
+                                                                                {
+                                                                                    shrink: true,
+                                                                                },
                                                                                 input: {
                                                                                     inputProps:
-                                                                                        {
-                                                                                            max: maxDate,
-                                                                                        },
+                                                                                    {
+                                                                                        max: maxDate,
+                                                                                    },
                                                                                 },
                                                                             }}
                                                                             fullWidth
@@ -1874,7 +2007,7 @@ const Sale = () => {
                                                                                 isCustomerError(
                                                                                     errors
                                                                                         .customers?.[
-                                                                                        index
+                                                                                    index
                                                                                     ]
                                                                                 ) &&
                                                                                 touched
@@ -1912,7 +2045,7 @@ const Sale = () => {
                                                                             {isCustomerError(
                                                                                 errors
                                                                                     .customers?.[
-                                                                                    index
+                                                                                index
                                                                                 ]
                                                                             ) &&
                                                                                 touched
@@ -2089,7 +2222,7 @@ const Sale = () => {
                                                                                 isCustomerError(
                                                                                     errors
                                                                                         .customers?.[
-                                                                                        index
+                                                                                    index
                                                                                     ]
                                                                                 ) &&
                                                                                 touched
@@ -2125,7 +2258,7 @@ const Sale = () => {
                                                                             {isCustomerError(
                                                                                 errors
                                                                                     .customers?.[
-                                                                                    index
+                                                                                index
                                                                                 ]
                                                                             ) &&
                                                                                 touched
@@ -2284,7 +2417,7 @@ const Sale = () => {
                                                                                 isCustomerError(
                                                                                     errors
                                                                                         .customers?.[
-                                                                                        index
+                                                                                    index
                                                                                     ]
                                                                                 ) &&
                                                                                 touched
@@ -2304,19 +2437,19 @@ const Sale = () => {
                                                                                 isCustomerError(
                                                                                     errors
                                                                                         .customers?.[
-                                                                                        index
+                                                                                    index
                                                                                     ]
                                                                                 ) &&
-                                                                                touched
-                                                                                    .customers?.[
-                                                                                    index
-                                                                                ]
-                                                                                    ?.email &&
-                                                                                errors
-                                                                                    .customers[
-                                                                                    index
-                                                                                ]
-                                                                                    ?.email ? (
+                                                                                    touched
+                                                                                        .customers?.[
+                                                                                        index
+                                                                                    ]
+                                                                                        ?.email &&
+                                                                                    errors
+                                                                                        .customers[
+                                                                                        index
+                                                                                    ]
+                                                                                        ?.email ? (
                                                                                     <span
                                                                                         className={
                                                                                             styles.errorText
@@ -2366,7 +2499,7 @@ const Sale = () => {
                                                                                 isCustomerError(
                                                                                     errors
                                                                                         .customers?.[
-                                                                                        index
+                                                                                    index
                                                                                     ]
                                                                                 ) &&
                                                                                 touched
@@ -2386,19 +2519,19 @@ const Sale = () => {
                                                                                 isCustomerError(
                                                                                     errors
                                                                                         .customers?.[
-                                                                                        index
+                                                                                    index
                                                                                     ]
                                                                                 ) &&
-                                                                                touched
-                                                                                    .customers?.[
-                                                                                    index
-                                                                                ]
-                                                                                    ?.phoneNumber &&
-                                                                                errors
-                                                                                    .customers?.[
-                                                                                    index
-                                                                                ]
-                                                                                    ?.phoneNumber ? (
+                                                                                    touched
+                                                                                        .customers?.[
+                                                                                        index
+                                                                                    ]
+                                                                                        ?.phoneNumber &&
+                                                                                    errors
+                                                                                        .customers?.[
+                                                                                        index
+                                                                                    ]
+                                                                                        ?.phoneNumber ? (
                                                                                     <span
                                                                                         className={
                                                                                             styles.errorText
@@ -2531,7 +2664,7 @@ const Sale = () => {
                                                                                 isCustomerError(
                                                                                     errors
                                                                                         .customers?.[
-                                                                                        index
+                                                                                    index
                                                                                     ]
                                                                                 ) &&
                                                                                 touched
@@ -2551,19 +2684,19 @@ const Sale = () => {
                                                                                 isCustomerError(
                                                                                     errors
                                                                                         .customers?.[
-                                                                                        index
+                                                                                    index
                                                                                     ]
                                                                                 ) &&
-                                                                                touched
-                                                                                    .customers?.[
-                                                                                    index
-                                                                                ]
-                                                                                    ?.anniversaryDate &&
-                                                                                errors
-                                                                                    .customers[
-                                                                                    index
-                                                                                ]
-                                                                                    ?.anniversaryDate ? (
+                                                                                    touched
+                                                                                        .customers?.[
+                                                                                        index
+                                                                                    ]
+                                                                                        ?.anniversaryDate &&
+                                                                                    errors
+                                                                                        .customers[
+                                                                                        index
+                                                                                    ]
+                                                                                        ?.anniversaryDate ? (
                                                                                     <span
                                                                                         className={
                                                                                             styles.errorText
@@ -2583,18 +2716,18 @@ const Sale = () => {
                                                                             }
                                                                             slotProps={{
                                                                                 inputLabel:
-                                                                                    {
-                                                                                        shrink: true,
-                                                                                    }, // ✅ replaces deprecated InputLabelProps
+                                                                                {
+                                                                                    shrink: true,
+                                                                                }, // ✅ replaces deprecated InputLabelProps
                                                                                 input: {
                                                                                     inputProps:
-                                                                                        {
-                                                                                            max: new Date()
-                                                                                                .toISOString()
-                                                                                                .split(
-                                                                                                    "T"
-                                                                                                )[0], // disables future dates
-                                                                                        },
+                                                                                    {
+                                                                                        max: new Date()
+                                                                                            .toISOString()
+                                                                                            .split(
+                                                                                                "T"
+                                                                                            )[0], // disables future dates
+                                                                                    },
                                                                                 },
                                                                             }}
                                                                             fullWidth
@@ -2630,7 +2763,7 @@ const Sale = () => {
                                                                                 isCustomerError(
                                                                                     errors
                                                                                         .customers?.[
-                                                                                        index
+                                                                                    index
                                                                                     ]
                                                                                 ) &&
                                                                                 touched
@@ -2650,19 +2783,19 @@ const Sale = () => {
                                                                                 isCustomerError(
                                                                                     errors
                                                                                         .customers?.[
-                                                                                        index
+                                                                                    index
                                                                                     ]
                                                                                 ) &&
-                                                                                touched
-                                                                                    .customers?.[
-                                                                                    index
-                                                                                ]
-                                                                                    ?.aadharNumber &&
-                                                                                errors
-                                                                                    .customers[
-                                                                                    index
-                                                                                ]
-                                                                                    ?.aadharNumber ? (
+                                                                                    touched
+                                                                                        .customers?.[
+                                                                                        index
+                                                                                    ]
+                                                                                        ?.aadharNumber &&
+                                                                                    errors
+                                                                                        .customers[
+                                                                                        index
+                                                                                    ]
+                                                                                        ?.aadharNumber ? (
                                                                                     <span
                                                                                         className={
                                                                                             styles.errorText
@@ -2713,7 +2846,7 @@ const Sale = () => {
                                                                                 isCustomerError(
                                                                                     errors
                                                                                         .customers?.[
-                                                                                        index
+                                                                                    index
                                                                                     ]
                                                                                 ) &&
                                                                                 touched
@@ -2733,19 +2866,19 @@ const Sale = () => {
                                                                                 isCustomerError(
                                                                                     errors
                                                                                         .customers?.[
-                                                                                        index
+                                                                                    index
                                                                                     ]
                                                                                 ) &&
-                                                                                touched
-                                                                                    .customers?.[
-                                                                                    index
-                                                                                ]
-                                                                                    ?.panNumber &&
-                                                                                errors
-                                                                                    .customers[
-                                                                                    index
-                                                                                ]
-                                                                                    ?.panNumber ? (
+                                                                                    touched
+                                                                                        .customers?.[
+                                                                                        index
+                                                                                    ]
+                                                                                        ?.panNumber &&
+                                                                                    errors
+                                                                                        .customers[
+                                                                                        index
+                                                                                    ]
+                                                                                        ?.panNumber ? (
                                                                                     <span
                                                                                         className={
                                                                                             styles.errorText
@@ -2795,7 +2928,7 @@ const Sale = () => {
                                                                                 isCustomerError(
                                                                                     errors
                                                                                         .customers?.[
-                                                                                        index
+                                                                                    index
                                                                                     ]
                                                                                 ) &&
                                                                                 touched
@@ -2817,16 +2950,16 @@ const Sale = () => {
                                                                                     index
                                                                                 ]
                                                                                     ?.passportNumber &&
-                                                                                typeof errors
-                                                                                    .customers?.[
+                                                                                    typeof errors
+                                                                                        .customers?.[
                                                                                     index
-                                                                                ] ===
+                                                                                    ] ===
                                                                                     "object" &&
-                                                                                errors
-                                                                                    .customers[
-                                                                                    index
-                                                                                ]
-                                                                                    ?.passportNumber ? (
+                                                                                    errors
+                                                                                        .customers[
+                                                                                        index
+                                                                                    ]
+                                                                                        ?.passportNumber ? (
                                                                                     <span
                                                                                         className={
                                                                                             styles.errorText
@@ -2841,10 +2974,10 @@ const Sale = () => {
                                                                                         }
                                                                                     </span>
                                                                                 ) : typeof errors
-                                                                                      .customers?.[
-                                                                                      index
-                                                                                  ] ===
-                                                                                  "string" ? (
+                                                                                    .customers?.[
+                                                                                    index
+                                                                                ] ===
+                                                                                    "string" ? (
                                                                                     <span
                                                                                         className={
                                                                                             styles.errorText
@@ -2853,7 +2986,7 @@ const Sale = () => {
                                                                                         {
                                                                                             errors
                                                                                                 .customers[
-                                                                                                index
+                                                                                            index
                                                                                             ] as string
                                                                                         }
                                                                                     </span>
@@ -2893,7 +3026,7 @@ const Sale = () => {
                                                                                 isCustomerError(
                                                                                     errors
                                                                                         .customers?.[
-                                                                                        index
+                                                                                    index
                                                                                     ]
                                                                                 ) &&
                                                                                 touched
@@ -2915,16 +3048,16 @@ const Sale = () => {
                                                                                     index
                                                                                 ]
                                                                                     ?.profession &&
-                                                                                typeof errors
-                                                                                    .customers?.[
+                                                                                    typeof errors
+                                                                                        .customers?.[
                                                                                     index
-                                                                                ] ===
+                                                                                    ] ===
                                                                                     "object" &&
-                                                                                errors
-                                                                                    .customers[
-                                                                                    index
-                                                                                ]
-                                                                                    ?.profession ? (
+                                                                                    errors
+                                                                                        .customers[
+                                                                                        index
+                                                                                    ]
+                                                                                        ?.profession ? (
                                                                                     <span
                                                                                         className={
                                                                                             styles.errorText
@@ -3033,18 +3166,18 @@ const Sale = () => {
                                                                         .customers
                                                                         .length >
                                                                         1 && (
-                                                                        <button
-                                                                            type="button"
-                                                                            onClick={() =>
-                                                                                remove(
-                                                                                    index
-                                                                                )
-                                                                            }
-                                                                        >
-                                                                            Remove
-                                                                            Customer
-                                                                        </button>
-                                                                    )}
+                                                                            <button
+                                                                                type="button"
+                                                                                onClick={() =>
+                                                                                    remove(
+                                                                                        index
+                                                                                    )
+                                                                                }
+                                                                            >
+                                                                                Remove
+                                                                                Customer
+                                                                            </button>
+                                                                        )}
                                                                 </div>
                                                             )
                                                         )}
@@ -3052,50 +3185,50 @@ const Sale = () => {
                                                         {/* Add Button */}
                                                         {values.customers
                                                             .length < 3 && (
-                                                            <button
-                                                                type="button"
-                                                                onClick={() =>
-                                                                    push({
-                                                                        salutation:
-                                                                            "",
-                                                                        firstName:
-                                                                            "",
-                                                                        middleName:
-                                                                            "",
-                                                                        lastName:
-                                                                            "",
-                                                                        dateOfBirth:
-                                                                            "",
-                                                                        gender: "",
-                                                                        photo: "",
-                                                                        maritalStatus:
-                                                                            "",
-                                                                        nationality:
-                                                                            "",
-                                                                        email: "",
-                                                                        phoneNumber:
-                                                                            "",
-                                                                        numberOfChildren: 0,
-                                                                        anniversaryDate:
-                                                                            "",
-                                                                        aadharNumber:
-                                                                            "",
-                                                                        panNumber:
-                                                                            "",
-                                                                        passportNumber:
-                                                                            "",
-                                                                        profession:
-                                                                            "",
-                                                                        designation:
-                                                                            "",
-                                                                        companyName:
-                                                                            "",
-                                                                    })
-                                                                }
-                                                            >
-                                                                Add Customer
-                                                            </button>
-                                                        )}
+                                                                <button
+                                                                    type="button"
+                                                                    onClick={() =>
+                                                                        push({
+                                                                            salutation:
+                                                                                "",
+                                                                            firstName:
+                                                                                "",
+                                                                            middleName:
+                                                                                "",
+                                                                            lastName:
+                                                                                "",
+                                                                            dateOfBirth:
+                                                                                "",
+                                                                            gender: "",
+                                                                            photo: "",
+                                                                            maritalStatus:
+                                                                                "",
+                                                                            nationality:
+                                                                                "",
+                                                                            email: "",
+                                                                            phoneNumber:
+                                                                                "",
+                                                                            numberOfChildren: 0,
+                                                                            anniversaryDate:
+                                                                                "",
+                                                                            aadharNumber:
+                                                                                "",
+                                                                            panNumber:
+                                                                                "",
+                                                                            passportNumber:
+                                                                                "",
+                                                                            profession:
+                                                                                "",
+                                                                            designation:
+                                                                                "",
+                                                                            companyName:
+                                                                                "",
+                                                                        })
+                                                                    }
+                                                                >
+                                                                    Add Customer
+                                                                </button>
+                                                            )}
                                                     </>
                                                 )}
                                             </FieldArray>
@@ -3203,7 +3336,7 @@ const Sale = () => {
                                             />
                                             {errors.companyBuyer &&
                                                 typeof errors.companyBuyer ===
-                                                    "string" && (
+                                                "string" && (
                                                     <FormHelperText
                                                         error
                                                         sx={{

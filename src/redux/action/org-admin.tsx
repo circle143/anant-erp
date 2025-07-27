@@ -559,14 +559,20 @@ export const addCustomer = async (
             societyReraNumber,
             flatID,
         };
-        console.log("req body", {
-            type,
-            details: customers,
-            companyBuyer,
-            otherCharges,
-            basicCost,
-            brokerId,
-        });
+        // console.log("input",{
+        //     societyReraNumber,
+        //     flatID,
+        // })
+        // console.log("req body", {
+        //     paymentId,
+        //     saleNumber,
+        //     type,
+        //     details: customers,
+        //     companyBuyer,
+        //     otherCharges,
+        //     basicCost,
+        //     brokerId,
+        // });
         const reqBody: AddCustomerToFlatRequestBodyInput = {
             paymentId, // Added missing required paymentId property
             saleNumber,

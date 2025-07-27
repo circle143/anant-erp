@@ -151,6 +151,7 @@ const ReceiptContent = ({
                 <LedgerModal
                     receiptData={{
                         receipt: matchingUnit?.saleDetail?.receipts || [],
+                        saleNumber: matchingUnit?.saleDetail?.saleNumber || 'N/A',
                         customerId: matchingUnit?.saleDetail?.companyCustomer
                             ? matchingUnit.saleDetail.companyCustomer.id
                             : matchingUnit?.saleDetail?.owners
@@ -220,7 +221,7 @@ const ReceiptContent = ({
                     {receipts.map((receipt) => (
                         <div key={receipt.id} className={styles.card}>
                             <p>
-                                <strong>Receipt Number:</strong> {receipt.id}
+                                <strong>Receipt Number:</strong> {receipt.receiptNumber}
                             </p>
                             <p>
                                 <strong>Date Issued:</strong>{" "}
@@ -298,7 +299,8 @@ const ReceiptContent = ({
                                 <div>
                                     <ReceiptDocModal
                                         receiptData={{
-                                            receiptNo: receipt.id,
+                                            receiptNo: receipt.receiptNumber,
+                                            saleNumber: matchingUnit?.saleDetail?.saleNumber || 'N/A',
                                             customerId: matchingUnit?.saleDetail
                                                 ?.companyCustomer
                                                 ? matchingUnit.saleDetail
