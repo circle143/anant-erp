@@ -1,10 +1,10 @@
 "use client";
 
 import React, { useEffect, useState, useCallback } from "react";
-import {
-    getTowerPaymentPlans,
-    markPaymentPlanActiveForTower,
-} from "@/redux/action/org-admin";
+// import {
+//     getTowerPaymentPlans,
+//     markPaymentPlanActiveForTower,
+// } from "@/redux/action/org-admin";
 import styles from "./page.module.scss";
 import Loader from "@/components/Loader/Loader";
 import { debounce } from "lodash";
@@ -30,14 +30,14 @@ const Page = () => {
     const fetchData = async (cursor: string | null = null, isNext = true) => {
         setLoading(true);
         if (!rera || !towerID) return;
-        const response = await getTowerPaymentPlans(
-            rera,
-            towerID,
-            cursor || ""
-        );
-        setOrgData(response.data.items);
-        setHasNextPage(response.data.pageInfo.nextPage);
-        setCursor(response.data.pageInfo.cursor);
+        // const response = await getTowerPaymentPlans(
+        //     rera,
+        //     towerID,
+        //     cursor || ""
+        // );
+        // setOrgData(response.data.items);
+        // setHasNextPage(response.data.pageInfo.nextPage);
+        // setCursor(response.data.pageInfo.cursor);
         if (isNext && cursor !== null) {
             setCursorStack((prev) => [...prev, cursor]);
         }
@@ -91,18 +91,18 @@ const Page = () => {
         if (!rera || !towerID) return;
 
         setActivatingId(paymentId);
-        const res = await markPaymentPlanActiveForTower(
-            rera,
-            towerID,
-            paymentId
-        );
+        // const res = await markPaymentPlanActiveForTower(
+        //     rera,
+        //     towerID,
+        //     paymentId
+        // );
         setActivatingId(null);
 
-        if (!res.error) {
-            fetchData(cursor, false); // Refresh the list after activation
-        } else {
-            alert("Failed to activate payment plan");
-        }
+        // if (!res.error) {
+        //     fetchData(cursor, false); // Refresh the list after activation
+        // } else {
+        //     alert("Failed to activate payment plan");
+        // }
     };
 
     const payment_plan = [
