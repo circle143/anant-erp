@@ -1,4 +1,4 @@
-"use client";
+"use client"
 import React, { useEffect, useState } from "react";
 import { getUsers, updateOrganizationUserRole } from "@/redux/action/org-admin";
 import styles from "./page.module.scss";
@@ -9,6 +9,7 @@ import { UserRole } from "@/utils/routes/organization/types";
 import { removeUserFromOrganization } from "@/redux/action/org-admin";
 import CustomBreadcrumbs from "@/components/Breadcrumbs/Breadcrumbs";
 import { user } from "@/utils/breadcrumbs";
+
 const Page = () => {
     const [orgData, setOrgData] = useState<UserItem[]>([]);
     const [cursor, setCursor] = useState<string | null>(null);

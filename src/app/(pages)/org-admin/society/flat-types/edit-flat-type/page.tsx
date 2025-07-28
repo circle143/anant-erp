@@ -1,4 +1,4 @@
-"use client";
+"use client"
 import React from "react";
 import { useSearchParams } from "next/navigation";
 import { Formik, Form, Field, ErrorMessage } from "formik";

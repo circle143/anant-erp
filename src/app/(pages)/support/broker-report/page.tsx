@@ -1,4 +1,4 @@
-"use client";
+"use client"
 import React, { useEffect, useState } from "react";
 import { getAllSocietyBrokers, getSocieties } from "@/redux/action/org-admin";
 import { getBrokerReport } from "@/redux/action/org-admin";

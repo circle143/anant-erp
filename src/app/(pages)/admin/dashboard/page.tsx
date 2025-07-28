@@ -1,12 +1,11 @@
-"use client";
-
+"use client"
 import React, { useEffect, useState, useCallback } from "react";
 import { getOrg, updateStatus } from "@/redux/action/admin";
 import styles from "./page.module.scss";
 import Loader from "@/components/Loader/Loader";
 import { debounce } from "lodash";
 import { OrganizationStatus } from "../../../../utils/routes/organization/types";
-import { getUrl, uploadData } from "aws-amplify/storage";
+import { getUrl } from "aws-amplify/storage";
 const Page = () => {
   const [orgData, setOrgData] = useState<any[]>([]);
   const [cursor, setCursor] = useState<string | null>(null);

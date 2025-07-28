@@ -1,4 +1,4 @@
-"use client";
+"use client"
 import React, { useEffect, useState, useCallback } from "react";
 import { getAllPreferenceLocationCharges } from "@/redux/action/org-admin";
 import styles from "./page.module.scss";

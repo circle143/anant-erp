@@ -1,5 +1,4 @@
-"use client";
-
+"use client"
 import React, { useEffect, useState } from "react";
 import {
     getAllSocietyBanks,
@@ -11,7 +10,6 @@ import * as Yup from "yup";
 import Loader from "@/components/Loader/Loader";
 import styles from "./page.module.scss";
 import { formatIndianCurrencyWithDecimals } from "@/utils/formatIndianCurrencyWithDecimals";
-import Image from "next/image";
 
 type ClearedReceipt = {
     receiptId: string;
