@@ -6,11 +6,17 @@ import {
   planRatioElements,
   RatioContainerProps,
 } from "./types";
-import { createPaymentPlan } from "../../redux/action/org-admin"
+import { createPaymentPlan } from "../../redux/action/org-admin";
 import styles from "./payment-plan.module.css";
 import { Typography, Button, MenuItem } from "@mui/material";
 import { uniqueId } from "lodash";
-import { useFormik, FormikProvider, Form, FieldArray, useFormikContext } from "formik";
+import {
+  useFormik,
+  FormikProvider,
+  Form,
+  FieldArray,
+  useFormikContext,
+} from "formik";
 import * as Yup from "yup";
 import { useState, useEffect } from "react";
 import { useRouter } from "next/navigation";
@@ -34,11 +40,18 @@ const getConditionOptions = (scope: string) => {
       return [
         { key: "on-booking", displayValue: "On Booking" },
         { key: "within-days", displayValue: "Within Days" },
+        { key: "on-allotment", displayValue: "On Allotment" },
       ];
   }
 };
 
-const PlanRatioForm = ({ index, remove }: { index: number; remove: () => void }) => {
+const PlanRatioForm = ({
+  index,
+  remove,
+}: {
+  index: number;
+  remove: () => void;
+}) => {
   const { values, setFieldValue } = useFormikContext<any>();
   const currentScope = values.ratios[index].scope;
 
@@ -92,8 +105,6 @@ const PlanRatioForm = ({ index, remove }: { index: number; remove: () => void })
                   </div>
 
                   <div className={styles["form-elements"]}>
-
-
                     {/* Scope */}
                     {planRatioElements.map((field) => {
                       const fieldPath = `${itemPath}.${field.name}`;
@@ -102,7 +113,9 @@ const PlanRatioForm = ({ index, remove }: { index: number; remove: () => void })
                       if (field.name === "scope") {
                         return (
                           <label key={field.name} className={styles["label"]}>
-                            <span className={styles["label-text"]}>{field.label}</span>
+                            <span className={styles["label-text"]}>
+                              {field.label}
+                            </span>
                             <select
                               name={fieldPath}
                               className={styles["input"]}
@@ -112,18 +125,24 @@ const PlanRatioForm = ({ index, remove }: { index: number; remove: () => void })
                                 setFieldValue(fieldPath, newScope);
 
                                 // Set default conditionType based on scope
-                                const newOptions = getConditionOptions(newScope);
+                                const newOptions =
+                                  getConditionOptions(newScope);
                                 const defaultCond = newOptions?.[0]?.key || "";
-                                setFieldValue(`${itemPath}.conditionType`, defaultCond);
+                                setFieldValue(
+                                  `${itemPath}.conditionType`,
+                                  defaultCond,
+                                );
                               }}
                               required={field.required}
                             >
                               <option value="">Select</option>
-                              {('options' in field ? field.options : []).map((option) => (
-                                <option key={option.key} value={option.key}>
-                                  {option.displayValue}
-                                </option>
-                              ))}
+                              {("options" in field ? field.options : []).map(
+                                (option) => (
+                                  <option key={option.key} value={option.key}>
+                                    {option.displayValue}
+                                  </option>
+                                ),
+                              )}
                             </select>
                           </label>
                         );
@@ -134,12 +153,16 @@ const PlanRatioForm = ({ index, remove }: { index: number; remove: () => void })
                         const options = getConditionOptions(item.scope);
                         return (
                           <label key={field.name} className={styles["label"]}>
-                            <span className={styles["label-text"]}>{field.label}</span>
+                            <span className={styles["label-text"]}>
+                              {field.label}
+                            </span>
                             <select
                               name={fieldPath}
                               className={styles["input"]}
                               value={item.conditionType}
-                              onChange={(e) => setFieldValue(fieldPath, e.target.value)}
+                              onChange={(e) =>
+                                setFieldValue(fieldPath, e.target.value)
+                              }
                               required={field.required}
                             >
                               <option value="">Select</option>
@@ -158,13 +181,17 @@ const PlanRatioForm = ({ index, remove }: { index: number; remove: () => void })
 
                         return (
                           <label key={field.name} className={styles["label"]}>
-                            <span className={styles["label-text"]}>{field.label}</span>
+                            <span className={styles["label-text"]}>
+                              {field.label}
+                            </span>
                             <input
                               type="number"
                               name={fieldPath}
                               className={styles["input"]}
                               value={item.conditionValue}
-                              onChange={(e) => setFieldValue(fieldPath, e.target.value)}
+                              onChange={(e) =>
+                                setFieldValue(fieldPath, e.target.value)
+                              }
                               required={field.required}
                             />
                           </label>
@@ -174,21 +201,31 @@ const PlanRatioForm = ({ index, remove }: { index: number; remove: () => void })
                       // Default input/select rendering
                       return (
                         <label key={field.name} className={styles["label"]}>
-                          <span className={styles["label-text"]}>{field.label}</span>
+                          <span className={styles["label-text"]}>
+                            {field.label}
+                          </span>
                           {field.elementType === "input" ? (
                             <input
                               name={fieldPath}
                               className={styles["input"]}
-                              value={item[field.name as keyof typeof item] ?? ""}
-                              onChange={(e) => setFieldValue(fieldPath, e.target.value)}
+                              value={
+                                item[field.name as keyof typeof item] ?? ""
+                              }
+                              onChange={(e) =>
+                                setFieldValue(fieldPath, e.target.value)
+                              }
                               required={field.required}
                             />
                           ) : (
                             <select
                               name={fieldPath}
                               className={styles["input"]}
-                              value={item[field.name as keyof typeof item] ?? ""}
-                              onChange={(e) => setFieldValue(fieldPath, e.target.value)}
+                              value={
+                                item[field.name as keyof typeof item] ?? ""
+                              }
+                              onChange={(e) =>
+                                setFieldValue(fieldPath, e.target.value)
+                              }
                               required={field.required}
                             >
                               <option value="">Select</option>
@@ -202,8 +239,6 @@ const PlanRatioForm = ({ index, remove }: { index: number; remove: () => void })
                         </label>
                       );
                     })}
-
-
                   </div>
                 </div>
               );
@@ -225,7 +260,6 @@ const PlanRatioForm = ({ index, remove }: { index: number; remove: () => void })
           </div>
         )}
       />
-
     </div>
   );
 };
@@ -249,7 +283,7 @@ export const PaymentPlanCreate = ({ societyRera }: PaymentPlanCreateProps) => {
           },
         ],
       },
-    ]
+    ],
   };
 
   const validationSchema = Yup.object().shape({
@@ -266,24 +300,27 @@ export const PaymentPlanCreate = ({ societyRera }: PaymentPlanCreateProps) => {
                 scope: Yup.string().required("Required"),
                 conditionType: Yup.string().required("Required"),
                 conditionValue: Yup.string(),
-              })
+              }),
             )
             .min(1),
-        })
+        }),
       )
-      .min(1)
-    ,
+      .min(1),
   });
-
 
   const formik = useFormik({
     initialValues,
     validationSchema,
     onSubmit: (values) => {
       const isValid = values.ratios.every((group, i) => {
-        const total = group.items.reduce((sum, item) => sum + Number(item.ratio || 0), 0);
+        const total = group.items.reduce(
+          (sum, item) => sum + Number(item.ratio || 0),
+          0,
+        );
         if (Math.round(total) !== 100) {
-          alert(`Total ratio in Plan Ratio ${i + 1} should be 100% (currently ${total}%)`);
+          alert(
+            `Total ratio in Plan Ratio ${i + 1} should be 100% (currently ${total}%)`,
+          );
           return false;
         }
         return true;
@@ -322,8 +359,7 @@ export const PaymentPlanCreate = ({ societyRera }: PaymentPlanCreateProps) => {
         .finally(() => {
           setLoading(false); // 🟢 Hide loader
         });
-    }
-
+    },
   });
 
   useEffect(() => {
@@ -357,7 +393,9 @@ export const PaymentPlanCreate = ({ societyRera }: PaymentPlanCreateProps) => {
                     const fieldName = item.name as keyof typeof formik.values;
                     return (
                       <label className={styles["label"]} key={item.name}>
-                        <span className={styles["label-text"]}>{item.label}</span>
+                        <span className={styles["label-text"]}>
+                          {item.label}
+                        </span>
                         <input
                           name={item.name}
                           className={styles["input"]}
@@ -368,18 +406,18 @@ export const PaymentPlanCreate = ({ societyRera }: PaymentPlanCreateProps) => {
                       </label>
                     );
                   })}
-
-
                 </div>
               </div>
 
               <div className={styles["form-group"]}>
                 <div className={styles["form-header"]}>
-
                   <Button
                     variant="outlined"
                     onClick={() =>
-                      formik.setFieldValue("ratios", [...formik.values.ratios, initialValues.ratios[0]])
+                      formik.setFieldValue("ratios", [
+                        ...formik.values.ratios,
+                        initialValues.ratios[0],
+                      ])
                     }
                   >
                     Add another
@@ -391,7 +429,6 @@ export const PaymentPlanCreate = ({ societyRera }: PaymentPlanCreateProps) => {
                   render={(arrayHelpers) => (
                     <div className={styles["form-elements"]}>
                       {formik.values.ratios.map((ratio, index) => (
-
                         <PlanRatioForm
                           key={index}
                           index={index}
@@ -402,10 +439,8 @@ export const PaymentPlanCreate = ({ societyRera }: PaymentPlanCreateProps) => {
                         />
                       ))}
                     </div>
-
                   )}
                 />
-
               </div>
             </div>
 
@@ -418,6 +453,5 @@ export const PaymentPlanCreate = ({ societyRera }: PaymentPlanCreateProps) => {
         </FormikProvider>
       )}
     </>
-
   );
 };
