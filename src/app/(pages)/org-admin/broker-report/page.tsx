@@ -400,7 +400,7 @@ const Page = () => {
                                                                 {pb.summary}
                                                             </td>
                                                             <td>
-                                                                {pb.price}/sqft
+                                                                {pb.price}
                                                             </td>
                                                             <td>
                                                                 {pb.superArea}{" "}

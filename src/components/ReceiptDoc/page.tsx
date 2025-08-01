@@ -223,7 +223,7 @@ const Page: React.FC<PageProps> = ({ receiptData, onClose }) => {
                             {customerId}
                         </p> */}
                         <p>
-                            <strong>Sale Number:</strong> {saleNumber}
+                            <strong>Member ID:</strong> {saleNumber}
                         </p>
                         <p>
                             <strong>
