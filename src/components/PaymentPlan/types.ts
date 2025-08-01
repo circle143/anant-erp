@@ -95,6 +95,7 @@ export const conditionTypeSelect = {
             key: "within-days",
             displayValue: "Within Days",
           },
+          { key: "on-allotment", displayValue: "On Allotment" },
         ];
 
       case Scope.flat:
