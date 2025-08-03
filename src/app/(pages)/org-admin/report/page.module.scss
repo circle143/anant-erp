@@ -1,0 +1,188 @@
+.reportContainer {
+  padding: 1rem;
+
+  .reportHeader {
+    display: flex;
+    flex-direction: column;
+    gap: 1rem;
+    margin-bottom: 1rem;
+  }
+
+  .cardsContainer {
+    display: flex;
+    gap: 1rem;
+    flex-wrap: wrap;
+
+    .card {
+      flex: 1;
+      min-width: 200px;
+      background-color: #fff;
+      border-radius: 12px;
+      padding: 1.5rem;
+      box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
+
+      .label {
+        font-size: 14px;
+        color: #777;
+        margin-bottom: 0.3rem;
+      }
+
+      .value {
+        font-size: 20px;
+        font-weight: 600;
+        color: #333;
+      }
+    }
+  }
+}
+.tab2 {
+  padding: 20px;
+  background-color: #f5f7fa;
+}
+
+.reportContainer {
+  display: flex;
+  flex-direction: column;
+  gap: 2rem;
+}
+
+.sectionTitle {
+  color: #2c3e50;
+  margin-bottom: 1rem;
+  font-size: 1.5rem;
+  border-bottom: 2px solid #3498db;
+  padding-bottom: 0.5rem;
+}
+
+.summarySection {
+  background: white;
+  padding: 1.5rem;
+  border-radius: 8px;
+  box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+}
+
+.summaryCard {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+  gap: 1.5rem;
+  padding: 1rem;
+}
+
+.summaryItem {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 1rem;
+  background: #f8f9fa;
+  border-radius: 6px;
+  
+  span:first-child {
+    font-weight: 600;
+    color: #34495e;
+  }
+}
+
+.paid {
+  color: #27ae60;
+  font-weight: 600;
+}
+
+.remaining {
+  color: #e74c3c;
+  font-weight: 600;
+}
+
+.breakdownSection {
+  background: white;
+  padding: 1.5rem;
+  border-radius: 8px;
+  box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+}
+
+.paymentPlan {
+  margin: 2rem 0;
+  border: 1px solid #ecf0f1;
+  border-radius: 8px;
+  padding: 1rem;
+}
+
+.planHeader {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 1.5rem;
+  padding: 1rem;
+  background: #f8f9fa;
+  border-radius: 6px;
+}
+
+.planTitle {
+  font-size: 1.2rem;
+  color: #2980b9;
+  margin: 0;
+}
+
+.planStats {
+  display: flex;
+  gap: 1.5rem;
+  font-weight: 500;
+}
+
+.flatSection {
+  margin: 1.5rem 0;
+}
+
+.subTitle {
+  color: #7f8c8d;
+  font-size: 1rem;
+  margin-bottom: 1rem;
+}
+
+.flatCard {
+  border: 1px solid #ecf0f1;
+  border-radius: 6px;
+  margin: 1rem 0;
+  padding: 1rem;
+}
+
+.flatHeader {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 1rem;
+  
+  span {
+    font-weight: 500;
+  }
+}
+
+.flatName {
+  color: #2c3e50;
+  font-size: 1.1rem;
+}
+
+.ownerName {
+  color: #7f8c8d;
+}
+
+.priceBreakdown {
+  table {
+    width: 100%;
+    border-collapse: collapse;
+    
+    th, td {
+      padding: 0.75rem;
+      text-align: left;
+      border-bottom: 1px solid #ecf0f1;
+    }
+    
+    th {
+      background-color: #f8f9fa;
+      color: #34495e;
+    }
+    
+    tr:hover {
+      background-color: #fcfcfc;
+    }
+  }
+}

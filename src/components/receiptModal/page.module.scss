@@ -1,0 +1,281 @@
+/* page.module.scss */
+.loader {
+    width: 100%;
+    height: 100%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+}
+.button {
+    margin: 10px 0;
+    padding: 6px 12px;
+    background-color: #0070f3;
+    color: white;
+    border: none;
+    border-radius: 4px;
+    cursor: pointer;
+}
+.modal {
+    position: fixed;
+    top: 50%;
+    left: 50%;
+    transform: translate(-50%, -50%);
+    width: 80%;
+    height: clamp(50vh, 90vi, 90vh);
+    overflow-y: auto;
+    background-color: #fff;
+    border: 2px solid #000;
+    box-shadow: 0px 0px 24px rgba(0, 0, 0, 0.2);
+    padding: 1.5rem;
+    border-radius: 8px;
+}
+.container {
+    padding: 2rem;
+    background-color: #f9f9f9;
+    min-height: 100%;
+    // outline: 2px solid #000;
+    h1 {
+        text-align: center;
+        margin-bottom: 2rem;
+        color: #333;
+    }
+    .buttonContainer {
+        display: flex;
+        justify-content: space-between;
+    }
+}
+
+.grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(350px, 1fr));
+    gap: 1.5rem;
+}
+
+.card {
+    background-color: #fff;
+    border-radius: 12px;
+    box-shadow: 0 4px 10px rgba(0, 0, 0, 0.1);
+    padding: 1.5rem;
+    transition: transform 0.3s ease;
+    display: flex;
+    flex-direction: column;
+    justify-content: space-between;
+    &:hover {
+        transform: translateY(-5px);
+    }
+    .button_group {
+        display: flex;
+        justify-content: flex-end;
+        align-items: center;
+        gap: 1em;
+        margin-top: 1rem;
+
+        .clearButton,
+        .failedButton {
+            padding: 8px 14px;
+            border: none;
+            border-radius: 6px;
+            font-weight: 500;
+            font-size: 0.95rem;
+            cursor: pointer;
+            transition: background-color 0.2s ease-in-out, opacity 0.2s ease;
+
+            &:disabled {
+                opacity: 0.6;
+                cursor: not-allowed;
+            }
+        }
+
+        .clearButton {
+            background-color: var(--color-accent); // e.g., orange
+            color: white;
+
+            &:hover {
+                background-color: var(--color-hover); // e.g., darker orange
+            }
+        }
+
+        .failedButton {
+            background-color: #e63946; // reddish tone
+            color: white;
+
+            &:hover {
+                background-color: #c62828;
+            }
+        }
+    }
+
+    p {
+        margin: 0.5rem 0;
+        font-size: 0.95rem;
+        color: #444;
+
+        strong {
+            color: #111;
+        }
+    }
+}
+
+.error {
+    color: red;
+    text-align: center;
+    margin-top: 2rem;
+    font-weight: bold;
+}
+.paidButton {
+    margin-top: 10px;
+    padding: 8px 12px;
+    background-color: #28a745;
+    color: white;
+    border: none;
+    border-radius: 6px;
+    cursor: pointer;
+    font-weight: 500;
+    transition: background-color 0.2s ease-in-out;
+
+    &:hover {
+        background-color: #218838;
+    }
+}
+.summary {
+    margin-bottom: 20px;
+    background: #f7f7f7;
+    padding: 1rem;
+    border-radius: 8px;
+    p {
+        margin: 0.3rem 0;
+    }
+}
+.overallSummary {
+    margin-bottom: 20px;
+    background: #e6f4ff;
+    padding: 1rem;
+    border-left: 5px solid #0070f3;
+    border-radius: 8px;
+
+    h3 {
+        margin-top: 0;
+        margin-bottom: 10px;
+        color: #0070f3;
+    }
+
+    p {
+        margin: 0.3rem 0;
+    }
+}
+
+.summary {
+    margin-bottom: 20px;
+    background: #f7f7f7;
+    padding: 1rem;
+    border-left: 5px solid #999;
+    border-radius: 8px;
+
+    h3 {
+        margin-top: 0;
+        margin-bottom: 10px;
+        color: #444;
+    }
+
+    p {
+        margin: 0.3rem 0;
+    }
+}
+
+.closeButton {
+    position: absolute;
+    top: 1rem;
+    right: 1rem;
+    background-color: #f3f3f3;
+    border: none;
+    border-radius: 50%;
+    width: 2.5rem;
+    height: 2.5rem;
+    font-size: 1.5rem;
+    font-weight: bold;
+    color: #333;
+    cursor: pointer;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    box-shadow: 0 2px 6px rgba(0, 0, 0, 0.1);
+    transition: background-color 0.3s ease, transform 0.2s ease, color 0.2s ease;
+
+    &:hover {
+        background-color: #e0e0e0;
+        color: #000;
+        transform: scale(1.05);
+    }
+
+    &:focus {
+        outline: none;
+        box-shadow: 0 0 0 3px rgba(0, 123, 255, 0.4); // accessibility focus ring
+    }
+}
+.createButton {
+    margin-bottom: 20px;
+    padding: 8px 14px;
+    background-color: #ff9800; // warm orange to distinguish from other actions
+    color: white;
+    border: none;
+    border-radius: 6px;
+    font-weight: 500;
+    font-size: 0.95rem;
+    cursor: pointer;
+    transition: background-color 0.2s ease-in-out, transform 0.2s ease;
+
+    &:hover {
+        background-color: #fb8c00;
+        transform: translateY(-2px);
+    }
+
+    &:focus {
+        outline: none;
+        box-shadow: 0 0 0 3px rgba(255, 152, 0, 0.4);
+    }
+}
+.select {
+    width: 100%;
+    padding: 10px;
+    margin: 1rem 0;
+    border-radius: 6px;
+    border: 1px solid #ccc;
+    font-size: 1rem;
+}
+.modal2 {
+    position: fixed;
+    top: 50%;
+    left: 50%;
+    transform: translate(-50%, -50%);
+    width: 40%;
+    height: clamp(20vh, 40vi, 40vh);
+    overflow-y: auto;
+    background-color: #fff;
+    border: 2px solid #000;
+    box-shadow: 0px 0px 24px rgba(0, 0, 0, 0.2);
+    padding: 1.5rem;
+    border-radius: 8px;
+    .select {
+        color: #000;
+    }
+}
+.clearedInfo {
+    background-color: #f0fdf4; // very light green
+    border-left: 4px solid #22c55e; // tailwind emerald-500 (receiving success)
+    padding: 1rem;
+    margin-top: 1rem;
+    border-radius: 0.5rem;
+
+    p {
+        margin: 0.3rem 0;
+        font-size: 0.95rem;
+
+        strong {
+            color: #166534; // darker green for emphasis
+        }
+    }
+
+    div {
+        margin-left: 1rem;
+    }
+}

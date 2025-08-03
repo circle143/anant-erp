@@ -1,0 +1,32 @@
+{
+  "staging": {
+    "awscloudformation": {
+      "AuthRoleName": "amplify-realestateerp-staging-54437-authRole",
+      "UnauthRoleArn": "arn:aws:iam::604456545322:role/amplify-realestateerp-staging-54437-unauthRole",
+      "AuthRoleArn": "arn:aws:iam::604456545322:role/amplify-realestateerp-staging-54437-authRole",
+      "Region": "ap-south-1",
+      "DeploymentBucketName": "amplify-realestateerp-staging-54437-deployment",
+      "UnauthRoleName": "amplify-realestateerp-staging-54437-unauthRole",
+      "StackName": "amplify-realestateerp-staging-54437",
+      "StackId": "arn:aws:cloudformation:ap-south-1:604456545322:stack/amplify-realestateerp-staging-54437/d066f5e0-2026-11f0-932e-0a3b7a69a0b1",
+      "AmplifyAppId": "d3p1lk7zz07t2n"
+    },
+    "categories": {
+      "auth": {
+        "realestateerp": {
+          "allowUnauthenticatedIdentities": false,
+          "authRoleArn": "arn:aws:iam::604456545322:role/service-role/real-estate-iam-role",
+          "authRoleName": "real-estate-iam-role",
+          "identityPoolId": "ap-south-1:c9d11816-3464-4f55-b8be-d6ebf231ce82",
+          "identityPoolName": "real-estate-iam",
+          "nativeClientId": "7rm49m5iigmkblme467f1uqr3a",
+          "unauthRoleArn": "arn:aws:iam::604456545322:role/service-role/unauthenticated-role",
+          "unauthRoleName": "unauthenticated-role",
+          "userPoolId": "ap-south-1_xHVCsQOEA",
+          "userPoolName": "real-estate-users",
+          "webClientId": "7rm49m5iigmkblme467f1uqr3a"
+        }
+      }
+    }
+  }
+}

@@ -1,0 +1,91 @@
+@use "../../styles/abstract/media-queries" as ab;
+
+.navbarWrapper {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding: 1rem;
+    background-color: var(--color-primary); // Professional blue
+    position: relative;
+    gap: 1rem;
+    color: var(--color-background); // Light text on dark background
+}
+
+.welcomeText {
+    display: flex;
+    align-items: center;
+    gap: 1em;
+
+    svg {
+        cursor: pointer;
+        color: var(--color-background); // Menu icon light
+        @include ab.screen-48 {
+            display: none;
+        }
+    }
+
+    div {
+        display: flex;
+        align-items: center;
+    }
+
+    p {
+        margin: 0;
+        font-size: 16px;
+        font-weight: 500;
+        color: var(--color-background); // Text white
+    }
+}
+.profile {
+    width: 40px;
+    height: 40px;
+    border-radius: 50%;
+    overflow: hidden;
+    cursor: pointer;
+    border: 2px solid var(--color-background); // White border
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    background-color: #4a90e2; // fallback color for initials
+
+    .profileCircle {
+        width: 100%;
+        height: 100%;
+        border-radius: 50%;
+        background-color: inherit; // inherit from parent
+        color: white;
+        font-weight: bold;
+        font-size: 18px;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+    }
+}
+
+.dropdownMenu {
+    position: absolute;
+    top: 60px;
+    right: 1rem;
+    background-color: var(--color-background); // White dropdown
+    border: 1px solid var(--color-hover); // Subtle border
+    border-radius: 0.5rem;
+    padding: 0.5rem;
+    box-shadow: 0 4px 10px rgba(0, 0, 0, 0.1);
+    z-index: 10;
+
+    button {
+        width: 100%;
+        margin-bottom: 0.5rem;
+        color: var(--color-secondary); // Button text dark blue
+        border-color: var(--color-primary);
+
+        &:hover {
+            background-color: var(--color-hover); // Button hover blue
+            color: var(--color-background);
+        }
+
+        &:last-child {
+            margin-bottom: 0;
+        }
+    }
+}
