@@ -25,9 +25,10 @@ const validationSchema = Yup.object().shape({
     .oneOf(["online", "cash", "cheque", "demand-draft", "adjustment"])
     .required("Mode is required"),
   dateIssued: Yup.string().required("Date issued is required"),
-  gstRate: Yup.number()
-    .oneOf([5, 1], "Select a GST rate")
-    .required("GST Rate is required"),
+ gstRate: Yup.string()
+  .oneOf(["5", "1"], "Select a GST rate")
+  .required("GST Rate is required"),
+
   bankName: Yup.string().when("mode", {
     is: (val: unknown): val is string =>
       typeof val === "string" &&
@@ -69,7 +70,7 @@ const CreateReceiptForm: React.FC<CreateReceiptFormProps> = ({
         values.totalAmount,
         values.mode,
         values.dateIssued,
-        values.gstRate,
+        Number(values.gstRate),
         values.bankName,
         values.transactionNumber
       );
@@ -97,7 +98,7 @@ const CreateReceiptForm: React.FC<CreateReceiptFormProps> = ({
         dateIssued: "",
         bankName: "",
         transactionNumber: "",
-        gstRate: 5, 
+        gstRate:"5", 
       }}
       validationSchema={validationSchema}
       onSubmit={handleSubmit}
@@ -164,13 +165,13 @@ const CreateReceiptForm: React.FC<CreateReceiptFormProps> = ({
           {/* GST Rate Radio Buttons */}
           <div className={styles.formGroup}>
             <label>GST Rate</label>
-            <div className={styles.radioGroup}>'
+            <div className={styles.radioGroup}>
                 <label>
-                <Field type="radio" name="gstRate" value={1} />
+                <Field type="radio" name="gstRate" value="1" />
                 1%
-              </label>'
+              </label>
               <label>
-                <Field type="radio" name="gstRate" value={5} />
+                <Field type="radio" name="gstRate" value="5" />
                 5%
               </label>
             
