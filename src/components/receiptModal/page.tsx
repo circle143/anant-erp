@@ -308,6 +308,7 @@ const ReceiptContent = ({
                                     <ReceiptDocModal
                                         receiptData={{
                                             receiptNo: receipt.receiptNumber,
+                                            rera:rera,
                                             saleNumber: matchingUnit?.saleDetail?.saleNumber || 'N/A',
                                             customerId: matchingUnit?.saleDetail
                                                 ?.companyCustomer

@@ -1,5 +1,5 @@
 "use client";
-import React, { useRef } from "react";
+import React, { useRef,useEffect,useState } from "react";
 import styles from "./page.module.scss";
 import html2canvas from "html2canvas";
 import jsPDF from "jspdf";
@@ -8,8 +8,15 @@ import { formatIndianCurrencyWithDecimals } from "@/utils/formatIndianCurrencyWi
 import { useSelector } from "react-redux";
 import { RootState } from "@/redux/store";
 import { useSearchParams } from "next/navigation";
+import {
+    getSelf,
+    updateOrganizationDetails,
+} from "../../redux/action/org-admin";
+import { getUrl, uploadData } from "aws-amplify/storage";
+import Loader from "../Loader/Loader";
 interface ReceiptData {
     saleNumber: string;
+    rera: string;
     receiptNo: string;
     customerId: string;
     name: string;
@@ -33,7 +40,6 @@ interface ReceiptData {
 
 interface PageProps {
     receiptData: ReceiptData;
-
     onClose: () => void;
 }
 
@@ -180,6 +186,47 @@ const Page: React.FC<PageProps> = ({ receiptData, onClose }) => {
     const SocietyFlatData = useSelector((state: RootState) =>
         rera ? state.flats.societyFlats[rera] : null
     );
+      const [formData, setFormData] = useState({
+        name: "",
+        gst: "",
+        logo: "",
+        file: null as File | null,
+    });
+ const [loading, setLoading] = useState(false);
+    useEffect(() => {
+        setLoading(true)
+        const fetchSelf = async () => {
+            const res = await getSelf();
+            if (!res?.error && res?.data) {
+                const item = res.data;
+                if (item.logo) {
+                    try {
+                        const getUrlResult = await getUrl({
+                            path: item.logo,
+                            options: {
+                                validateObjectExistence: true,
+                                expiresIn: 3600,
+                            },
+                        });
+                        item.logo = getUrlResult.url.toString();
+                    } catch (error) {
+                        console.error("Error fetching logo URL", error);
+                    }
+                }
+                setFormData({
+                    name: item.name || "",
+                    gst: item.gst || "",
+                    logo: item.logo || "",
+                    file: null,
+                });
+            }
+             setLoading(false);
+        };
+        fetchSelf();
+    }, []);
+      if (loading) {
+    return <Loader />;
+  }
     return (
         <>
             <div className={styles.overlay}>
@@ -193,14 +240,14 @@ const Page: React.FC<PageProps> = ({ receiptData, onClose }) => {
                     className={styles.receiptContainer}
                 >
                     <div className={styles.header}>
-                        <h1>DSD HOMES PVT. LTD.</h1>
+                        <h1>{formData.name}</h1>
                         <p>
-                            Registered Office: CP-GH-5B, Tech Zone-IV, Greater
+                            Address: CP-GH-5B, Tech Zone-IV, Greater
                             Noida (West) U.P
                         </p>
                         <p>Ph: 0120-4229777</p>
                         <p>
-                            GSTIN: 09AAECD6248G2ZI | CIN No.:
+                            GSTIN: 09AACCH6839F1ZE | CIN No.:
                             U70109DL2013PTC251321
                         </p>
                         <p>
