@@ -254,7 +254,9 @@ const ReceiptContent = ({
                                 <strong>Bank Name:</strong>{" "}
                                 {receipt.bankName || "N/A"}
                             </p>
-                            <p>
+                            {receipt.cgst && (
+                                <>
+                                   <p>
                                 <strong>CGST:</strong>{" "}
                                 {formatIndianCurrencyWithDecimals(receipt.cgst)}
                             </p>
@@ -262,6 +264,26 @@ const ReceiptContent = ({
                                 <strong>SGST:</strong>{" "}
                                 {formatIndianCurrencyWithDecimals(receipt.sgst)}
                             </p>
+                                </>
+                            )}
+                            {receipt.serviceTax && (
+                                <>
+                                    <p>
+                                        <strong>Service Tax:</strong>{" "}
+                                        {formatIndianCurrencyWithDecimals(receipt.serviceTax)}
+                                    </p>
+                                    <p>
+                                        <strong>Swatch Bharat Cess:</strong>{" "}
+                                        {formatIndianCurrencyWithDecimals(receipt.swatchBharatCess)}
+                                    </p>
+                                    <p>
+                                        <strong>Krishi Kalyan Cess:</strong>{" "}
+                                        {formatIndianCurrencyWithDecimals(receipt.krishiKalyanCess)}
+                                    </p>
+
+
+                                </>
+                            )}
                             <p>
                                 <strong>Total Amount:</strong>{" "}
                                 {formatIndianCurrencyWithDecimals(

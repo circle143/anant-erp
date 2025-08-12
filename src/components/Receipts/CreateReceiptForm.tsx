@@ -25,9 +25,29 @@ const validationSchema = Yup.object().shape({
     .oneOf(["online", "cash", "cheque", "demand-draft", "adjustment"])
     .required("Mode is required"),
   dateIssued: Yup.string().required("Date issued is required"),
- gstRate: Yup.string()
-  .oneOf(["5", "1"], "Select a GST rate")
-  .required("GST Rate is required"),
+  
+  gstRate: Yup.string().when("dateIssued", {
+    is: (date: string) => new Date(date) >= new Date("2017-07-01"),
+    then: (schema) =>
+      schema.oneOf(["5", "1"], "Select a GST rate").required("GST Rate is required"),
+    otherwise: (schema) => schema.notRequired(),
+  }),
+
+  ServiceTax: Yup.number().when("dateIssued", {
+    is: (date: string) => new Date(date) < new Date("2017-07-01"),
+    then: (schema) => schema.required("Service Tax is required").min(0),
+    otherwise: (schema) => schema.notRequired(),
+  }),
+  SwatchBharatCess: Yup.number().when("dateIssued", {
+    is: (date: string) => new Date(date) < new Date("2017-07-01"),
+    then: (schema) => schema.required("Swatch Bharat Cess is required").min(0),
+    otherwise: (schema) => schema.notRequired(),
+  }),
+  KrishiKalyanCess: Yup.number().when("dateIssued", {
+    is: (date: string) => new Date(date) < new Date("2017-07-01"),
+    then: (schema) => schema.required("Krishi Kalyan Cess is required").min(0),
+    otherwise: (schema) => schema.notRequired(),
+  }),
 
   bankName: Yup.string().when("mode", {
     is: (val: unknown): val is string =>
@@ -44,6 +64,7 @@ const validationSchema = Yup.object().shape({
     otherwise: (schema) => schema.notRequired(),
   }),
 });
+
 
 interface CreateReceiptFormProps {
   rera: string;
@@ -63,17 +84,22 @@ const CreateReceiptForm: React.FC<CreateReceiptFormProps> = ({
   const handleSubmit = async (values: any, { setSubmitting }: any) => {
     try {
 
-      const response = await addSaleReceipt(
-        values.receiptNumber,
-        rera,
-        saleId,
-        values.totalAmount,
-        values.mode,
-        values.dateIssued,
-        Number(values.gstRate),
-        values.bankName,
-        values.transactionNumber
-      );
+     const isGSTDate = new Date(values.dateIssued) >= new Date("2017-07-01");
+
+    const response = await addSaleReceipt(
+      values.receiptNumber,
+      rera,
+      saleId,
+      Number(values.totalAmount),
+      values.mode,
+      values.dateIssued,
+      isGSTDate ? Number(values.gstRate) : undefined, // GST if applicable
+      values.bankName || undefined,
+      values.transactionNumber || undefined,
+      !isGSTDate ? Number(values.ServiceTax) || 0 : undefined, // Service Tax if applicable
+      !isGSTDate ? Number(values.SwatchBharatCess) || 0 : undefined,
+      !isGSTDate ? Number(values.KrishiKalyanCess) || 0 : undefined
+    );
 
       if (response?.error === false) {
         toast.success("Receipt created successfully!");
@@ -99,6 +125,9 @@ const CreateReceiptForm: React.FC<CreateReceiptFormProps> = ({
         bankName: "",
         transactionNumber: "",
         gstRate:"5", 
+          ServiceTax: "",
+    SwatchBharatCess: "",
+    KrishiKalyanCess: "",
       }}
       validationSchema={validationSchema}
       onSubmit={handleSubmit}
@@ -163,25 +192,66 @@ const CreateReceiptForm: React.FC<CreateReceiptFormProps> = ({
           </div>
 
           {/* GST Rate Radio Buttons */}
-          <div className={styles.formGroup}>
-            <label>GST Rate</label>
-            <div className={styles.radioGroup}>
-                <label>
-                <Field type="radio" name="gstRate" value="1" />
-                1%
-              </label>
-              <label>
-                <Field type="radio" name="gstRate" value="5" />
-                5%
-              </label>
-            
-            </div>
-            <ErrorMessage
-              name="gstRate"
-              component="p"
-              className={styles.error}
-            />
-          </div>
+          {/* GST Rate or Old Tax Fields */}
+{values.dateIssued && new Date(values.dateIssued) <= new Date("2017-07-01") ? (
+    <>
+    <div className={styles.formGroup}>
+      <label htmlFor="ServiceTax">Service Tax</label>
+      <Field
+        name="ServiceTax"
+        type="number"
+        className={styles.formControl}
+      />
+      <ErrorMessage name="ServiceTax" component="p" className={styles.error} />
+    </div>
+
+    <div className={styles.formGroup}>
+      <label htmlFor="SwatchBharatCess">Swatch Bharat Cess</label>
+      <Field
+        name="SwatchBharatCess"
+        type="number"
+        className={styles.formControl}
+      />
+      <ErrorMessage
+        name="SwatchBharatCess"
+        component="p"
+        className={styles.error}
+      />
+    </div>
+
+    <div className={styles.formGroup}>
+      <label htmlFor="KrishiKalyanCess">Krishi Kalyan Cess</label>
+      <Field
+        name="KrishiKalyanCess"
+        type="number"
+        className={styles.formControl}
+      />
+      <ErrorMessage
+        name="KrishiKalyanCess"
+        component="p"
+        className={styles.error}
+      />
+    </div>
+  </>
+
+
+) : (
+    <div className={styles.formGroup}>
+    <label>GST Rate</label>
+    <div className={styles.radioGroup}>
+      <label>
+        <Field type="radio" name="gstRate" value="1" />
+        1%
+      </label>
+      <label>
+        <Field type="radio" name="gstRate" value="5" />
+        5%
+      </label>
+    </div>
+    <ErrorMessage name="gstRate" component="p" className={styles.error} />
+  </div>
+)}
+
 
           {["online", "cheque", "demand-draft"].includes(values.mode) && (
             <>

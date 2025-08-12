@@ -19,7 +19,10 @@ export interface AddSaleReceiptRequestBody {
 	dateIssued: string;
 	bankName?: string;
 	transactionNumber?: string;
-	gstRate:number;
+	gstRate?:number;
+	ServiceTax?:number;
+	SwatchBharatCess?:number;
+	KrishiKalyanCess?:number;
 }
 
 export interface ReceiptIdInput {

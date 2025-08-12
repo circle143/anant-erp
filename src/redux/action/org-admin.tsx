@@ -1557,10 +1557,12 @@ export const addSaleReceipt = async (
     totalAmount: number,
     mode: string,
     dateIssued: string,
-    gstRate: number,
+    gstRate?: number,
     bankName?: string,
     transactionNumber?: string,
-   
+    ServiceTax?:number,
+    SwatchBharatCess?:number,
+    KrishiKalyanCess?:number,
 ) => {
     try {
         const token = await getIdToken();
@@ -1574,6 +1576,10 @@ export const addSaleReceipt = async (
             bankName,
             transactionNumber,
             gstRate,
+            ServiceTax,
+            SwatchBharatCess,
+            KrishiKalyanCess,
+
         };
         const url = receipt.addSaleReceipt.getEndpoint(input);
         const response = await axios.post(createURL(url), reqBody, {
