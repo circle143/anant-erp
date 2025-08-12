@@ -242,8 +242,7 @@ const Page: React.FC<PageProps> = ({ receiptData, onClose }) => {
                     <div className={styles.header}>
                         <h1>{formData.name}</h1>
                         <p>
-                            Address: CP-GH-5B, Tech Zone-IV, Greater
-                            Noida (West) U.P
+                            Address: GH-9, Sector 11, Vrindavan Colony, Lucknow, Uttar Pradesh 226012
                         </p>
                         <p>Ph: 0120-4229777</p>
                         <p>
