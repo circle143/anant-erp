@@ -85,9 +85,6 @@ interface receipt {
     serviceTax: string;
     swatchBharatCess: string;
     krishiKalyanCess:string;
-
-
-
 }
 interface SaleDetail {
     id: string;

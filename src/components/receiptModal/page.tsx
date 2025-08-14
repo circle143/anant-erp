@@ -401,6 +401,10 @@ const ReceiptContent = ({
                                                     ? "Paid"
                                                     : "Pending",
                                             mode: receipt.mode,
+                                            krishiKalyanCess: receipt.krishiKalyanCess,
+                                            serviceTax: receipt.serviceTax,
+                                            swatchBharatCess: receipt.swatchBharatCess,
+
                                         }}
                                     />
                                 </div>

@@ -73,10 +73,9 @@ interface receipt {
     sgst: string;
     totalAmount: string;
     transactionNumber: string;
-
-       serviceTax: string;
+    krishiKalyanCess: string;
+    serviceTax: string;
     swatchBharatCess: string;
-    krishiKalyanCess:string;
 }
 interface broker {
     id: string;

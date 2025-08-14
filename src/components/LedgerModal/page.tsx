@@ -32,6 +32,10 @@ interface SingleReceipt {
     sgst: string;
     totalAmount: string;
     transactionNumber: string;
+    krishiKalyanCess: string;
+    serviceTax: string;
+    swatchBharatCess: string;
+
 }
 
 interface LedgerProps {

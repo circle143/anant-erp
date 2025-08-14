@@ -18,9 +18,19 @@ const modeOptions = [
 
 const validationSchema = Yup.object().shape({
   receiptNumber: Yup.string().required("Receipt number is required"),
-  totalAmount: Yup.number()
-    .required("Total amount is required")
-    .positive("Amount must be positive"),
+totalAmount: Yup.number()
+  .required("Total amount is required")
+  .test(
+    "positive-or-negative-for-adjustment",
+    "Amount must be positive unless mode is adjustment",
+    function (value) {
+      const { mode } = this.parent;
+      if (mode === "adjustment") {
+        return typeof value === "number"; // can be negative, zero, or positive
+      }
+      return value > 0; // must be positive for all other modes
+    }
+  ),
   mode: Yup.string()
     .oneOf(["online", "cash", "cheque", "demand-draft", "adjustment"])
     .required("Mode is required"),
@@ -33,21 +43,29 @@ const validationSchema = Yup.object().shape({
     otherwise: (schema) => schema.notRequired(),
   }),
 
-  ServiceTax: Yup.number().when("dateIssued", {
-    is: (date: string) => new Date(date) < new Date("2017-07-01"),
-    then: (schema) => schema.required("Service Tax is required").min(0),
-    otherwise: (schema) => schema.notRequired(),
-  }),
-  SwatchBharatCess: Yup.number().when("dateIssued", {
-    is: (date: string) => new Date(date) < new Date("2017-07-01"),
-    then: (schema) => schema.required("Swatch Bharat Cess is required").min(0),
-    otherwise: (schema) => schema.notRequired(),
-  }),
-  KrishiKalyanCess: Yup.number().when("dateIssued", {
-    is: (date: string) => new Date(date) < new Date("2017-07-01"),
-    then: (schema) => schema.required("Krishi Kalyan Cess is required").min(0),
-    otherwise: (schema) => schema.notRequired(),
-  }),
+ ServiceTax: Yup.number().when(["dateIssued", "mode"], {
+  is: (date: string, mode: string) =>
+    mode !== "adjustment" && new Date(date) < new Date("2017-07-01"),
+  then: (schema) => schema.required("Service Tax is required").min(0),
+  otherwise: (schema) => schema.notRequired(),
+}),
+
+SwatchBharatCess: Yup.number().when(["dateIssued", "mode"], {
+  is: (date: string, mode: string) =>
+    mode !== "adjustment" && new Date(date) < new Date("2017-07-01"),
+  then: (schema) =>
+    schema.required("Swatch Bharat Cess is required").min(0),
+  otherwise: (schema) => schema.notRequired(),
+}),
+
+KrishiKalyanCess: Yup.number().when(["dateIssued", "mode"], {
+  is: (date: string, mode: string) =>
+    mode !== "adjustment" && new Date(date) < new Date("2017-07-01"),
+  then: (schema) =>
+    schema.required("Krishi Kalyan Cess is required").min(0),
+  otherwise: (schema) => schema.notRequired(),
+}),
+
 
   bankName: Yup.string().when("mode", {
     is: (val: unknown): val is string =>
@@ -81,10 +99,10 @@ const CreateReceiptForm: React.FC<CreateReceiptFormProps> = ({
 }) => {
   const router = useRouter();
 
-  const handleSubmit = async (values: any, { setSubmitting }: any) => {
-    try {
-
-     const isGSTDate = new Date(values.dateIssued) >= new Date("2017-07-01");
+const handleSubmit = async (values: any, { setSubmitting }: any) => {
+  try {
+    const isGSTDate = new Date(values.dateIssued) >= new Date("2017-07-01");
+    const isAdjustment = values.mode === "adjustment";
 
     const response = await addSaleReceipt(
       values.receiptNumber,
@@ -93,27 +111,30 @@ const CreateReceiptForm: React.FC<CreateReceiptFormProps> = ({
       Number(values.totalAmount),
       values.mode,
       values.dateIssued,
-      isGSTDate ? Number(values.gstRate) : undefined, // GST if applicable
+      // GST rate only if not adjustment and GST date
+      !isAdjustment && isGSTDate ? Number(values.gstRate) : undefined,
       values.bankName || undefined,
       values.transactionNumber || undefined,
-      !isGSTDate ? Number(values.ServiceTax) || 0 : undefined, // Service Tax if applicable
-      !isGSTDate ? Number(values.SwatchBharatCess) || 0 : undefined,
-      !isGSTDate ? Number(values.KrishiKalyanCess) || 0 : undefined
+      // Old taxes only if not adjustment and pre-GST
+      !isAdjustment && !isGSTDate ? Number(values.ServiceTax) || 0 : undefined,
+      !isAdjustment && !isGSTDate ? Number(values.SwatchBharatCess) || 0 : undefined,
+      !isAdjustment && !isGSTDate ? Number(values.KrishiKalyanCess) || 0 : undefined
     );
 
-      if (response?.error === false) {
-        toast.success("Receipt created successfully!");
-        onSuccess();
-      } else {
-        toast.error(response?.message || "Failed to create receipt.");
-      }
-    } catch (error) {
-      console.error("Add receipt error:", error);
-      toast.error("Unexpected error occurred.");
-    } finally {
-      setSubmitting(false);
+    if (response?.error === false) {
+      toast.success("Receipt created successfully!");
+      onSuccess();
+    } else {
+      toast.error(response?.message || "Failed to create receipt.");
     }
-  };
+  } catch (error) {
+    console.error("Add receipt error:", error);
+    toast.error("Unexpected error occurred.");
+  } finally {
+    setSubmitting(false);
+  }
+};
+
 
   return (
     <Formik
@@ -132,8 +153,10 @@ const CreateReceiptForm: React.FC<CreateReceiptFormProps> = ({
       validationSchema={validationSchema}
       onSubmit={handleSubmit}
     >
-      {({ isSubmitting, values }) => (
-        <Form className={styles.form}>
+      {({ isSubmitting, values, errors, }) => {
+        console.log(errors)
+        return(
+   <Form className={styles.form}>
           <h2 className={styles.formHeading}>Create New Receipt</h2>
 
           <div className={styles.formGroup}>
@@ -193,6 +216,7 @@ const CreateReceiptForm: React.FC<CreateReceiptFormProps> = ({
 
           {/* GST Rate Radio Buttons */}
           {/* GST Rate or Old Tax Fields */}
+  {values.mode !== "adjustment" && (<>
 {values.dateIssued && new Date(values.dateIssued) <= new Date("2017-07-01") ? (
     <>
     <div className={styles.formGroup}>
@@ -251,6 +275,8 @@ const CreateReceiptForm: React.FC<CreateReceiptFormProps> = ({
     <ErrorMessage name="gstRate" component="p" className={styles.error} />
   </div>
 )}
+  </>)}
+
 
 
           {["online", "cheque", "demand-draft"].includes(values.mode) && (
@@ -289,7 +315,10 @@ const CreateReceiptForm: React.FC<CreateReceiptFormProps> = ({
             {isSubmitting ? "Submitting..." : "Create Receipt"}
           </button>
         </Form>
-      )}
+        )
+      }
+     
+    }
     </Formik>
   );
 };

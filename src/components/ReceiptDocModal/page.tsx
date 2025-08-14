@@ -27,6 +27,9 @@ interface ReceiptData {
     instrumentDate: string;
     status: string;
     mode: string;
+    krishiKalyanCess: string;
+    serviceTax: string;
+    swatchBharatCess: string;
 }
 
 const ReceiptDocModal = ({ receiptData }: { receiptData: ReceiptData }) => {

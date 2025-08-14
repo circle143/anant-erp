@@ -36,6 +36,10 @@ interface ReceiptData {
     instrumentDate: string;
     status: string;
     mode: string;
+    krishiKalyanCess: string;
+    serviceTax: string;
+    swatchBharatCess: string;
+
 }
 
 interface PageProps {
@@ -65,6 +69,10 @@ const Page: React.FC<PageProps> = ({ receiptData, onClose }) => {
         instrumentDate,
         status,
         mode,
+        krishiKalyanCess,
+        serviceTax,
+        swatchBharatCess,
+
     } = receiptData;
 
     const receiptRef = useRef<HTMLDivElement>(null);
@@ -227,6 +235,11 @@ const Page: React.FC<PageProps> = ({ receiptData, onClose }) => {
       if (loading) {
     return <Loader />;
   }
+  const showGSTGroup = 
+  cgst !== undefined && sgst !== undefined &&
+  !isNaN(Number(cgst)) && !isNaN(Number(sgst));
+
+const showOtherTaxesGroup =krishiKalyanCess || serviceTax || swatchBharatCess;
     return (
         <>
             <div className={styles.overlay}>
@@ -314,41 +327,64 @@ const Page: React.FC<PageProps> = ({ receiptData, onClose }) => {
                         </p>
                     </div>
                     <table className={styles.receiptTable}>
-                        <thead>
-                            <tr>
-                                <th>S.No</th>
-                                <th>Mode</th>
-                                <th>Instrument Date</th>
-                                <th>Status</th>
-                                <th>Bank</th>
-                                <th>Amount</th>
-                                <th>CGST</th>
-                                <th>SGST</th>
-                                <th>Total</th>
-                            </tr>
-                        </thead>
-                        <tbody>
-                            <tr>
-                                <td>1</td>
-                                <td>{mode}</td>
-                                <td>{instrumentDate}</td>
-                                <td>{status}</td>
-                                <td>{bankName}</td>
-                                <td>
-                                    {formatIndianCurrencyWithDecimals(amount)}
-                                </td>
-                                <td>
-                                    {formatIndianCurrencyWithDecimals(cgst)}
-                                </td>
-                                <td>
-                                    {formatIndianCurrencyWithDecimals(sgst)}
-                                </td>
-                                <td>
-                                    {formatIndianCurrencyWithDecimals(total)}
-                                </td>
-                            </tr>
-                        </tbody>
-                    </table>
+  <thead>
+    <tr>
+      <th>S.No</th>
+      <th>Mode</th>
+      <th>Instrument Date</th>
+      <th>Status</th>
+      <th>Bank</th>
+      <th>Amount</th>
+
+      {showGSTGroup && (
+        <>
+          <th>CGST</th>
+          <th>SGST</th>
+        </>
+      )}
+
+      {showOtherTaxesGroup && (
+        <>
+          <th>Krishi Kalyan Cess</th>
+          <th>Service Tax</th>
+          <th>Swatch Bharat Cess</th>
+        </>
+      )}
+
+      <th>Total</th>
+    </tr>
+  </thead>
+
+  <tbody>
+    <tr>
+      <td>1</td>
+      <td>{mode}</td>
+      <td>{instrumentDate}</td>
+      <td>{status}</td>
+      <td>{bankName}</td>
+      <td>{formatIndianCurrencyWithDecimals(amount || 0)}</td>
+
+      {showGSTGroup && (
+        <>
+     <td>{formatIndianCurrencyWithDecimals(isNaN(Number(cgst)) ? 0 : Number(cgst))}</td>
+<td>{formatIndianCurrencyWithDecimals(isNaN(Number(sgst)) ? 0 : Number(sgst))}</td>
+
+        </>
+      )}
+
+      {showOtherTaxesGroup && (
+        <>
+          <td>{formatIndianCurrencyWithDecimals(Number(krishiKalyanCess) || 0)}</td>
+          <td>{formatIndianCurrencyWithDecimals(Number(serviceTax) || 0)}</td>
+          <td>{formatIndianCurrencyWithDecimals(Number(swatchBharatCess) || 0)}</td>
+        </>
+      )}
+
+      <td>{formatIndianCurrencyWithDecimals(total || 0)}</td>
+    </tr>
+  </tbody>
+</table>
+
 
                     <div className={styles.signature}>
                         <p>For DSD HOMES PVT. LTD.</p>

@@ -31,13 +31,14 @@
     }
 
     .receiptTable {
-        width: 100%;
+        width: 90%;
         margin-top: 1rem;
         border-collapse: collapse;
-        font-size: 0.9rem;
+        font-size: clamp(0.7rem, 0.75rem, 0.8rem);
         th,
         td {
-            border: 1px solid black;
+            // outline: 2px solid blue;    
+            border: 2px solid black;
             padding: 0.5rem;
             text-align: center;
         }

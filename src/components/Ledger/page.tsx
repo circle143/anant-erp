@@ -41,6 +41,10 @@ interface SingleReceipt {
     sgst: string;
     totalAmount: string;
     transactionNumber: string;
+    krishiKalyanCess: string;
+    serviceTax: string;
+    swatchBharatCess: string;
+
 }
 
 interface LedgerProps {
@@ -225,6 +229,12 @@ const Page: React.FC<PageProps> = ({ receiptData, onClose }) => {
       if (loading) {
     return <Loader />;
   }
+    const hasPostGST = receiptData.receipt.some(
+    r => new Date(r.dateIssued) > new Date("2017-07-01")
+  );
+  const hasPreGST = receiptData.receipt.some(
+    r => new Date(r.dateIssued) <= new Date("2017-07-01")
+  );
     return (
 
         <>
@@ -322,8 +332,20 @@ const Page: React.FC<PageProps> = ({ receiptData, onClose }) => {
                                 <th>Status</th>
                                 <th>Bank</th>
                                 <th>Amount</th>
-                                <th>CGST</th>
-                                <th>SGST</th>
+                                   {hasPostGST && (
+            <>
+              <th>CGST</th>
+              <th>SGST</th>
+            </>
+          )}
+
+          {hasPreGST && (
+            <>
+              <th>Krishi Kalyan Cess</th>
+              <th>Service Tax</th>
+              <th>Swachh Bharat Cess</th>
+            </>
+          )}
                                 <th>Total</th>
                             </tr>
                         </thead>
@@ -354,16 +376,22 @@ const Page: React.FC<PageProps> = ({ receiptData, onClose }) => {
                                                 Number(receipt.amount)
                                             )}
                                         </td>
-                                        <td>
-                                            {formatIndianCurrencyWithDecimals(
-                                                Number(receipt.cgst)
-                                            )}
-                                        </td>
-                                        <td>
-                                            {formatIndianCurrencyWithDecimals(
-                                                Number(receipt.sgst)
-                                            )}
-                                        </td>
+                                         {hasPostGST && (
+                <>
+                  <td>{formatIndianCurrencyWithDecimals(Number(receipt.cgst) || 0)}</td>
+                  <td>{formatIndianCurrencyWithDecimals(Number(receipt.sgst) || 0)}</td>
+                </>
+              )}
+
+              {hasPreGST && (
+                <>
+                  <td>{formatIndianCurrencyWithDecimals(Number(receipt.krishiKalyanCess) || 0)}</td>
+                  <td>{formatIndianCurrencyWithDecimals(Number(receipt.serviceTax) || 0)}</td>
+                  <td>{formatIndianCurrencyWithDecimals(Number(receipt.swatchBharatCess) || 0)}</td>
+                </>
+              )}
+
+
                                         <td>
                                             {formatIndianCurrencyWithDecimals(
                                                 Number(receipt.totalAmount)
@@ -391,32 +419,67 @@ const Page: React.FC<PageProps> = ({ receiptData, onClose }) => {
                                         )}
                                     </strong>
                                 </td>
-                                <td>
-                                    <strong>
-                                        {formatIndianCurrencyWithDecimals(
-                                            receiptData.receipt
-                                                .reduce(
-                                                    (acc, r) =>
-                                                        acc + Number(r.cgst),
-                                                    0
-                                                )
-                                                .toFixed(2)
-                                        )}
-                                    </strong>
-                                </td>
-                                <td>
-                                    <strong>
-                                        {formatIndianCurrencyWithDecimals(
-                                            receiptData.receipt
-                                                .reduce(
-                                                    (acc, r) =>
-                                                        acc + Number(r.sgst),
-                                                    0
-                                                )
-                                                .toFixed(2)
-                                        )}
-                                    </strong>
-                                </td>
+                                                                         {hasPostGST && (
+                <>
+                                            <td>
+  <strong>
+    {formatIndianCurrencyWithDecimals(
+      receiptData.receipt
+        .reduce((acc, r) => acc + (Number(r.cgst) || 0), 0)
+        .toFixed(2)
+    )}
+  </strong>
+</td>
+
+<td>
+  <strong>
+    {formatIndianCurrencyWithDecimals(
+      receiptData.receipt
+        .reduce((acc, r) => acc + (Number(r.sgst) || 0), 0)
+        .toFixed(2)
+    )}
+  </strong>
+</td>
+                </>
+              )}
+
+              {hasPreGST && (
+                <>
+                 <td>
+  <strong>
+    {formatIndianCurrencyWithDecimals(
+      receiptData.receipt
+        .reduce((acc, r) => acc + (Number(r.krishiKalyanCess) || 0), 0)
+        .toFixed(2)
+    )}
+  </strong>
+</td>
+
+<td>
+  <strong>
+    {formatIndianCurrencyWithDecimals(
+      receiptData.receipt
+        .reduce((acc, r) => acc + (Number(r.serviceTax) || 0), 0)
+        .toFixed(2)
+    )}
+  </strong>
+</td>
+
+<td>
+  <strong>
+    {formatIndianCurrencyWithDecimals(
+      receiptData.receipt
+        .reduce((acc, r) => acc + (Number(r.swatchBharatCess) || 0), 0)
+        .toFixed(2)
+    )}
+  </strong>
+</td>
+                </>
+              )}
+
+
+
+
                                 <td>
                                     <strong>
                                         {formatIndianCurrencyWithDecimals(
