@@ -100,6 +100,8 @@ interface SaleDetail {
     paid: string;
     remaining: string;
     createdAt: string;
+    totalPayableAmount: string;
+
 }
 
 export interface FlatType {

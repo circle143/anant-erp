@@ -813,6 +813,27 @@ const [createReceiptModalOpen, setCreateReceiptModalOpen] = useState(false);
                                                                                         )}
                                                                                     </p>
                                                                                 </div>
+                                                                                <div
+                                                                                    className={
+                                                                                        styles.totalPriceSection
+                                                                                    }
+                                                                                >
+                                                                                    <h4>
+                                                                                        Total Payable Amount
+                                                                                    </h4>
+                                                                                    <p>
+                                                                                        {formatIndianCurrencyWithDecimals(
+                                                                                            org
+                                                                                                .saleDetail
+                                                                                                ?.paid !=
+                                                                                                null
+                                                                                                ? org
+                                                                                                    .saleDetail
+                                                                                                    .totalPayableAmount
+                                                                                                : "0.00"
+                                                                                        )}
+                                                                                    </p>
+                                                                                </div>
                                                                                 {/* Total Price */}
                                                                                 <div
                                                                                     className={

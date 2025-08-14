@@ -100,6 +100,7 @@ interface SaleDetail {
     receipts?: receipt[];
     paid: string;
     remaining: string;
+    totalPayableAmount:string,
     createdAt: string;
 }
 
