@@ -153,6 +153,23 @@ export const createSociety = async (
     }
 };
 
+export const getSocietyDownloadReport = async (societyId: string) => {
+    try {
+        const token = await getIdToken();
+        const url = society.getSocietyDownloadReport.getEndpoint(societyId);
+        const response = await axios.get(createURL(url), {
+            headers: { Authorization: `Bearer ${token}` },
+        });
+        return response.data;
+    } catch (error: any) {
+        console.error(
+            "Error fetching society download report:",
+            error.response?.data || error.message
+        );
+        return { error: true, message: error.message };
+    }
+};
+
 export const getSocieties = async (cursor: string | null = null) => {
     try {
         const token = await getIdToken();

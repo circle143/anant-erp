@@ -3,7 +3,7 @@ import { useState } from "react";
 import { useRouter } from "next/navigation";
 import { MoreVertical } from "lucide-react";
 import styles from "./page.module.scss";
-import { deleteSociety } from "@/redux/action/org-admin";
+import { deleteSociety, getSocietyDownloadReport } from "@/redux/action/org-admin";
 import toast from "react-hot-toast";
 
 interface DropdownMenuProps {
@@ -78,6 +78,45 @@ const DropdownMenu = ({
             setIsOpen(false);
         }
     };
+    const handleDownloadReport = async () => {
+        try {
+            // Assuming getSocietyDownloadReport returns a fetch Response object
+            const response = await getSocietyDownloadReport(reraNumber);
+            
+            if (!response.ok) {
+                throw new Error(`HTTP error! status: ${response.status}`);
+            }
+    
+            const blob = await response.blob();
+            const contentDisposition = response.headers.get('content-disposition');
+            let filename = `${reraNumber}_master_report_${Date.now()}.xlsx`;
+            
+            if (contentDisposition) {
+                const filenameMatch = contentDisposition.match(/filename="([^"]+)"/);
+                if (filenameMatch?.[1]) {
+                    filename = filenameMatch[1];
+                }
+            }
+    
+            const objectURL = URL.createObjectURL(blob);
+            const a = document.createElement('a');
+            a.href = objectURL;
+            a.download = filename;
+            document.body.appendChild(a);
+            a.click();
+            document.body.removeChild(a);
+            URL.revokeObjectURL(objectURL);
+            
+            toast.success("Master report downloaded successfully");
+    
+        } catch (error) {
+            console.error('Download error:', error);
+            toast.error("Failed to download report");
+        }
+    }
+    
+    
+    
 
     return (
         <div className={styles.dropdownWrapper}>
@@ -129,6 +168,9 @@ const DropdownMenu = ({
                     </div>
                     <div onClick={() => handleRedirect(reraNumber, "banks")}>
                         Banks
+                    </div>
+                    <div onClick={handleDownloadReport}>
+                        Download Reports
                     </div>
                     {/* <div onClick={handleDelete}>Delete</div> */}
                 </div>

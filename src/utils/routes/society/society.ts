@@ -63,4 +63,13 @@ export const society = {
     },
     requestMethod: "GET",
   },
+  getSocietyDownloadReport: {
+    getEndpoint: (societyId: string) => {
+      return getBasePath() + `/${societyId}/reports`;
+    },
+    getReqBody: () => {
+      // no request body required
+    },
+    requestMethod: "GET",
+  },
 };

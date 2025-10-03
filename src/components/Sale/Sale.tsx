@@ -821,7 +821,7 @@ const Sale = () => {
                                             <div>
                                                 <div>
                                                     <label>
-                                                        Member ID :{" "}
+                                                        Customer Identification Number :{" "}
                                                         <span
                                                             style={{ color: "red" }}
                                                         >
