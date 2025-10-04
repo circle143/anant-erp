@@ -80,40 +80,46 @@ const DropdownMenu = ({
     };
     const handleDownloadReport = async () => {
         try {
-            // Assuming getSocietyDownloadReport returns a fetch Response object
+            console.log('Initiating master report download for:', reraNumber);
+    
+            // API should return a Blob since it's a file
             const response = await getSocietyDownloadReport(reraNumber);
-            
-            if (!response.ok) {
-                throw new Error(`HTTP error! status: ${response.status}`);
+    
+            if (!response || response.error) {
+                toast.error(response?.message || "Failed to download report");
+                return;
             }
     
-            const blob = await response.blob();
-            const contentDisposition = response.headers.get('content-disposition');
-            let filename = `${reraNumber}_master_report_${Date.now()}.xlsx`;
-            
-            if (contentDisposition) {
-                const filenameMatch = contentDisposition.match(/filename="([^"]+)"/);
-                if (filenameMatch?.[1]) {
-                    filename = filenameMatch[1];
-                }
+            // Validate response is Blob
+            if (!(response instanceof Blob)) {
+                console.error('Invalid response type:', typeof response);
+                toast.error("Invalid file response from server");
+                return;
             }
     
-            const objectURL = URL.createObjectURL(blob);
-            const a = document.createElement('a');
-            a.href = objectURL;
-            a.download = filename;
-            document.body.appendChild(a);
-            a.click();
-            document.body.removeChild(a);
-            URL.revokeObjectURL(objectURL);
-            
+            // Generate filename (timestamped)
+            const timestamp = Math.floor(Date.now() / 1000);
+            const filename = `${reraNumber}_master_report_${timestamp}.xlsx`;
+    
+            // Create download link
+            const url = window.URL.createObjectURL(response);
+            const link = document.createElement('a');
+            link.href = url;
+            link.download = filename;
+            document.body.appendChild(link);
+            link.click();
+            document.body.removeChild(link);
+    
+            // Clean up URL object
+            window.URL.revokeObjectURL(url);
+    
             toast.success("Master report downloaded successfully");
-    
         } catch (error) {
             console.error('Download error:', error);
             toast.error("Failed to download report");
         }
-    }
+    };
+    
     
     
     
