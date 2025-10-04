@@ -38,24 +38,24 @@ export const sidebarOrgAdminItems = [
     //     text: "Users",
     //     paths: ["/org-admin/users"],
     // },
-    {
-        eventKey: "report",
-        icon: "bx bx-bar-chart-square", // Sales report
-        text: "Sales Report",
-        paths: ["/org-admin/report"],
-    },
-    {
-        eventKey: "broker-report",
-        icon: "bx bx-id-card", // Broker icon
-        text: "Broker Report",
-        paths: ["/org-admin/broker-report"],
-    },
-    {
-        eventKey: "bank-report",
-        icon: "bx bx-building", // Bank icon
-        text: "Bank Report",
-        paths: ["/org-admin/bank-report"],
-    },
+    // {
+    //     eventKey: "report",
+    //     icon: "bx bx-bar-chart-square", // Sales report
+    //     text: "Sales Report",
+    //     paths: ["/org-admin/report"],
+    // },
+    // {
+    //     eventKey: "broker-report",
+    //     icon: "bx bx-id-card", // Broker icon
+    //     text: "Broker Report",
+    //     paths: ["/org-admin/broker-report"],
+    // },
+    // {
+    //     eventKey: "bank-report",
+    //     icon: "bx bx-building", // Bank icon
+    //     text: "Bank Report",
+    //     paths: ["/org-admin/bank-report"],
+    // },
     {
         eventKey: "Sale",
         icon: "bx bx-rupee", // Sale icon
