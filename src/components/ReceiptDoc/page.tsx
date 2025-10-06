@@ -333,7 +333,7 @@ const showOtherTaxesGroup =krishiKalyanCess || serviceTax || swatchBharatCess;
       <th>Mode</th>
       <th>Instrument Date</th>
       <th>Status</th>
-      <th>Bank</th>
+      {/* <th>Bank</th> */}
       <th>Amount</th>
 
       {showGSTGroup && (
@@ -361,7 +361,7 @@ const showOtherTaxesGroup =krishiKalyanCess || serviceTax || swatchBharatCess;
       <td>{mode}</td>
       <td>{instrumentDate}</td>
       <td>{status}</td>
-      <td>{bankName}</td>
+      {/* <td>{bankName}</td> */}
       <td>{formatIndianCurrencyWithDecimals(amount || 0)}</td>
 
       {showGSTGroup && (
@@ -387,7 +387,7 @@ const showOtherTaxesGroup =krishiKalyanCess || serviceTax || swatchBharatCess;
 
 
                     <div className={styles.signature}>
-                        <p>For DSD HOMES PVT. LTD.</p>
+                        <p>For HORIZON ANANT</p>
                         <p className={styles.authorized}>
                             Authorised Signatory
                         </p>

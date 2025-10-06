@@ -330,7 +330,7 @@ const Page: React.FC<PageProps> = ({ receiptData, onClose }) => {
                                 <th>Mode</th>
                                 <th>Instrument Date</th>
                                 <th>Status</th>
-                                <th>Bank</th>
+                                {/* <th>Bank</th> */}
                                 <th>Amount</th>
                                    {hasPostGST && (
             <>
@@ -370,7 +370,7 @@ const Page: React.FC<PageProps> = ({ receiptData, onClose }) => {
                                         <td>{receipt.mode}</td>
                                         <td>{instrumentDate}</td>
                                         <td>{status}</td>
-                                        <td>{bankName}</td>
+                                        {/* <td>{bankName}</td> */}
                                         <td>
                                             {formatIndianCurrencyWithDecimals(
                                                 Number(receipt.amount)
@@ -403,7 +403,7 @@ const Page: React.FC<PageProps> = ({ receiptData, onClose }) => {
 
                             {/* Totals Row */}
                             <tr>
-                                <td colSpan={5}>
+                                <td colSpan={4}>
                                     <strong>Total</strong>
                                 </td>
                                 <td>
@@ -510,7 +510,7 @@ const Page: React.FC<PageProps> = ({ receiptData, onClose }) => {
                         </strong>
                     </div>
                     <div className={styles.signature}>
-                        <p>For DSD HOMES PVT. LTD.</p>
+                        <p>For HORIZON ANANT</p>
                         <p className={styles.authorized}>
                             Authorised Signatory
                         </p>
