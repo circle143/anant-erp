@@ -12,6 +12,7 @@ import { useSearchParams } from "next/navigation";
 import { getSelf } from "../../redux/action/org-admin";
 import { getUrl } from "aws-amplify/storage";
 import Loader from "../Loader/Loader";
+import autoTable from "jspdf-autotable";
 
 interface ReceiptData {
   saleNumber: string;
@@ -188,63 +189,217 @@ const Page: React.FC<PageProps> = ({ receiptData, onClose }) => {
   // PDF DOWNLOAD FUNCTIONALITY (FIXED FULL-PAGE)
   // ==============================
   const handleDownloadPDF = async () => {
-    const input = receiptRef.current;
-    if (!input) return;
+    const pdf = new jsPDF("p", "mm", "a4");
+    const pageWidth = pdf.internal.pageSize.getWidth();
+    const margin = 15;
+    let yPos = 20;
 
-    // Hide noPrint elements
-    const noPrintElements = input.querySelectorAll(".noPrint");
-    noPrintElements.forEach(
-      (el) => ((el as HTMLElement).style.display = "none")
+    // Helper function to replace ₹ with Rs.
+    const formatCurrency = (value: number | string) => {
+      return formatIndianCurrencyWithDecimals(Number(value) || 0).replace(
+        "₹",
+        "Rs."
+      );
+    };
+
+    // Header - Company Name
+    pdf.setFontSize(20);
+    pdf.setFont("helvetica", "bold");
+    pdf.text(formData.name || "Mangalya Group", pageWidth / 2, yPos, {
+      align: "center",
+    });
+    yPos += 8;
+
+    // Address and contact info
+    pdf.setFontSize(10);
+    pdf.setFont("helvetica", "normal");
+    pdf.text(
+      "Address: GH-9, Sector 11, Vrindavan Colony, Lucknow, Uttar Pradesh 226012",
+      pageWidth / 2,
+      yPos,
+      { align: "center" }
     );
+    yPos += 5;
+    pdf.text("Ph: 0120-4229777", pageWidth / 2, yPos, { align: "center" });
+    yPos += 5;
+    pdf.text(
+      "GSTIN: 09AACCH6839F1ZE | CIN No.: U70109DL2013PTC251321",
+      pageWidth / 2,
+      yPos,
+      { align: "center" }
+    );
+    yPos += 5;
+    pdf.text(
+      "Web: www.novenagreen.com | Email: info@novenagreen.com",
+      pageWidth / 2,
+      yPos,
+      { align: "center" }
+    );
+    yPos += 10;
 
-    // Add temporary export class
-    input.classList.add("pdfExport");
+    // Draw a line
+    pdf.setDrawColor(200);
+    pdf.line(margin, yPos, pageWidth - margin, yPos);
+    yPos += 8;
 
-    await new Promise((resolve) => setTimeout(resolve, 100));
+    // Customer Info
+    pdf.setFontSize(11);
+    const leftCol = margin;
+    const valueCol = margin + 40;
 
-    const canvas = await html2canvas(input, {
-      scale: 2.5,
-      useCORS: true,
-      backgroundColor: "#ffffff",
-      logging: false,
-      scrollY: 0,
+    pdf.setFont("helvetica", "bold");
+    pdf.text("Receipt No:", leftCol, yPos);
+    pdf.setFont("helvetica", "normal");
+    pdf.text(receiptNo || "N/A", valueCol, yPos);
+    yPos += 6;
+
+    pdf.setFont("helvetica", "bold");
+    pdf.text("Member ID:", leftCol, yPos);
+    pdf.setFont("helvetica", "normal");
+    pdf.text(saleNumber || "N/A", valueCol, yPos);
+    yPos += 6;
+
+    pdf.setFont("helvetica", "bold");
+    pdf.text("Customer Name:", leftCol, yPos);
+    pdf.setFont("helvetica", "normal");
+    pdf.text(name || "N/A", valueCol, yPos);
+    yPos += 6;
+
+    pdf.setFont("helvetica", "bold");
+    pdf.text("Address:", leftCol, yPos);
+    pdf.setFont("helvetica", "normal");
+    pdf.text(address || "N/A", valueCol, yPos);
+    yPos += 6;
+
+    pdf.setFont("helvetica", "bold");
+    pdf.text("Mobile:", leftCol, yPos);
+    pdf.setFont("helvetica", "normal");
+    pdf.text(phone || "N/A", valueCol, yPos);
+    yPos += 6;
+
+    pdf.setFont("helvetica", "bold");
+    pdf.text("Date:", leftCol, yPos);
+    pdf.setFont("helvetica", "normal");
+    pdf.text(date || "N/A", valueCol, yPos);
+    yPos += 10;
+
+    // Summary paragraph - with proper text wrapping
+    pdf.setFontSize(10);
+    const projectName = SocietyFlatData?.name || "";
+    const projectAddress = SocietyFlatData?.address || "";
+
+    const summaryText = `A sum of ${formatCurrency(total)} (${numberToWords(
+      total
+    ).toUpperCase()} ONLY) received for Flat No. ${plotNo} with Salable Area ${superArea} Sq.Ft. on ${floor}th floor at Tower no. ${tower}${
+      projectName ? ` in project ${projectName}` : ""
+    }${projectAddress ? ` located at ${projectAddress}` : ""}.`;
+
+    const maxWidth = pageWidth - margin * 2;
+    const splitSummary = pdf.splitTextToSize(summaryText, maxWidth);
+    pdf.text(splitSummary, margin, yPos);
+    yPos += splitSummary.length * 5 + 10;
+
+    // Table headers
+    const tableHeaders: string[] = [
+      "S.No",
+      "Mode",
+      "Instrument Date",
+      "Status",
+      "Amount",
+    ];
+    if (showGSTGroup) {
+      tableHeaders.push("CGST", "SGST");
+    }
+    if (showOtherTaxesGroup) {
+      tableHeaders.push("KK Cess", "Service Tax", "SB Cess");
+    }
+    tableHeaders.push("Total");
+
+    // Table data
+    const tableData: string[][] = [
+      [
+        "1",
+        mode || "N/A",
+        receiptData.instrumentDate || "N/A",
+        status || "N/A",
+        formatCurrency(amount),
+      ],
+    ];
+
+    if (showGSTGroup) {
+      tableData[0].push(formatCurrency(cgst), formatCurrency(sgst));
+    }
+    if (showOtherTaxesGroup) {
+      tableData[0].push(
+        formatCurrency(krishiKalyanCess),
+        formatCurrency(serviceTax),
+        formatCurrency(swatchBharatCess)
+      );
+    }
+    tableData[0].push(formatCurrency(total));
+
+    // Generate table
+    autoTable(pdf, {
+      head: [tableHeaders],
+      body: tableData,
+      startY: yPos,
+      margin: { left: margin, right: margin },
+      styles: {
+        fontSize: 8,
+        cellPadding: 3,
+        halign: "center",
+        valign: "middle",
+        lineColor: [0, 0, 0],
+        lineWidth: 0.3,
+      },
+      headStyles: {
+        fillColor: [243, 244, 246],
+        textColor: [0, 0, 0],
+        fontStyle: "bold",
+        fontSize: 8,
+      },
+      bodyStyles: {
+        fillColor: [255, 255, 255],
+        textColor: [0, 0, 0],
+      },
+      theme: "grid",
+      tableWidth: "auto",
     });
 
-    // Restore
-    input.classList.remove("pdfExport");
-    noPrintElements.forEach((el) => ((el as HTMLElement).style.display = ""));
+    // Get final Y position after table
+    yPos = (pdf as any).lastAutoTable.finalY + 20;
 
-    const imgData = canvas.toDataURL("image/png");
-    const pdf = new jsPDF("p", "mm", "a4");
+    // Signature
+    pdf.setFontSize(11);
+    pdf.setFont("helvetica", "normal");
+    pdf.text("For HORIZON ANANT", pageWidth - margin - 45, yPos);
+    yPos += 12;
+    pdf.setFont("helvetica", "bold");
+    pdf.text("Authorised Signatory", pageWidth - margin - 45, yPos);
+    yPos += 15;
 
-    const pageWidth = pdf.internal.pageSize.getWidth();
-    const pageHeight = pdf.internal.pageSize.getHeight();
+    // Terms
+    pdf.setDrawColor(200);
+    pdf.line(margin, yPos, pageWidth - margin, yPos);
+    yPos += 8;
 
-    const imgWidthPx = canvas.width;
-    const imgHeightPx = canvas.height;
+    pdf.setFontSize(9);
+    pdf.setFont("helvetica", "normal");
 
-    const pdfWidthPx = (pageWidth * 96) / 25.4;
-    const pdfHeightPx = (pageHeight * 96) / 25.4;
+    const terms = [
+      "• This receipt is subject to realization of cheque/draft.",
+      "• The receipts are not transferable without written consent of the company.",
+      "• This is only the receipt for the remittance and does not entitle ownership unless confirmed by the company.",
+    ];
 
-    // Fit within A4
-    const ratio = Math.min(pdfWidthPx / imgWidthPx, pdfHeightPx / imgHeightPx);
+    terms.forEach((term) => {
+      const splitTerm = pdf.splitTextToSize(term, maxWidth);
+      pdf.text(splitTerm, margin, yPos);
+      yPos += splitTerm.length * 4 + 2;
+    });
 
-    const renderWidth = imgWidthPx * ratio;
-    const renderHeight = imgHeightPx * ratio;
-
-    // ✅ Force the content to start from top (remove top padding)
-    const offsetX = (pdfWidthPx - renderWidth) / 2;
-    const offsetY = 0; // 👈 Force to top edge
-
-    // Convert to mm
-    const renderWidthMM = (renderWidth * 25.4) / 96;
-    const renderHeightMM = (renderHeight * 25.4) / 96;
-    const offsetXMM = (offsetX * 25.4) / 96;
-
-    pdf.addImage(imgData, "PNG", offsetXMM, 0, renderWidthMM, renderHeightMM);
     pdf.save(`receipt_${receiptNo}.pdf`);
   };
-
   // ==============================
   // JSX RENDER
   // ==============================
@@ -302,13 +457,13 @@ const Page: React.FC<PageProps> = ({ receiptData, onClose }) => {
 
           <div className={styles.summary}>
             <p>
-              A sum of{" "}
+              A sum of
               <strong>{formatIndianCurrencyWithDecimals(total)}</strong> (
               <strong>{numberToWords(total).toUpperCase()} ONLY</strong>)
-              received for Flat No. <strong>{plotNo}</strong> with Salable Area{" "}
-              <strong>{superArea} Sq.Ft.</strong> on{" "}
-              <strong>{floor}th floor</strong> at Tower no.{" "}
-              <strong>{tower}</strong> in project{" "}
+              received for Flat No. <strong>{plotNo}</strong> with Salable Area
+              <strong>{superArea} Sq.Ft.</strong> on
+              <strong>{floor}th floor</strong> at Tower no.
+              <strong>{tower}</strong> in project
               <strong>
                 {SocietyFlatData?.name} located at {SocietyFlatData?.address}
               </strong>
@@ -316,67 +471,240 @@ const Page: React.FC<PageProps> = ({ receiptData, onClose }) => {
             </p>
           </div>
 
-          <table className={styles.receiptTable}>
+          <table
+            className={styles.receiptTable}
+            style={{
+              width: "100%",
+              borderCollapse: "collapse",
+              border: "1px solid #000",
+            }}
+          >
             <thead>
               <tr>
-                <th>S.No</th>
-                <th>Mode</th>
-                <th>Instrument Date</th>
-                <th>Status</th>
-                <th>Amount</th>
+                <th
+                  style={{
+                    border: "1px solid #000",
+                    padding: "8px",
+                    backgroundColor: "#f3f4f6",
+                  }}
+                >
+                  S.No
+                </th>
+                <th
+                  style={{
+                    border: "1px solid #000",
+                    padding: "8px",
+                    backgroundColor: "#f3f4f6",
+                  }}
+                >
+                  Mode
+                </th>
+                <th
+                  style={{
+                    border: "1px solid #000",
+                    padding: "8px",
+                    backgroundColor: "#f3f4f6",
+                  }}
+                >
+                  Instrument Date
+                </th>
+                <th
+                  style={{
+                    border: "1px solid #000",
+                    padding: "8px",
+                    backgroundColor: "#f3f4f6",
+                  }}
+                >
+                  Status
+                </th>
+                <th
+                  style={{
+                    border: "1px solid #000",
+                    padding: "8px",
+                    backgroundColor: "#f3f4f6",
+                  }}
+                >
+                  Amount
+                </th>
                 {showGSTGroup && (
                   <>
-                    <th>CGST</th>
-                    <th>SGST</th>
+                    <th
+                      style={{
+                        border: "1px solid #000",
+                        padding: "8px",
+                        backgroundColor: "#f3f4f6",
+                      }}
+                    >
+                      CGST
+                    </th>
+                    <th
+                      style={{
+                        border: "1px solid #000",
+                        padding: "8px",
+                        backgroundColor: "#f3f4f6",
+                      }}
+                    >
+                      SGST
+                    </th>
                   </>
                 )}
                 {showOtherTaxesGroup && (
                   <>
-                    <th>Krishi Kalyan Cess</th>
-                    <th>Service Tax</th>
-                    <th>Swatch Bharat Cess</th>
+                    <th
+                      style={{
+                        border: "1px solid #000",
+                        padding: "8px",
+                        backgroundColor: "#f3f4f6",
+                      }}
+                    >
+                      Krishi Kalyan Cess
+                    </th>
+                    <th
+                      style={{
+                        border: "1px solid #000",
+                        padding: "8px",
+                        backgroundColor: "#f3f4f6",
+                      }}
+                    >
+                      Service Tax
+                    </th>
+                    <th
+                      style={{
+                        border: "1px solid #000",
+                        padding: "8px",
+                        backgroundColor: "#f3f4f6",
+                      }}
+                    >
+                      Swatch Bharat Cess
+                    </th>
                   </>
                 )}
-                <th>Total</th>
+                <th
+                  style={{
+                    border: "1px solid #000",
+                    padding: "8px",
+                    backgroundColor: "#f3f4f6",
+                  }}
+                >
+                  Total
+                </th>
               </tr>
             </thead>
             <tbody>
               <tr>
-                <td>1</td>
-                <td>{mode}</td>
-                <td>{receiptData.instrumentDate}</td>
-                <td>{status}</td>
-                <td>{formatIndianCurrencyWithDecimals(amount || 0)}</td>
+                <td
+                  style={{
+                    border: "1px solid #000",
+                    padding: "8px",
+                    textAlign: "center",
+                  }}
+                >
+                  1
+                </td>
+                <td
+                  style={{
+                    border: "1px solid #000",
+                    padding: "8px",
+                    textAlign: "center",
+                  }}
+                >
+                  {mode}
+                </td>
+                <td
+                  style={{
+                    border: "1px solid #000",
+                    padding: "8px",
+                    textAlign: "center",
+                  }}
+                >
+                  {receiptData.instrumentDate}
+                </td>
+                <td
+                  style={{
+                    border: "1px solid #000",
+                    padding: "8px",
+                    textAlign: "center",
+                  }}
+                >
+                  {status}
+                </td>
+                <td
+                  style={{
+                    border: "1px solid #000",
+                    padding: "8px",
+                    textAlign: "center",
+                  }}
+                >
+                  {formatIndianCurrencyWithDecimals(amount || 0)}
+                </td>
                 {showGSTGroup && (
                   <>
-                    <td>
+                    <td
+                      style={{
+                        border: "1px solid #000",
+                        padding: "8px",
+                        textAlign: "center",
+                      }}
+                    >
                       {formatIndianCurrencyWithDecimals(Number(cgst) || 0)}
                     </td>
-                    <td>
+                    <td
+                      style={{
+                        border: "1px solid #000",
+                        padding: "8px",
+                        textAlign: "center",
+                      }}
+                    >
                       {formatIndianCurrencyWithDecimals(Number(sgst) || 0)}
                     </td>
                   </>
                 )}
                 {showOtherTaxesGroup && (
                   <>
-                    <td>
+                    <td
+                      style={{
+                        border: "1px solid #000",
+                        padding: "8px",
+                        textAlign: "center",
+                      }}
+                    >
                       {formatIndianCurrencyWithDecimals(
                         Number(krishiKalyanCess) || 0
                       )}
                     </td>
-                    <td>
+                    <td
+                      style={{
+                        border: "1px solid #000",
+                        padding: "8px",
+                        textAlign: "center",
+                      }}
+                    >
                       {formatIndianCurrencyWithDecimals(
                         Number(serviceTax) || 0
                       )}
                     </td>
-                    <td>
+                    <td
+                      style={{
+                        border: "1px solid #000",
+                        padding: "8px",
+                        textAlign: "center",
+                      }}
+                    >
                       {formatIndianCurrencyWithDecimals(
                         Number(swatchBharatCess) || 0
                       )}
                     </td>
                   </>
                 )}
-                <td>{formatIndianCurrencyWithDecimals(total || 0)}</td>
+                <td
+                  style={{
+                    border: "1px solid #000",
+                    padding: "8px",
+                    textAlign: "center",
+                  }}
+                >
+                  {formatIndianCurrencyWithDecimals(total || 0)}
+                </td>
               </tr>
             </tbody>
           </table>

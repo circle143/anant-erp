@@ -1,10 +1,10 @@
-// app/components/Receipt/Page.tsx
+// app/components/Ledger/Page.tsx
 "use client";
 
 import React, { useRef, useEffect, useState } from "react";
 import styles from "./page.module.scss";
-import html2canvas from "html2canvas";
 import jsPDF from "jspdf";
+import autoTable from "jspdf-autotable";
 import { numberToWords } from "@/utils/numberToWords";
 import { formatIndianCurrencyWithDecimals } from "@/utils/formatIndianCurrencyWithDecimals";
 import { useSelector } from "react-redux";
@@ -68,206 +68,6 @@ type PageProps = {
 
 const Page: React.FC<PageProps> = ({ receiptData, onClose }) => {
   const receiptRef = useRef<HTMLDivElement>(null);
-
-  const handlePrint = () => {
-    const printContent = receiptRef.current;
-    if (!printContent) return;
-
-    const printWindow = window.open("", "_blank");
-    if (!printWindow) {
-      alert("Please allow pop-ups to use the print feature.");
-      return;
-    }
-
-    // Grab hashed class names for CSS Modules
-    const overlayCls = styles.overlay;
-    const receiptCls = styles.receiptContainer;
-    const noPrintCls = styles.noPrint;
-    const headerCls = styles.header;
-    const customerInfoCls = styles.customerInfo;
-    const summaryCls = styles.summary;
-    const tableCls = styles.receiptTable;
-    const amountInWordsCls = styles.amountInWords;
-    const termsCls = styles.terms;
-    const signatureCls = styles.signature;
-    const tableContainerCls = styles.tableContainer;
-
-    // Collect styles
-    let styleTags = "";
-    Array.from(document.styleSheets).forEach((ss) => {
-      try {
-        const css = (ss as CSSStyleSheet).cssRules;
-        if (css) {
-          let txt = "";
-          for (let i = 0; i < css.length; i++) txt += css[i].cssText;
-          styleTags += `<style>${txt}</style>`;
-        } else if ((ss as CSSStyleSheet).href) {
-          styleTags += `<link rel="stylesheet" href="${
-            (ss as CSSStyleSheet).href
-          }">`;
-        }
-      } catch {
-        // Cross-origin: fallback to href
-        if ((ss as CSSStyleSheet).href) {
-          styleTags += `<link rel="stylesheet" href="${
-            (ss as CSSStyleSheet).href
-          }">`;
-        }
-      }
-    });
-
-    // Hard overrides to prevent "blank pages"
-    const safeOverrides = `
-      <style>
-        /* Force visibility in popup */
-        * { visibility: visible !important; }
-        .${noPrintCls}, .noPrint { display: none !important; }
-
-        html, body {
-          background: #ffffff !important;
-          color: #000000 !important;
-          -webkit-print-color-adjust: exact !important;
-          print-color-adjust: exact !important;
-          margin: 0; padding: 0;
-        }
-        @page { size: A4 portrait; margin: 10mm; }
-
-        /* De-cardify */
-        .${overlayCls} { padding: 0 !important; background: #ffffff !important; }
-        .${receiptCls} {
-          box-shadow: none !important;
-          background: #ffffff !important;
-          color: #000000 !important;
-          width: auto !important;
-          max-width: 100% !important;
-          margin: 0 !important;
-          padding: 0 !important;
-        }
-
-        /* Ensure readable sizes in print popup too */
-        .${headerCls} h1 { font-size: 16px; }
-        .${headerCls} p,
-        .${customerInfoCls} p,
-        .${summaryCls},
-        .${amountInWordsCls},
-        .${signatureCls} p { font-size: 12px; }
-
-        .${tableContainerCls} { overflow: visible !important; margin: 10px 0; }
-        .${tableCls} {
-          width: 100% !important;
-          border-collapse: collapse !important;
-          table-layout: fixed !important;
-          font-size: 10px !important;
-        }
-        .${tableCls} th, .${tableCls} td {
-          border: 1px solid #000 !important;
-          padding: 4px !important;
-          text-align: center !important;
-          word-wrap: break-word !important;
-        }
-        .${tableCls} th { background: #f3f4f6 !important; }
-
-        .${termsCls} { border-top: 1px solid #000 !important; padding-top: 10px !important; }
-      </style>
-    `;
-
-    const doc = `
-      <!DOCTYPE html>
-      <html>
-        <head>
-          <meta charset="utf-8" />
-          <meta name="viewport" content="width=device-width, initial-scale=1" />
-          <title>Receipt - ${receiptData.customerId}</title>
-          ${styleTags}
-          ${safeOverrides}
-        </head>
-        <body>${printContent.outerHTML}</body>
-      </html>
-    `;
-
-    printWindow.document.open();
-    printWindow.document.write(doc);
-    printWindow.document.close();
-
-    const doPrint = () => {
-      try {
-        printWindow.focus();
-        printWindow.print();
-      } finally {
-        printWindow.close();
-      }
-    };
-
-    const afterFonts = () => setTimeout(doPrint, 50);
-    try {
-      const docFonts = (printWindow.document as any).fonts;
-      if (docFonts && docFonts.ready) {
-        docFonts.ready.then(afterFonts).catch(afterFonts);
-      } else {
-        afterFonts();
-      }
-    } catch {
-      afterFonts();
-    }
-  };
-
-  const handleDownloadPDF = async () => {
-    const input = receiptRef.current;
-    if (!input) return;
-
-    try {
-      input.classList.add(styles.pdfExport);
-      if ("fonts" in document) {
-        const docFonts = (document as any).fonts;
-        if (docFonts && docFonts.ready) {
-          await docFonts.ready.catch(() => {});
-        }
-      }
-      await new Promise<void>((resolve) =>
-        requestAnimationFrame(() => resolve())
-      );
-      await new Promise<void>((resolve) => setTimeout(() => resolve(), 50));
-
-      const scale = Math.min(window.devicePixelRatio || 1, 2);
-      const canvas = await html2canvas(input, {
-        scale,
-        useCORS: true,
-        backgroundColor: "#ffffff",
-        removeContainer: true,
-        ignoreElements: (el) =>
-          el.classList?.contains(styles.noPrint) ||
-          el.classList?.contains("noPrint"),
-      });
-
-      const imgData = canvas.toDataURL("image/png");
-      const pdf = new jsPDF("p", "mm", "a4");
-      const pageWidth = pdf.internal.pageSize.getWidth();
-      const pageHeight = pdf.internal.pageSize.getHeight();
-      const margin = 5;
-      const usableWidth = pageWidth - margin * 2;
-
-      const imgWpx = canvas.width;
-      const imgHpx = canvas.height;
-      const imgHeight = (imgHpx * usableWidth) / imgWpx;
-
-      pdf.addImage(imgData, "PNG", margin, margin, usableWidth, imgHeight);
-
-      let heightLeft = imgHeight - (pageHeight - margin * 2);
-      while (heightLeft > 0) {
-        pdf.addPage();
-        const position = margin - (imgHeight - heightLeft);
-        pdf.addImage(imgData, "PNG", margin, position, usableWidth, imgHeight);
-        heightLeft -= pageHeight - margin * 2;
-      }
-
-      pdf.save(`receipt_${receiptData.customerId}.pdf`);
-    } catch (e) {
-      console.error("PDF generation failed:", e);
-      alert("An error occurred while generating the PDF. Please try again.");
-    } finally {
-      input.classList.remove(styles.pdfExport);
-    }
-  };
 
   const searchParams = useSearchParams();
   const rera = searchParams.get("rera");
@@ -336,6 +136,417 @@ const Page: React.FC<PageProps> = ({ receiptData, onClose }) => {
     0
   );
 
+  // Helper function to format currency for PDF (replace ₹ with Rs.)
+  const formatCurrencyForPDF = (value: number | string) => {
+    return formatIndianCurrencyWithDecimals(Number(value) || 0).replace(
+      "₹",
+      ""
+    );
+  };
+
+  // ==============================
+  // PRINT FUNCTIONALITY
+  // ==============================
+  const handlePrint = () => {
+    const printContent = receiptRef.current;
+    if (!printContent) return;
+
+    const printWindow = window.open("", "_blank");
+    if (!printWindow) {
+      alert("Please allow pop-ups to use the print feature.");
+      return;
+    }
+
+    // Grab hashed class names for CSS Modules
+    const overlayCls = styles.overlay;
+    const receiptCls = styles.receiptContainer;
+    const noPrintCls = styles.noPrint;
+    const headerCls = styles.header;
+    const customerInfoCls = styles.customerInfo;
+    const summaryCls = styles.summary;
+    const tableCls = styles.receiptTable;
+    const amountInWordsCls = styles.amountInWords;
+    const termsCls = styles.terms;
+    const signatureCls = styles.signature;
+    const tableContainerCls = styles.tableContainer;
+
+    // Collect styles
+    let styleTags = "";
+    Array.from(document.styleSheets).forEach((ss) => {
+      try {
+        const css = (ss as CSSStyleSheet).cssRules;
+        if (css) {
+          let txt = "";
+          for (let i = 0; i < css.length; i++) txt += css[i].cssText;
+          styleTags += `<style>${txt}</style>`;
+        } else if ((ss as CSSStyleSheet).href) {
+          styleTags += `<link rel="stylesheet" href="${
+            (ss as CSSStyleSheet).href
+          }">`;
+        }
+      } catch {
+        if ((ss as CSSStyleSheet).href) {
+          styleTags += `<link rel="stylesheet" href="${
+            (ss as CSSStyleSheet).href
+          }">`;
+        }
+      }
+    });
+
+    const safeOverrides = `
+      <style>
+        * { visibility: visible !important; }
+        .${noPrintCls}, .noPrint { display: none !important; }
+
+        html, body {
+          background: #ffffff !important;
+          color: #000000 !important;
+          -webkit-print-color-adjust: exact !important;
+          print-color-adjust: exact !important;
+          margin: 0; padding: 0;
+        }
+        @page { size: A4 portrait; margin: 10mm; }
+
+        .${overlayCls} { padding: 0 !important; background: #ffffff !important; }
+        .${receiptCls} {
+          box-shadow: none !important;
+          background: #ffffff !important;
+          color: #000000 !important;
+          width: auto !important;
+          max-width: 100% !important;
+          margin: 0 !important;
+          padding: 0 !important;
+        }
+
+        .${headerCls} h1 { font-size: 16px; }
+        .${headerCls} p,
+        .${customerInfoCls} p,
+        .${summaryCls},
+        .${amountInWordsCls},
+        .${signatureCls} p { font-size: 12px; }
+
+        .${tableContainerCls} { overflow: visible !important; margin: 10px 0; }
+        .${tableCls} {
+          width: 100% !important;
+          border-collapse: collapse !important;
+          table-layout: fixed !important;
+          font-size: 10px !important;
+        }
+        .${tableCls} th, .${tableCls} td {
+          border: 1px solid #000 !important;
+          padding: 4px !important;
+          text-align: center !important;
+          word-wrap: break-word !important;
+        }
+        .${tableCls} th { background: #f3f4f6 !important; }
+
+        .${termsCls} { border-top: 1px solid #000 !important; padding-top: 10px !important; }
+      </style>
+    `;
+
+    const doc = `
+      <!DOCTYPE html>
+      <html>
+        <head>
+          <meta charset="utf-8" />
+          <meta name="viewport" content="width=device-width, initial-scale=1" />
+          <title>Ledger - ${receiptData.customerId}</title>
+          ${styleTags}
+          ${safeOverrides}
+        </head>
+        <body>${printContent.outerHTML}</body>
+      </html>
+    `;
+
+    printWindow.document.open();
+    printWindow.document.write(doc);
+    printWindow.document.close();
+
+    const doPrint = () => {
+      try {
+        printWindow.focus();
+        printWindow.print();
+      } finally {
+        printWindow.close();
+      }
+    };
+
+    const afterFonts = () => setTimeout(doPrint, 50);
+    try {
+      const docFonts = (printWindow.document as any).fonts;
+      if (docFonts && docFonts.ready) {
+        docFonts.ready.then(afterFonts).catch(afterFonts);
+      } else {
+        afterFonts();
+      }
+    } catch {
+      afterFonts();
+    }
+  };
+
+  // ==============================
+  // PDF DOWNLOAD FUNCTIONALITY
+  // ==============================
+  const handleDownloadPDF = async () => {
+    const pdf = new jsPDF("p", "mm", "a4");
+    const pageWidth = pdf.internal.pageSize.getWidth();
+    const margin = 15;
+    let yPos = 20;
+
+    // Header - Company Name
+    pdf.setFontSize(20);
+    pdf.setFont("helvetica", "bold");
+    pdf.text(formData.name || "Mangalya Group", pageWidth / 2, yPos, {
+      align: "center",
+    });
+    yPos += 8;
+
+    // Address and contact info
+    pdf.setFontSize(10);
+    pdf.setFont("helvetica", "normal");
+    pdf.text(
+      "Address: GH-9, Sector 11, Vrindavan Colony, Lucknow, Uttar Pradesh 226012",
+      pageWidth / 2,
+      yPos,
+      { align: "center" }
+    );
+    yPos += 5;
+    pdf.text("Ph: 0120-4229777", pageWidth / 2, yPos, { align: "center" });
+    yPos += 5;
+    pdf.text(
+      "GSTIN: 09AACCH6839F1ZE | CIN No.: U70109DL2013PTC251321",
+      pageWidth / 2,
+      yPos,
+      { align: "center" }
+    );
+    yPos += 5;
+    pdf.text(
+      "Web: www.novenagreen.com | Email: info@novenagreen.com",
+      pageWidth / 2,
+      yPos,
+      { align: "center" }
+    );
+    yPos += 10;
+
+    // Draw a line
+    pdf.setDrawColor(200);
+    pdf.line(margin, yPos, pageWidth - margin, yPos);
+    yPos += 8;
+
+    // Customer Info
+    pdf.setFontSize(11);
+    const leftCol = margin;
+    const valueCol = margin + 45;
+
+    pdf.setFont("helvetica", "bold");
+    pdf.text("Member ID:", leftCol, yPos);
+    pdf.setFont("helvetica", "normal");
+    pdf.text(receiptData.saleNumber || "N/A", valueCol, yPos);
+    yPos += 6;
+
+    pdf.setFont("helvetica", "bold");
+    pdf.text("Customer Name:", leftCol, yPos);
+    pdf.setFont("helvetica", "normal");
+    pdf.text(receiptData.name || "N/A", valueCol, yPos);
+    yPos += 6;
+
+    pdf.setFont("helvetica", "bold");
+    pdf.text("Mobile:", leftCol, yPos);
+    pdf.setFont("helvetica", "normal");
+    pdf.text(receiptData.phone || "N/A", valueCol, yPos);
+    yPos += 6;
+
+    pdf.setFont("helvetica", "bold");
+    pdf.text("Total Amount:", leftCol, yPos);
+    pdf.setFont("helvetica", "normal");
+    pdf.text(formatCurrencyForPDF(receiptData.amount), valueCol, yPos);
+    yPos += 6;
+
+    pdf.setFont("helvetica", "bold");
+    pdf.text("Remaining Amount:", leftCol, yPos);
+    pdf.setFont("helvetica", "normal");
+    pdf.text(formatCurrencyForPDF(receiptData.amountRemaining), valueCol, yPos);
+    yPos += 6;
+
+    pdf.setFont("helvetica", "bold");
+    pdf.text("Booking Date:", leftCol, yPos);
+    pdf.setFont("helvetica", "normal");
+    pdf.text(receiptData.bookingDate || "N/A", valueCol, yPos);
+    yPos += 10;
+
+    // Summary paragraph
+    pdf.setFontSize(10);
+    const projectName = SocietyFlatData?.name || "";
+    const projectAddress = SocietyFlatData?.address || "";
+
+    const summaryText = `Flat No. ${
+      receiptData.plotNo
+    } with a salable area of ${receiptData.superArea} Sq.Ft., located on the ${
+      receiptData.floor
+    }th floor of Tower ${receiptData.tower}${
+      projectName ? `, in the project ${projectName}` : ""
+    }${projectAddress ? ` located at ${projectAddress}` : ""}.`;
+
+    const maxWidth = pageWidth - margin * 2;
+    const splitSummary = pdf.splitTextToSize(summaryText, maxWidth);
+    pdf.text(splitSummary, margin, yPos);
+    yPos += splitSummary.length * 5 + 10;
+
+    // Table headers
+    const tableHeaders: string[] = ["S.No", "Mode", "Date", "Status", "Amount"];
+    if (hasPostGST) {
+      tableHeaders.push("CGST", "SGST");
+    }
+    if (hasPreGST) {
+      tableHeaders.push("KK Cess", "Service Tax", "SB Cess");
+    }
+    tableHeaders.push("Total");
+
+    // Table data
+    const tableData: string[][] = validReceipts.map(
+      (r: Item, index: number) => {
+        const row: string[] = [
+          String(index + 1),
+          r.mode || "N/A",
+          new Date(r.dateIssued).toLocaleDateString(),
+          r.cleared ? "Paid" : "Pending",
+          formatCurrencyForPDF(r.amount),
+        ];
+
+        if (hasPostGST) {
+          row.push(
+            formatCurrencyForPDF(r.cgst || 0),
+            formatCurrencyForPDF(r.sgst || 0)
+          );
+        }
+        if (hasPreGST) {
+          row.push(
+            formatCurrencyForPDF(r.krishiKalyanCess || 0),
+            formatCurrencyForPDF(r.serviceTax || 0),
+            formatCurrencyForPDF(r.swatchBharatCess || 0)
+          );
+        }
+        row.push(formatCurrencyForPDF(r.totalAmount));
+
+        return row;
+      }
+    );
+
+    // Add totals row
+    const totalsRow: string[] = [
+      "Total",
+      "",
+      "",
+      "",
+      formatCurrencyForPDF(
+        validReceipts.reduce((a, r) => a + Number(r.amount), 0)
+      ),
+    ];
+
+    if (hasPostGST) {
+      totalsRow.push(
+        formatCurrencyForPDF(
+          validReceipts.reduce((a, r) => a + (Number(r.cgst) || 0), 0)
+        ),
+        formatCurrencyForPDF(
+          validReceipts.reduce((a, r) => a + (Number(r.sgst) || 0), 0)
+        )
+      );
+    }
+    if (hasPreGST) {
+      totalsRow.push(
+        formatCurrencyForPDF(
+          validReceipts.reduce(
+            (a, r) => a + (Number(r.krishiKalyanCess) || 0),
+            0
+          )
+        ),
+        formatCurrencyForPDF(
+          validReceipts.reduce((a, r) => a + (Number(r.serviceTax) || 0), 0)
+        ),
+        formatCurrencyForPDF(
+          validReceipts.reduce(
+            (a, r) => a + (Number(r.swatchBharatCess) || 0),
+            0
+          )
+        )
+      );
+    }
+    totalsRow.push(formatCurrencyForPDF(totalAmount));
+
+    tableData.push(totalsRow);
+
+    // Generate table
+    autoTable(pdf, {
+      head: [tableHeaders],
+      body: tableData,
+      startY: yPos,
+      margin: { left: margin, right: margin },
+      styles: {
+        fontSize: 8,
+        cellPadding: 3,
+        halign: "center",
+        valign: "middle",
+        lineColor: [0, 0, 0],
+        lineWidth: 0.3,
+      },
+      headStyles: {
+        fillColor: [243, 244, 246],
+        textColor: [0, 0, 0],
+        fontStyle: "bold",
+        fontSize: 8,
+      },
+      bodyStyles: {
+        fillColor: [255, 255, 255],
+        textColor: [0, 0, 0],
+      },
+      theme: "grid",
+      tableWidth: "auto",
+      didParseCell: (data) => {
+        // Make the last row (totals) bold
+        if (data.row.index === tableData.length - 1) {
+          data.cell.styles.fontStyle = "bold";
+        }
+      },
+    });
+
+    // Get final Y position after table
+    yPos = (pdf as any).lastAutoTable.finalY + 10;
+
+    // Amount in words
+    pdf.setFontSize(10);
+    pdf.setFont("helvetica", "bold");
+    const amountInWords = `Amount in words: ${numberToWords(
+      totalAmount
+    ).toUpperCase()} ONLY`;
+    const splitAmount = pdf.splitTextToSize(amountInWords, maxWidth);
+    pdf.text(splitAmount, margin, yPos);
+    yPos += splitAmount.length * 5 + 15;
+
+    // Signature
+    pdf.setFontSize(11);
+    pdf.setFont("helvetica", "normal");
+    pdf.text("For HORIZON ANANT", pageWidth - margin - 45, yPos);
+    yPos += 12;
+    pdf.setFont("helvetica", "bold");
+    pdf.text("Authorised Signatory", pageWidth - margin - 45, yPos);
+    yPos += 15;
+
+    // Terms
+    pdf.setDrawColor(200);
+    pdf.line(margin, yPos, pageWidth - margin, yPos);
+    yPos += 8;
+
+    pdf.setFontSize(9);
+    pdf.setFont("helvetica", "normal");
+    pdf.text("• With tax as per Govt. rule", margin, yPos);
+
+    pdf.save(`ledger_${receiptData.customerId}.pdf`);
+  };
+
+  // ==============================
+  // JSX RENDER
+  // ==============================
   return (
     <>
       <div className={styles.overlay}>

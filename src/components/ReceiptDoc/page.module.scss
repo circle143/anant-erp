@@ -201,18 +201,75 @@ $shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1),
 // =======================================
 // PDF Export Styles
 // =======================================
+/* PDF export styles */
 .pdfExport {
-  background-color: #fff !important;
-  color: #000 !important;
+  position: static !important;
+  transform: none !important;
+  filter: none !important;
   box-shadow: none !important;
+  background-color: #ffffff !important;
+  color: #000000 !important;
+  width: 800px !important;
+  max-width: 800px !important;
+  padding: 20px !important;
+  box-sizing: border-box !important;
+  overflow: visible !important;
+
+  .tableContainer {
+    overflow: visible !important;
+    width: 100% !important;
+  }
 
   .receiptTable {
+    width: 100% !important;
+    table-layout: fixed !important;
+    border-collapse: collapse !important;
+    font-size: 11px !important;
+
+    th,
+    td {
+      border: 1px solid #000000 !important;
+      padding: 6px 4px !important;
+      text-align: center !important;
+      word-wrap: break-word !important;
+    }
+
     th {
       background-color: #f3f4f6 !important;
-      color: #000 !important;
+      color: #000000 !important;
+      font-weight: bold !important;
       -webkit-print-color-adjust: exact !important;
       print-color-adjust: exact !important;
     }
+  }
+
+  .header {
+    text-align: center !important;
+    margin-bottom: 15px !important;
+
+    h1 {
+      font-size: 18px !important;
+      margin-bottom: 8px !important;
+    }
+
+    p {
+      font-size: 12px !important;
+      margin: 3px 0 !important;
+    }
+  }
+
+  .customerInfo p,
+  .summary p,
+  .amountInWords {
+    font-size: 12px !important;
+  }
+
+  .signature p {
+    font-size: 12px !important;
+  }
+
+  .terms {
+    font-size: 11px !important;
   }
 }
 
