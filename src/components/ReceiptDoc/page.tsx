@@ -190,61 +190,60 @@ const Page: React.FC<PageProps> = ({ receiptData, onClose }) => {
   const handleDownloadPDF = async () => {
     const input = receiptRef.current;
     if (!input) return;
-  
+
     // Hide noPrint elements
     const noPrintElements = input.querySelectorAll(".noPrint");
-    noPrintElements.forEach((el) => ((el as HTMLElement).style.display = "none"));
-  
+    noPrintElements.forEach(
+      (el) => ((el as HTMLElement).style.display = "none")
+    );
+
     // Add temporary export class
     input.classList.add("pdfExport");
-  
+
     await new Promise((resolve) => setTimeout(resolve, 100));
-  
+
     const canvas = await html2canvas(input, {
       scale: 2.5,
       useCORS: true,
       backgroundColor: "#ffffff",
       logging: false,
-      scrollY: 0, // Prevents scroll offset
-      windowScrollY: 0,
+      scrollY: 0,
     });
-  
+
     // Restore
     input.classList.remove("pdfExport");
     noPrintElements.forEach((el) => ((el as HTMLElement).style.display = ""));
-  
+
     const imgData = canvas.toDataURL("image/png");
     const pdf = new jsPDF("p", "mm", "a4");
-  
+
     const pageWidth = pdf.internal.pageSize.getWidth();
     const pageHeight = pdf.internal.pageSize.getHeight();
-  
+
     const imgWidthPx = canvas.width;
     const imgHeightPx = canvas.height;
-  
+
     const pdfWidthPx = (pageWidth * 96) / 25.4;
     const pdfHeightPx = (pageHeight * 96) / 25.4;
-  
+
     // Fit within A4
     const ratio = Math.min(pdfWidthPx / imgWidthPx, pdfHeightPx / imgHeightPx);
-  
+
     const renderWidth = imgWidthPx * ratio;
     const renderHeight = imgHeightPx * ratio;
-  
+
     // ✅ Force the content to start from top (remove top padding)
     const offsetX = (pdfWidthPx - renderWidth) / 2;
     const offsetY = 0; // 👈 Force to top edge
-  
+
     // Convert to mm
     const renderWidthMM = (renderWidth * 25.4) / 96;
     const renderHeightMM = (renderHeight * 25.4) / 96;
     const offsetXMM = (offsetX * 25.4) / 96;
-  
+
     pdf.addImage(imgData, "PNG", offsetXMM, 0, renderWidthMM, renderHeightMM);
     pdf.save(`receipt_${receiptNo}.pdf`);
   };
-  
-  
 
   // ==============================
   // JSX RENDER
@@ -255,7 +254,8 @@ const Page: React.FC<PageProps> = ({ receiptData, onClose }) => {
     !isNaN(Number(cgst)) &&
     !isNaN(Number(sgst));
 
-  const showOtherTaxesGroup = krishiKalyanCess || serviceTax || swatchBharatCess;
+  const showOtherTaxesGroup =
+    krishiKalyanCess || serviceTax || swatchBharatCess;
 
   return (
     <>
@@ -267,30 +267,52 @@ const Page: React.FC<PageProps> = ({ receiptData, onClose }) => {
         <div ref={receiptRef} className={styles.receiptContainer}>
           <div className={styles.header}>
             <h1>{formData.name}</h1>
-            <p>Address: GH-9, Sector 11, Vrindavan Colony, Lucknow, Uttar Pradesh 226012</p>
+            <p>
+              Address: GH-9, Sector 11, Vrindavan Colony, Lucknow, Uttar Pradesh
+              226012
+            </p>
             <p>Ph: 0120-4229777</p>
             <p>GSTIN: 09AACCH6839F1ZE | CIN No.: U70109DL2013PTC251321</p>
             <p>Web: www.novenagreen.com | Email: info@novenagreen.com</p>
           </div>
 
           <div className={styles.customerInfo}>
-            <p><strong>Receipt No:</strong> {receiptNo}</p>
-            <p><strong>Member ID:</strong> {saleNumber}</p>
             <p>
-              <strong>{customerId.includes(",") ? "Owner(s)" : "Customer Name"}:</strong> {name}
+              <strong>Receipt No:</strong> {receiptNo}
             </p>
-            <p><strong>Address:</strong> {address}</p>
-            <p><strong>Mobile:</strong> {phone}</p>
-            <p><strong>Date:</strong> {date}</p>
+            <p>
+              <strong>Member ID:</strong> {saleNumber}
+            </p>
+            <p>
+              <strong>
+                {customerId.includes(",") ? "Owner(s)" : "Customer Name"}:
+              </strong>{" "}
+              {name}
+            </p>
+            <p>
+              <strong>Address:</strong> {address}
+            </p>
+            <p>
+              <strong>Mobile:</strong> {phone}
+            </p>
+            <p>
+              <strong>Date:</strong> {date}
+            </p>
           </div>
 
           <div className={styles.summary}>
             <p>
-              A sum of <strong>{formatIndianCurrencyWithDecimals(total)}</strong> (
-              <strong>{numberToWords(total).toUpperCase()} ONLY</strong>) received for Flat No.{" "}
-              <strong>{plotNo}</strong> with Salable Area <strong>{superArea} Sq.Ft.</strong> on{" "}
-              <strong>{floor}th floor</strong> at Tower no. <strong>{tower}</strong> in project{" "}
-              <strong>{SocietyFlatData?.name} located at {SocietyFlatData?.address}</strong>.
+              A sum of{" "}
+              <strong>{formatIndianCurrencyWithDecimals(total)}</strong> (
+              <strong>{numberToWords(total).toUpperCase()} ONLY</strong>)
+              received for Flat No. <strong>{plotNo}</strong> with Salable Area{" "}
+              <strong>{superArea} Sq.Ft.</strong> on{" "}
+              <strong>{floor}th floor</strong> at Tower no.{" "}
+              <strong>{tower}</strong> in project{" "}
+              <strong>
+                {SocietyFlatData?.name} located at {SocietyFlatData?.address}
+              </strong>
+              .
             </p>
           </div>
 
@@ -327,15 +349,31 @@ const Page: React.FC<PageProps> = ({ receiptData, onClose }) => {
                 <td>{formatIndianCurrencyWithDecimals(amount || 0)}</td>
                 {showGSTGroup && (
                   <>
-                    <td>{formatIndianCurrencyWithDecimals(Number(cgst) || 0)}</td>
-                    <td>{formatIndianCurrencyWithDecimals(Number(sgst) || 0)}</td>
+                    <td>
+                      {formatIndianCurrencyWithDecimals(Number(cgst) || 0)}
+                    </td>
+                    <td>
+                      {formatIndianCurrencyWithDecimals(Number(sgst) || 0)}
+                    </td>
                   </>
                 )}
                 {showOtherTaxesGroup && (
                   <>
-                    <td>{formatIndianCurrencyWithDecimals(Number(krishiKalyanCess) || 0)}</td>
-                    <td>{formatIndianCurrencyWithDecimals(Number(serviceTax) || 0)}</td>
-                    <td>{formatIndianCurrencyWithDecimals(Number(swatchBharatCess) || 0)}</td>
+                    <td>
+                      {formatIndianCurrencyWithDecimals(
+                        Number(krishiKalyanCess) || 0
+                      )}
+                    </td>
+                    <td>
+                      {formatIndianCurrencyWithDecimals(
+                        Number(serviceTax) || 0
+                      )}
+                    </td>
+                    <td>
+                      {formatIndianCurrencyWithDecimals(
+                        Number(swatchBharatCess) || 0
+                      )}
+                    </td>
                   </>
                 )}
                 <td>{formatIndianCurrencyWithDecimals(total || 0)}</td>
@@ -351,16 +389,26 @@ const Page: React.FC<PageProps> = ({ receiptData, onClose }) => {
           <div className={styles.terms}>
             <ul>
               <li>This receipt is subject to realization of cheque/draft.</li>
-              <li>The receipts are not transferable without written consent of the company.</li>
-              <li>This is only the receipt for the remittance and does not entitle ownership unless confirmed by the company.</li>
+              <li>
+                The receipts are not transferable without written consent of the
+                company.
+              </li>
+              <li>
+                This is only the receipt for the remittance and does not entitle
+                ownership unless confirmed by the company.
+              </li>
             </ul>
           </div>
         </div>
       </div>
 
       <div className={styles.noPrint}>
-        <button onClick={handlePrint} className={styles.printButton}>Print</button>
-        <button onClick={handleDownloadPDF} className={styles.printButton}>Download PDF</button>
+        <button onClick={handlePrint} className={styles.printButton}>
+          Print
+        </button>
+        <button onClick={handleDownloadPDF} className={styles.printButton}>
+          Download PDF
+        </button>
       </div>
     </>
   );

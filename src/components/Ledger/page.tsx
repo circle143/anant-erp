@@ -1,5 +1,6 @@
 // app/components/Receipt/Page.tsx
 "use client";
+
 import React, { useRef, useEffect, useState } from "react";
 import styles from "./page.module.scss";
 import html2canvas from "html2canvas";
@@ -13,7 +14,57 @@ import { getSelf } from "../../redux/action/org-admin";
 import { getUrl } from "aws-amplify/storage";
 import Loader from "../Loader/Loader";
 
-// ... keep your interfaces (PageProps, ReceiptData, etc.)
+// ------------ Types ------------
+
+interface ClearedInfo {
+  bank: {
+    accountNumber: string;
+    createdAt: string;
+    id: string;
+    name: string;
+    orgId: string;
+    societyId: string;
+  };
+  bankId: string;
+  receiptId: string;
+}
+
+interface ReceiptItem {
+  id: string | number;
+  mode: string;
+  dateIssued: string;
+  failed?: boolean;
+  cleared?: ClearedInfo;
+  amount: number | string;
+  cgst?: number | string;
+  sgst?: number | string;
+  krishiKalyanCess?: number | string;
+  serviceTax?: number | string;
+  swatchBharatCess?: number | string;
+  totalAmount: number | string;
+}
+
+interface ReceiptData {
+  receipt: ReceiptItem[];
+  saleNumber: string;
+  customerId: string;
+  name: string;
+  phone: string;
+  amount: number | string;
+  amountRemaining: number | string;
+  bookingDate: string;
+  plotNo: string;
+  superArea: number | string;
+  floor: number | string;
+  tower: string;
+}
+
+type PageProps = {
+  receiptData: ReceiptData;
+  onClose: () => void;
+};
+
+// ------------ Component ------------
 
 const Page: React.FC<PageProps> = ({ receiptData, onClose }) => {
   const receiptRef = useRef<HTMLDivElement>(null);
@@ -51,12 +102,16 @@ const Page: React.FC<PageProps> = ({ receiptData, onClose }) => {
           for (let i = 0; i < css.length; i++) txt += css[i].cssText;
           styleTags += `<style>${txt}</style>`;
         } else if ((ss as CSSStyleSheet).href) {
-          styleTags += `<link rel="stylesheet" href="${(ss as CSSStyleSheet).href}">`;
+          styleTags += `<link rel="stylesheet" href="${
+            (ss as CSSStyleSheet).href
+          }">`;
         }
       } catch {
         // Cross-origin: fallback to href
         if ((ss as CSSStyleSheet).href) {
-          styleTags += `<link rel="stylesheet" href="${(ss as CSSStyleSheet).href}">`;
+          styleTags += `<link rel="stylesheet" href="${
+            (ss as CSSStyleSheet).href
+          }">`;
         }
       }
     });
@@ -64,7 +119,7 @@ const Page: React.FC<PageProps> = ({ receiptData, onClose }) => {
     // Hard overrides to prevent "blank pages"
     const safeOverrides = `
       <style>
-        /* Force visibility in popup (your module's print rule hides *) */
+        /* Force visibility in popup */
         * { visibility: visible !important; }
         .${noPrintCls}, .noPrint { display: none !important; }
 
@@ -145,10 +200,9 @@ const Page: React.FC<PageProps> = ({ receiptData, onClose }) => {
 
     const afterFonts = () => setTimeout(doPrint, 50);
     try {
-      // @ts-ignore
-      if (printWindow.document.fonts && printWindow.document.fonts.ready) {
-        // @ts-ignore
-        printWindow.document.fonts.ready.then(afterFonts).catch(afterFonts);
+      const docFonts = (printWindow.document as any).fonts;
+      if (docFonts && docFonts.ready) {
+        docFonts.ready.then(afterFonts).catch(afterFonts);
       } else {
         afterFonts();
       }
@@ -164,11 +218,15 @@ const Page: React.FC<PageProps> = ({ receiptData, onClose }) => {
     try {
       input.classList.add(styles.pdfExport);
       if ("fonts" in document) {
-        // @ts-ignore
-        await document.fonts.ready.catch(() => {});
+        const docFonts = (document as any).fonts;
+        if (docFonts && docFonts.ready) {
+          await docFonts.ready.catch(() => {});
+        }
       }
-      await new Promise((r) => requestAnimationFrame(() => r(null)));
-      await new Promise((r) => setTimeout(r, 50));
+      await new Promise<void>((resolve) =>
+        requestAnimationFrame(() => resolve())
+      );
+      await new Promise<void>((resolve) => setTimeout(() => resolve(), 50));
 
       const scale = Math.min(window.devicePixelRatio || 1, 2);
       const canvas = await html2canvas(input, {
@@ -177,7 +235,8 @@ const Page: React.FC<PageProps> = ({ receiptData, onClose }) => {
         backgroundColor: "#ffffff",
         removeContainer: true,
         ignoreElements: (el) =>
-          el.classList?.contains(styles.noPrint) || el.classList?.contains("noPrint"),
+          el.classList?.contains(styles.noPrint) ||
+          el.classList?.contains("noPrint"),
       });
 
       const imgData = canvas.toDataURL("image/png");
@@ -255,20 +314,25 @@ const Page: React.FC<PageProps> = ({ receiptData, onClose }) => {
 
   if (loading) return <Loader />;
 
+  // Use the defined type
+  type Item = ReceiptItem;
+
   // ✅ Only non-failed receipts are considered for rows & calculations
-  const validReceipts = receiptData.receipt.filter((r) => !r.failed);
+  const validReceipts: Item[] = receiptData.receipt.filter(
+    (r: Item) => !r.failed
+  );
 
   const hasPostGST = validReceipts.some(
-    (r) => new Date(r.dateIssued) > new Date("2017-07-01")
+    (r: Item) => new Date(r.dateIssued) > new Date("2017-07-01")
   );
   const hasPreGST = validReceipts.some(
-    (r) => new Date(r.dateIssued) <= new Date("2017-07-01")
+    (r: Item) => new Date(r.dateIssued) <= new Date("2017-07-01")
   );
 
   const calculateTotalColSpan = () => 4; // S.No, Mode, Date, Status
 
   const totalAmount = validReceipts.reduce(
-    (a, r) => a + Number(r.totalAmount),
+    (a: number, r: Item) => a + Number(r.totalAmount),
     0
   );
 
@@ -286,7 +350,10 @@ const Page: React.FC<PageProps> = ({ receiptData, onClose }) => {
         >
           <div className={styles.header}>
             <h1>{formData.name}</h1>
-            <p>Address: GH-9, Sector 11, Vrindavan Colony, Lucknow, Uttar Pradesh 226012</p>
+            <p>
+              Address: GH-9, Sector 11, Vrindavan Colony, Lucknow, Uttar Pradesh
+              226012
+            </p>
             <p>Ph: 0120-4229777</p>
             <p>GSTIN: 09AACCH6839F1ZE | CIN No.: U70109DL2013PTC251321</p>
             <p>Web: www.novenagreen.com | Email: info@novenagreen.com</p>
@@ -298,7 +365,10 @@ const Page: React.FC<PageProps> = ({ receiptData, onClose }) => {
             </p>
             <p>
               <strong>
-                {receiptData.customerId.includes(",") ? "Owner(s)" : "Customer Name"}:
+                {receiptData.customerId.includes(",")
+                  ? "Owner(s)"
+                  : "Customer Name"}
+                :
               </strong>{" "}
               {receiptData.name}
             </p>
@@ -311,7 +381,9 @@ const Page: React.FC<PageProps> = ({ receiptData, onClose }) => {
             </p>
             <p>
               <strong>Remaining Amount:</strong>{" "}
-              {formatIndianCurrencyWithDecimals(Number(receiptData.amountRemaining))}
+              {formatIndianCurrencyWithDecimals(
+                Number(receiptData.amountRemaining)
+              )}
             </p>
             <p>
               <strong>Booking Date:</strong> {receiptData.bookingDate}
@@ -320,8 +392,8 @@ const Page: React.FC<PageProps> = ({ receiptData, onClose }) => {
 
           <div className={styles.summary}>
             <p>
-              Flat No. <strong>{receiptData.plotNo}</strong> with a salable area of{" "}
-              <strong>{receiptData.superArea} Sq.Ft.</strong>, located on the{" "}
+              Flat No. <strong>{receiptData.plotNo}</strong> with a salable area
+              of <strong>{receiptData.superArea} Sq.Ft.</strong>, located on the{" "}
               <strong>
                 {receiptData.floor}
                 <sup>th</sup> floor
@@ -358,23 +430,31 @@ const Page: React.FC<PageProps> = ({ receiptData, onClose }) => {
                 </tr>
               </thead>
               <tbody>
-                {validReceipts.map((r, i) => {
+                {validReceipts.map((r: Item, i: number) => {
                   const status = r.cleared ? "Paid" : "Pending";
-                  const instrumentDate = new Date(r.dateIssued).toLocaleDateString();
+                  const instrumentDate = new Date(
+                    r.dateIssued
+                  ).toLocaleDateString();
                   return (
                     <tr key={r.id}>
                       <td>{i + 1}</td>
                       <td>{r.mode}</td>
                       <td>{instrumentDate}</td>
                       <td>{status}</td>
-                      <td>{formatIndianCurrencyWithDecimals(Number(r.amount))}</td>
+                      <td>
+                        {formatIndianCurrencyWithDecimals(Number(r.amount))}
+                      </td>
                       {hasPostGST && (
                         <>
                           <td>
-                            {formatIndianCurrencyWithDecimals(Number(r.cgst) || 0)}
+                            {formatIndianCurrencyWithDecimals(
+                              Number(r.cgst) || 0
+                            )}
                           </td>
                           <td>
-                            {formatIndianCurrencyWithDecimals(Number(r.sgst) || 0)}
+                            {formatIndianCurrencyWithDecimals(
+                              Number(r.sgst) || 0
+                            )}
                           </td>
                         </>
                       )}
@@ -398,7 +478,9 @@ const Page: React.FC<PageProps> = ({ receiptData, onClose }) => {
                         </>
                       )}
                       <td>
-                        {formatIndianCurrencyWithDecimals(Number(r.totalAmount))}
+                        {formatIndianCurrencyWithDecimals(
+                          Number(r.totalAmount)
+                        )}
                       </td>
                     </tr>
                   );
@@ -412,7 +494,7 @@ const Page: React.FC<PageProps> = ({ receiptData, onClose }) => {
                     <strong>
                       {formatIndianCurrencyWithDecimals(
                         validReceipts.reduce(
-                          (a, r) => a + Number(r.amount),
+                          (a: number, r: Item) => a + Number(r.amount),
                           0
                         )
                       )}
@@ -424,7 +506,7 @@ const Page: React.FC<PageProps> = ({ receiptData, onClose }) => {
                         <strong>
                           {formatIndianCurrencyWithDecimals(
                             validReceipts.reduce(
-                              (a, r) => a + (Number(r.cgst) || 0),
+                              (a: number, r: Item) => a + (Number(r.cgst) || 0),
                               0
                             )
                           )}
@@ -434,7 +516,7 @@ const Page: React.FC<PageProps> = ({ receiptData, onClose }) => {
                         <strong>
                           {formatIndianCurrencyWithDecimals(
                             validReceipts.reduce(
-                              (a, r) => a + (Number(r.sgst) || 0),
+                              (a: number, r: Item) => a + (Number(r.sgst) || 0),
                               0
                             )
                           )}
@@ -448,7 +530,7 @@ const Page: React.FC<PageProps> = ({ receiptData, onClose }) => {
                         <strong>
                           {formatIndianCurrencyWithDecimals(
                             validReceipts.reduce(
-                              (a, r) =>
+                              (a: number, r: Item) =>
                                 a + (Number(r.krishiKalyanCess) || 0),
                               0
                             )
@@ -459,7 +541,8 @@ const Page: React.FC<PageProps> = ({ receiptData, onClose }) => {
                         <strong>
                           {formatIndianCurrencyWithDecimals(
                             validReceipts.reduce(
-                              (a, r) => a + (Number(r.serviceTax) || 0),
+                              (a: number, r: Item) =>
+                                a + (Number(r.serviceTax) || 0),
                               0
                             )
                           )}
@@ -469,7 +552,7 @@ const Page: React.FC<PageProps> = ({ receiptData, onClose }) => {
                         <strong>
                           {formatIndianCurrencyWithDecimals(
                             validReceipts.reduce(
-                              (a, r) =>
+                              (a: number, r: Item) =>
                                 a + (Number(r.swatchBharatCess) || 0),
                               0
                             )
@@ -482,7 +565,7 @@ const Page: React.FC<PageProps> = ({ receiptData, onClose }) => {
                     <strong>
                       {formatIndianCurrencyWithDecimals(
                         validReceipts.reduce(
-                          (a, r) => a + Number(r.totalAmount),
+                          (a: number, r: Item) => a + Number(r.totalAmount),
                           0
                         )
                       )}
@@ -495,8 +578,7 @@ const Page: React.FC<PageProps> = ({ receiptData, onClose }) => {
 
           <div className={styles.amountInWords}>
             <strong>
-              Amount in words:{" "}
-              {numberToWords(totalAmount).toUpperCase()} ONLY
+              Amount in words: {numberToWords(totalAmount).toUpperCase()} ONLY
             </strong>
           </div>
 
