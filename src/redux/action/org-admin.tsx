@@ -64,7 +64,7 @@ import {
     UpdateOtherChargeDetailsRequestBodyInput,
 } from "@/utils/routes/charges/types";
 import {
-    PaymentPlanRatioInput,GetPaymentPlans
+    PaymentPlanRatioInput,GetPaymentPlans,GetTowerPaymentPlans,MarkPaymentPlanActiveForTowerInput,GetFlatPaymentPlans,MarkPaymentPlanActiveForFlatInput
 } from "@/utils/routes/payment-plans-group/type";
 import { charges } from "@/utils/routes/charges/charges";
 import { customer } from "@/utils/routes/sale/sale";
@@ -75,7 +75,7 @@ import { organization } from "@/utils/routes/organization/organization";
 import { getIdToken } from "@/utils/get_user_tokens";
 // import { flatType } from "@/utils/routes/flat-type/flat_type";
 import { sum } from "lodash";
-import { paymentPlans } from "@/utils/routes/payment-plans-group/payment_plans";
+import { paymentPlans, } from "@/utils/routes/payment-plans-group/payment_plans";
 import {
     BrokerByIdRouteInput,
     BrokerDetailsReqBodyInput,
@@ -1076,52 +1076,94 @@ export const createPaymentPlan = async (
         return { error: true, message: error.message };
     }
 };
-// export const getTowerPaymentPlans = async (
-//     societyReraNumber: string,
-//     towerId: string,
-//     cursor: string | null = null
-// ) => {
-//     try {
-//         const token = await getIdToken();
-//         const input: GetTowerPaymentPlans = {
-//             societyReraNumber,
-//             towerId,
-//             cursor: cursor ?? "",
-//         };
-//         const url = paymentPlans.getTowerPaymentPlans.getEndpoint(input);
-//         const response = await axios.get(createURL(url), {
-//             headers: { Authorization: `Bearer ${token}` },
-//         });
-//         return response.data;
-//     } catch (error: any) {
-//         console.error(
-//             "Error fetching payment plan:",
-//             error.response?.data || error.message
-//         );
-//         return { error: true, message: error.message };
-//     }
-// };
-// export const markPaymentPlanActiveForTower = async (
-//     societyReraNumber: string,
-//     towerId: string,
-//     paymentId: string
-// ) => {
-//     try {
-//         const token = await getIdToken();
-//         const input = { societyReraNumber, towerId, paymentId };
-//         const url =
-//             paymentPlans.markPaymentPlanActiveForTower.getEndpoint(input);
+export const getTowerPaymentPlans = async (
+    societyReraNumber: string,
+    towerId: string,
+) => {
+    try {
+        const token = await getIdToken();
+        const input: GetTowerPaymentPlans = {
+            societyReraNumber,
+            towerId,
+        };
+        const url = paymentPlans.getTowerPaymentPlans.getEndpoint(input);
+        const response = await axios.get(createURL(url), {
+            headers: { Authorization: `Bearer ${token}` },
+        });
+        return response.data;
+    } catch (error: any) {
+        console.error(
+            "Error fetching payment plan:",
+            error.response?.data || error.message
+        );
+        return { error: true, message: error.message };
+    }
+};
+export const markPaymentPlanActiveForTower = async (
+    societyReraNumber: string,
+    towerId: string,
+    paymentId: string
+) => {
+    try {
+        const token = await getIdToken();
+        const input = { societyReraNumber, towerId, paymentId };
+        const url =
+            paymentPlans.markPaymentPlanActiveForTower.getEndpoint(input);
 
-//         const response = await axios.post(createURL(url), null, {
-//             headers: { Authorization: `Bearer ${token}` },
-//         });
+        const response = await axios.post(createURL(url), null, {
+            headers: { Authorization: `Bearer ${token}` },
+        });
 
-//         return response.data;
-//     } catch (error: any) {
-//         console.error("Error :", error.response?.data || error.message);
-//         return { error: true, message: error.message };
-//     }
-// };
+        return response.data;
+    } catch (error: any) {
+        console.error("Error :", error.response?.data || error.message);
+        return { error: true, message: error.message };
+    }
+};
+export const getFlatPaymentPlans = async (
+    societyReraNumber: string,
+    flatId: string,
+) => {
+    try {
+        const token = await getIdToken();
+        const input: GetFlatPaymentPlans = {
+            societyReraNumber,
+            flatId,
+        };
+        const url = paymentPlans.getFlatPaymentPlans.getEndpoint(input);
+        const response = await axios.get(createURL(url), {
+            headers: { Authorization: `Bearer ${token}` },
+        });
+        return response.data;
+    } catch (error: any) {
+        console.error(
+            "Error fetching payment plan:",
+            error.response?.data || error.message
+        );
+        return { error: true, message: error.message };
+    }
+};
+export const markPaymentPlanActiveForFlat = async (
+    societyReraNumber: string,
+    flatId: string,
+    paymentId: string
+) => {
+    try {
+        const token = await getIdToken();
+        const input = { societyReraNumber, flatId, paymentId };
+        const url =
+            paymentPlans.markPaymentPlanActiveForFlat.getEndpoint(input);
+
+        const response = await axios.post(createURL(url), null, {
+            headers: { Authorization: `Bearer ${token}` },
+        });
+
+        return response.data;
+    } catch (error: any) {
+        console.error("Error :", error.response?.data || error.message);
+        return { error: true, message: error.message };
+    }
+};
 export const getSalePaymentBreakDown = async (
     societyReraNumber: string,
     saleId: string

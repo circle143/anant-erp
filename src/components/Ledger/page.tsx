@@ -13,7 +13,7 @@ import { getSelf } from "../../redux/action/org-admin";
 import { getUrl } from "aws-amplify/storage";
 import Loader from "../Loader/Loader";
 
-// ... keep your interfaces
+// ... keep your interfaces (PageProps, ReceiptData, etc.)
 
 const Page: React.FC<PageProps> = ({ receiptData, onClose }) => {
   const receiptRef = useRef<HTMLDivElement>(null);
@@ -134,7 +134,6 @@ const Page: React.FC<PageProps> = ({ receiptData, onClose }) => {
     printWindow.document.write(doc);
     printWindow.document.close();
 
-    // Ensure layout is ready before print
     const doPrint = () => {
       try {
         printWindow.focus();
@@ -144,7 +143,6 @@ const Page: React.FC<PageProps> = ({ receiptData, onClose }) => {
       }
     };
 
-    // Wait fonts & next frame
     const afterFonts = () => setTimeout(doPrint, 50);
     try {
       // @ts-ignore
@@ -218,7 +216,12 @@ const Page: React.FC<PageProps> = ({ receiptData, onClose }) => {
     rera ? state.flats.societyFlats[rera] : null
   );
 
-  const [formData, setFormData] = useState({ name: "", gst: "", logo: "", file: null as File | null });
+  const [formData, setFormData] = useState({
+    name: "",
+    gst: "",
+    logo: "",
+    file: null as File | null,
+  });
   const [loading, setLoading] = useState(false);
 
   useEffect(() => {
@@ -252,20 +255,35 @@ const Page: React.FC<PageProps> = ({ receiptData, onClose }) => {
 
   if (loading) return <Loader />;
 
-  const hasPostGST = receiptData.receipt.some(
+  // ✅ Only non-failed receipts are considered for rows & calculations
+  const validReceipts = receiptData.receipt.filter((r) => !r.failed);
+
+  const hasPostGST = validReceipts.some(
     (r) => new Date(r.dateIssued) > new Date("2017-07-01")
   );
-  const hasPreGST = receiptData.receipt.some(
+  const hasPreGST = validReceipts.some(
     (r) => new Date(r.dateIssued) <= new Date("2017-07-01")
   );
 
-  const calculateTotalColSpan = () => 4;
+  const calculateTotalColSpan = () => 4; // S.No, Mode, Date, Status
+
+  const totalAmount = validReceipts.reduce(
+    (a, r) => a + Number(r.totalAmount),
+    0
+  );
 
   return (
     <>
       <div className={styles.overlay}>
-        <button className={styles.closeButton} onClick={onClose}>✕</button>
-        <div id="receipt" ref={receiptRef} className={styles.receiptContainer} style={{ backgroundColor: "#ffffff" }}>
+        <button className={styles.closeButton} onClick={onClose}>
+          ✕
+        </button>
+        <div
+          id="receipt"
+          ref={receiptRef}
+          className={styles.receiptContainer}
+          style={{ backgroundColor: "#ffffff" }}
+        >
           <div className={styles.header}>
             <h1>{formData.name}</h1>
             <p>Address: GH-9, Sector 11, Vrindavan Colony, Lucknow, Uttar Pradesh 226012</p>
@@ -275,23 +293,42 @@ const Page: React.FC<PageProps> = ({ receiptData, onClose }) => {
           </div>
 
           <div className={styles.customerInfo}>
-            <p><strong>Member ID:</strong> {receiptData.saleNumber}</p>
             <p>
-              <strong>{receiptData.customerId.includes(",") ? "Owner(s)" : "Customer Name"}:</strong>{" "}
+              <strong>Member ID:</strong> {receiptData.saleNumber}
+            </p>
+            <p>
+              <strong>
+                {receiptData.customerId.includes(",") ? "Owner(s)" : "Customer Name"}:
+              </strong>{" "}
               {receiptData.name}
             </p>
-            <p><strong>Mobile:</strong> {receiptData.phone}</p>
-            <p><strong>Total Amount:</strong> {formatIndianCurrencyWithDecimals(Number(receiptData.amount))}</p>
-            <p><strong>Remaining Amount:</strong> {formatIndianCurrencyWithDecimals(Number(receiptData.amountRemaining))}</p>
-            <p><strong>Booking Date:</strong> {receiptData.bookingDate}</p>
+            <p>
+              <strong>Mobile:</strong> {receiptData.phone}
+            </p>
+            <p>
+              <strong>Total Amount:</strong>{" "}
+              {formatIndianCurrencyWithDecimals(Number(receiptData.amount))}
+            </p>
+            <p>
+              <strong>Remaining Amount:</strong>{" "}
+              {formatIndianCurrencyWithDecimals(Number(receiptData.amountRemaining))}
+            </p>
+            <p>
+              <strong>Booking Date:</strong> {receiptData.bookingDate}
+            </p>
           </div>
 
           <div className={styles.summary}>
             <p>
               Flat No. <strong>{receiptData.plotNo}</strong> with a salable area of{" "}
               <strong>{receiptData.superArea} Sq.Ft.</strong>, located on the{" "}
-              <strong>{receiptData.floor}<sup>th</sup> floor</strong> of Tower <strong>{receiptData.tower}</strong>, in
-              the project <strong>{SocietyFlatData?.name}</strong> located at <strong>{SocietyFlatData?.address}</strong>.
+              <strong>
+                {receiptData.floor}
+                <sup>th</sup> floor
+              </strong>{" "}
+              of Tower <strong>{receiptData.tower}</strong>, in the project{" "}
+              <strong>{SocietyFlatData?.name}</strong> located at{" "}
+              <strong>{SocietyFlatData?.address}</strong>.
             </p>
           </div>
 
@@ -304,14 +341,25 @@ const Page: React.FC<PageProps> = ({ receiptData, onClose }) => {
                   <th>Instrument Date</th>
                   <th>Status</th>
                   <th>Amount</th>
-                  {hasPostGST && (<><th>CGST</th><th>SGST</th></>)}
-                  {hasPreGST && (<><th>Krishi Kalyan Cess</th><th>Service Tax</th><th>Swachh Bharat Cess</th></>)}
+                  {hasPostGST && (
+                    <>
+                      <th>CGST</th>
+                      <th>SGST</th>
+                    </>
+                  )}
+                  {hasPreGST && (
+                    <>
+                      <th>Krishi Kalyan Cess</th>
+                      <th>Service Tax</th>
+                      <th>Swachh Bharat Cess</th>
+                    </>
+                  )}
                   <th>Total</th>
                 </tr>
               </thead>
               <tbody>
-                {receiptData.receipt.map((r, i) => {
-                  const status = r.failed ? "Failed" : r.cleared ? "Paid" : "Pending";
+                {validReceipts.map((r, i) => {
+                  const status = r.cleared ? "Paid" : "Pending";
                   const instrumentDate = new Date(r.dateIssued).toLocaleDateString();
                   return (
                     <tr key={r.id}>
@@ -320,29 +368,126 @@ const Page: React.FC<PageProps> = ({ receiptData, onClose }) => {
                       <td>{instrumentDate}</td>
                       <td>{status}</td>
                       <td>{formatIndianCurrencyWithDecimals(Number(r.amount))}</td>
-                      {hasPostGST && (<><td>{formatIndianCurrencyWithDecimals(Number(r.cgst) || 0)}</td><td>{formatIndianCurrencyWithDecimals(Number(r.sgst) || 0)}</td></>)}
-                      {hasPreGST && (<><td>{formatIndianCurrencyWithDecimals(Number(r.krishiKalyanCess) || 0)}</td><td>{formatIndianCurrencyWithDecimals(Number(r.serviceTax) || 0)}</td><td>{formatIndianCurrencyWithDecimals(Number(r.swatchBharatCess) || 0)}</td></>)}
-                      <td>{formatIndianCurrencyWithDecimals(Number(r.totalAmount))}</td>
+                      {hasPostGST && (
+                        <>
+                          <td>
+                            {formatIndianCurrencyWithDecimals(Number(r.cgst) || 0)}
+                          </td>
+                          <td>
+                            {formatIndianCurrencyWithDecimals(Number(r.sgst) || 0)}
+                          </td>
+                        </>
+                      )}
+                      {hasPreGST && (
+                        <>
+                          <td>
+                            {formatIndianCurrencyWithDecimals(
+                              Number(r.krishiKalyanCess) || 0
+                            )}
+                          </td>
+                          <td>
+                            {formatIndianCurrencyWithDecimals(
+                              Number(r.serviceTax) || 0
+                            )}
+                          </td>
+                          <td>
+                            {formatIndianCurrencyWithDecimals(
+                              Number(r.swatchBharatCess) || 0
+                            )}
+                          </td>
+                        </>
+                      )}
+                      <td>
+                        {formatIndianCurrencyWithDecimals(Number(r.totalAmount))}
+                      </td>
                     </tr>
                   );
                 })}
+
                 <tr>
-                  <td colSpan={calculateTotalColSpan()}><strong>Total</strong></td>
-                  <td><strong>{formatIndianCurrencyWithDecimals(receiptData.receipt.reduce((a, r) => a + Number(r.amount), 0))}</strong></td>
+                  <td colSpan={calculateTotalColSpan()}>
+                    <strong>Total</strong>
+                  </td>
+                  <td>
+                    <strong>
+                      {formatIndianCurrencyWithDecimals(
+                        validReceipts.reduce(
+                          (a, r) => a + Number(r.amount),
+                          0
+                        )
+                      )}
+                    </strong>
+                  </td>
                   {hasPostGST && (
                     <>
-                      <td><strong>{formatIndianCurrencyWithDecimals(receiptData.receipt.reduce((a, r) => a + (Number(r.cgst) || 0), 0))}</strong></td>
-                      <td><strong>{formatIndianCurrencyWithDecimals(receiptData.receipt.reduce((a, r) => a + (Number(r.sgst) || 0), 0))}</strong></td>
+                      <td>
+                        <strong>
+                          {formatIndianCurrencyWithDecimals(
+                            validReceipts.reduce(
+                              (a, r) => a + (Number(r.cgst) || 0),
+                              0
+                            )
+                          )}
+                        </strong>
+                      </td>
+                      <td>
+                        <strong>
+                          {formatIndianCurrencyWithDecimals(
+                            validReceipts.reduce(
+                              (a, r) => a + (Number(r.sgst) || 0),
+                              0
+                            )
+                          )}
+                        </strong>
+                      </td>
                     </>
                   )}
                   {hasPreGST && (
                     <>
-                      <td><strong>{formatIndianCurrencyWithDecimals(receiptData.receipt.reduce((a, r) => a + (Number(r.krishiKalyanCess) || 0), 0))}</strong></td>
-                      <td><strong>{formatIndianCurrencyWithDecimals(receiptData.receipt.reduce((a, r) => a + (Number(r.serviceTax) || 0), 0))}</strong></td>
-                      <td><strong>{formatIndianCurrencyWithDecimals(receiptData.receipt.reduce((a, r) => a + (Number(r.swatchBharatCess) || 0), 0))}</strong></td>
+                      <td>
+                        <strong>
+                          {formatIndianCurrencyWithDecimals(
+                            validReceipts.reduce(
+                              (a, r) =>
+                                a + (Number(r.krishiKalyanCess) || 0),
+                              0
+                            )
+                          )}
+                        </strong>
+                      </td>
+                      <td>
+                        <strong>
+                          {formatIndianCurrencyWithDecimals(
+                            validReceipts.reduce(
+                              (a, r) => a + (Number(r.serviceTax) || 0),
+                              0
+                            )
+                          )}
+                        </strong>
+                      </td>
+                      <td>
+                        <strong>
+                          {formatIndianCurrencyWithDecimals(
+                            validReceipts.reduce(
+                              (a, r) =>
+                                a + (Number(r.swatchBharatCess) || 0),
+                              0
+                            )
+                          )}
+                        </strong>
+                      </td>
                     </>
                   )}
-                  <td><strong>{formatIndianCurrencyWithDecimals(receiptData.receipt.reduce((a, r) => a + Number(r.totalAmount), 0))}</strong></td>
+                  <td>
+                    <strong>
+                      {formatIndianCurrencyWithDecimals(
+                        validReceipts.reduce(
+                          (a, r) => a + Number(r.totalAmount),
+                          0
+                        )
+                      )}
+                    </strong>
+                  </td>
                 </tr>
               </tbody>
             </table>
@@ -351,7 +496,7 @@ const Page: React.FC<PageProps> = ({ receiptData, onClose }) => {
           <div className={styles.amountInWords}>
             <strong>
               Amount in words:{" "}
-              {numberToWords(receiptData.receipt.reduce((a, r) => a + Number(r.totalAmount), 0)).toUpperCase()} ONLY
+              {numberToWords(totalAmount).toUpperCase()} ONLY
             </strong>
           </div>
 
@@ -361,14 +506,20 @@ const Page: React.FC<PageProps> = ({ receiptData, onClose }) => {
           </div>
 
           <div className={styles.terms}>
-            <ul><li>With tax as per Govt. rule</li></ul>
+            <ul>
+              <li>With tax as per Govt. rule</li>
+            </ul>
           </div>
         </div>
       </div>
 
       <div className={`${styles.noPrint} noPrint`}>
-        <button onClick={handlePrint} className={styles.printButton}>Print</button>
-        <button onClick={handleDownloadPDF} className={styles.printButton}>Download PDF</button>
+        <button onClick={handlePrint} className={styles.printButton}>
+          Print
+        </button>
+        <button onClick={handleDownloadPDF} className={styles.printButton}>
+          Download PDF
+        </button>
       </div>
     </>
   );

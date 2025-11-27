@@ -55,7 +55,24 @@ export interface GetPaymentPlans {
   societyReraNumber: string;
   cursor?: string;
 }
-
+export interface GetTowerPaymentPlans {
+  societyReraNumber: string;
+  towerId: string;
+}
+export interface MarkPaymentPlanActiveForTowerInput {
+  societyReraNumber: string;
+  towerId: string;
+  paymentId: string;
+}
+export interface GetFlatPaymentPlans {
+  societyReraNumber: string;
+  flatId: string;
+}
+export interface MarkPaymentPlanActiveForFlatInput {
+  societyReraNumber: string;
+  flatId: string;
+  paymentId: string;
+}
 // export interface GetTowerPaymentPlans {
 // 	societyReraNumber: string;
 // 	towerId: string;

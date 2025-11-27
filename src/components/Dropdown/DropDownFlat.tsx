@@ -1,61 +1,85 @@
+// components/DropdownFlat/DropdownFlat.tsx
+"use client";
+
 import { useState } from "react";
 import { useRouter } from "next/navigation";
 import { MoreVertical } from "lucide-react";
 import styles from "./page.module.scss";
 import toast from "react-hot-toast";
-import { deleteTower } from "@/redux/action/org-admin";
-interface DropdownTowerProps {
+import { deleteFlat as apiDeleteFlat } from "@/redux/action/org-admin";
+
+type FlatMinimal = {
+  id: string;
+  name?: string;
+  floorNumber?: string | number;
+  facing?: string;
+  salableArea?: string | number;
+  saleableArea?: string | number;
+  unitType?: string;
+};
+
+interface DropdownFlatProps {
   reraNumber: string;
   towerId: string;
-  fetchData: () => void;
+  flat: FlatMinimal;
+  fetchData: () => void | Promise<void>;
+  onDeleteClick?: () => void; // WHY: let parent own confirm/modal
 }
 
-const DropdownTower = ({
+export default function DropdownFlat({
   reraNumber,
   towerId,
+  flat,
   fetchData,
-}: DropdownTowerProps) => {
+  onDeleteClick,
+}: DropdownFlatProps) {
   const [isOpen, setIsOpen] = useState(false);
   const router = useRouter();
 
   const handleRedirect = (
-    reraNumber: string,
+    rera: string,
     type: string,
     extras?: Record<string, string | number>
   ) => {
-    const params = new URLSearchParams({ rera: reraNumber });
-
+    const params = new URLSearchParams({ rera });
     if (extras) {
       Object.entries(extras).forEach(([key, value]) => {
         params.append(key, value.toString());
       });
     }
-
     router.push(
-      `/org-admin/society/towers/${type.toLowerCase()}?${params.toString()}`
+      `/org-admin/society/towers/flats/${type.toLowerCase()}?${params.toString()}`
     );
     setIsOpen(false);
   };
+
   const handleDelete = async () => {
-    const confirm = window.confirm(
-      "Are you sure you want to delete this Tower?"
+    if (onDeleteClick) {
+      onDeleteClick(); // WHY: parent handles confirmation and deletion
+      setIsOpen(false);
+      return;
+    }
+
+    const confirmDelete = window.confirm(
+      "Are you sure you want to delete this Flat?"
     );
-    if (!confirm) return;
+    if (!confirmDelete) return;
 
     try {
-      const response = await deleteTower(towerId, reraNumber);
-      if (!response.error) {
-        toast.success("Tower deleted successfully");
-        fetchData();
+      const response = await apiDeleteFlat(flat.id, reraNumber);
+      if (!response?.error) {
+        toast.success("Flat deleted successfully");
+        await fetchData();
       } else {
-        toast.error(response.message || "Failed to delete Tower");
+        toast.error(response?.message || "Failed to delete Flat");
       }
-    } catch (err) {
+    } catch {
       toast.error("An error occurred while deleting");
     } finally {
       setIsOpen(false);
     }
   };
+
   return (
     <div className={styles.dropdownWrapper}>
       <button className={styles.menuButton} onClick={() => setIsOpen(!isOpen)}>
@@ -66,17 +90,19 @@ const DropdownTower = ({
         <div className={styles.dropdownMenu}>
           <div
             onClick={() =>
-              handleRedirect(reraNumber, "flats", {
+              handleRedirect(reraNumber, "edit", {
                 towerId,
+                flatId: flat.id,
               })
             }
           >
-            Flats
+            Edit
           </div>
           <div
             onClick={() =>
               handleRedirect(reraNumber, "payment-plans", {
-                towerId,
+                FlatId: flat.id, // WHY: backend expects capitalized key
+                towerId:towerId
               })
             }
           >
@@ -87,6 +113,4 @@ const DropdownTower = ({
       )}
     </div>
   );
-};
-
-export default DropdownTower;
+}

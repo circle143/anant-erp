@@ -77,7 +77,6 @@ const Page = () => {
                                     <div className={styles.details}>
                                         <div><strong>Name:</strong> {org.name}</div>
                                         <div><strong>Abbreviation:</strong> {org.abbr}</div>
-
                                         <div>
                                             <strong>Ratios:</strong>
                                             {org.ratios?.length > 0 ? (

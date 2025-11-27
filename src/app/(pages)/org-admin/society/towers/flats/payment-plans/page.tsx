@@ -1,10 +1,10 @@
 // app/org-admin/society/payment-plan/page.tsx
 "use client";
 
-import React, { useEffect, useState, useCallback, Fragment } from "react";
+import React, { useEffect, useState, useCallback } from "react";
 import {
-  getTowerPaymentPlans,
-  markPaymentPlanActiveForTower,
+  getFlatPaymentPlans,
+  markPaymentPlanActiveForFlat,
 } from "@/redux/action/org-admin";
 import styles from "./page.module.scss";
 import Loader from "@/components/Loader/Loader";
@@ -25,7 +25,7 @@ type PlanItem = {
 
 type RatioGroup = {
   id: string;
-  ratio: string; // e.g. "50.00,50.00"
+  ratio: string; // e.g. "30,40,30"
   items: PlanItem[];
   createdAt?: string;
   updatedAt?: string;
@@ -54,18 +54,18 @@ const Page = () => {
   const searchParams = useSearchParams();
   const rera = searchParams.get("rera");
   const towerID = searchParams.get("towerId");
+  const flatId = searchParams.get("FlatId"); // keep casing if your router uses it
 
   const fetchOnce = useCallback(async () => {
-    if (!rera || !towerID) {
+    if (!rera || !flatId) {
       setOrgData([]);
       setLoading(false);
       return;
     }
     setLoading(true);
     try {
-      const response = await getTowerPaymentPlans(rera, towerID);
+      const response = await getFlatPaymentPlans(rera, flatId);
       const items: TowerPlan[] = response?.data?.items ?? [];
-      console.log(items)
       setOrgData(items);
     } catch (err) {
       console.error("Failed to load payment plans:", err);
@@ -73,24 +73,24 @@ const Page = () => {
     } finally {
       setLoading(false);
     }
-  }, [rera, towerID]);
+  }, [rera, flatId]);
 
   useEffect(() => {
     fetchOnce();
   }, [fetchOnce]);
 
   const handleActivateItem = async (paymentItemId: string) => {
-    if (!rera || !towerID) return;
+    if (!rera || !flatId) return;
     const ok = window.confirm("Are you sure you want to activate this payment plan item?");
     if (!ok) return;
 
     setActivatingId(paymentItemId);
     try {
-      const res = await markPaymentPlanActiveForTower(rera, towerID, paymentItemId);
+      const res = await markPaymentPlanActiveForFlat(rera, flatId, paymentItemId);
       if (res?.error) {
         alert("Failed to activate payment plan item");
       } else {
-        await fetchOnce(); // reload to reflect item.active
+        await fetchOnce();
       }
     } catch (e) {
       console.error(e);
@@ -117,7 +117,6 @@ const Page = () => {
 
   const fmtCondValue = (val: string | number | null | undefined, type: string) => {
     if (val === null || val === undefined || val === "") return "N/A";
-    // Add "days" suffix for within-days / after-days etc. so users don't misread numbers
     return /day/i.test(type) ? `${val} days` : String(val);
   };
 
@@ -125,12 +124,16 @@ const Page = () => {
     { name: "Home", href: "/org-admin" },
     { name: "Societies", href: "/org-admin/society" },
     { name: "Towers", href: `/org-admin/society/towers?rera=${rera ?? ""}` },
+    {
+      name: "Flats",
+      href: `/org-admin/society/towers/flats?rera=${rera ?? ""}&towerId=${towerID ?? ""}`,
+    },
     { name: "Payment Plan" },
   ];
 
   const ItemRow: React.FC<{ item: PlanItem }> = ({ item }) => {
     const isActive = Boolean(item.active);
-    const isBusy = activatingId === item.id;
+    const busy = activatingId === item.id;
 
     return (
       <li key={item.id} className={styles.item || ""}>
@@ -143,7 +146,7 @@ const Page = () => {
           <strong>Condition Type:</strong> {item.conditionType}
         </div>
         <div>
-          <strong>Condition Value:</strong> {fmtCondValue(item.conditionValue, item.conditionType)}
+          <strong>Condition Value:</strong> {fmtCondValue(item.conditionValue ?? null, item.conditionType)}
         </div>
         <div>
           <strong>Ratio:</strong> {fmtItemRatio(item.ratio)}
@@ -160,10 +163,10 @@ const Page = () => {
             <button
               className={styles.activateBtn}
               onClick={() => handleActivateItem(item.id)}
-              disabled={isBusy}
-              aria-busy={isBusy}
+              disabled={busy}
+              aria-busy={busy}
             >
-              {isBusy ? "Activating..." : "Activate"}
+              {busy ? "Activating..." : "Activate"}
             </button>
           )}
         </div>
@@ -179,8 +182,8 @@ const Page = () => {
 
       <CustomBreadcrumbs items={breadcrumb} />
 
-      {!rera || !towerID ? (
-        <div className={styles.noData}>Missing parameters: rera / towerId</div>
+      {!rera || !flatId ? (
+        <div className={styles.noData}>Missing parameters: rera / flatId</div>
       ) : loading ? (
         <div className={styles.loading}>
           <Loader />
@@ -192,7 +195,6 @@ const Page = () => {
           {orgData.map((plan, idx) => (
             <li key={plan.id ?? `plan-${idx}`} className={styles.orgItem}>
               <div className={styles.details}>
-                {/* Identity */}
                 <div>
                   <strong>Name:</strong> {plan.name || plan.summary || "Untitled"}
                 </div>
@@ -202,7 +204,6 @@ const Page = () => {
                   </div>
                 ) : null}
 
-                {/* Nested: ratios[] with items[] */}
                 {Array.isArray(plan.ratios) && plan.ratios.length > 0 ? (
                   <div>
                     <strong>Ratios:</strong>
@@ -212,12 +213,9 @@ const Page = () => {
                           <div>
                             <strong>Group Ratio:</strong> {fmtGroupRatio(group.ratio)}
                           </div>
-
                           <ul className={styles.itemList || ""}>
                             {(group.items ?? []).map((item) => (
-                              <Fragment key={item.id}>
-                                <ItemRow item={item} />
-                              </Fragment>
+                              <ItemRow key={item.id} item={item} />
                             ))}
                           </ul>
                         </li>
@@ -225,7 +223,6 @@ const Page = () => {
                     </ul>
                   </div>
                 ) : Array.isArray(plan.items) && plan.items.length > 0 ? (
-                  // Flat: items[] at the root
                   <div>
                     <strong>Items:</strong>
                     <ul className={styles.itemList || ""}>
@@ -235,7 +232,6 @@ const Page = () => {
                     </ul>
                   </div>
                 ) : (
-                  // Fallback: simple single-step plan
                   <>
                     <div>
                       <strong>Amount:</strong> {plan.amount}%
@@ -245,7 +241,7 @@ const Page = () => {
                     </div>
                     <div>
                       <strong>Condition Value:</strong>{" "}
-                      {fmtCondValue(plan.conditionValue, plan.conditionType ?? "")}
+                      {fmtCondValue(plan.conditionValue ?? null, plan.conditionType ?? "")}
                     </div>
                     <div>
                       <strong>Scope:</strong> {plan.scope}
@@ -254,11 +250,14 @@ const Page = () => {
                 )}
 
                 <div>
+                  <strong>Plan Active:</strong> {plan.active ? "Yes" : "No"}
+                </div>
+                <div>
                   <strong>Created At:</strong>{" "}
                   {plan.createdAt ? new Date(plan.createdAt).toLocaleString() : "Not Available"}
                 </div>
 
-                {/* Removed broken plan-level Activate button */}
+                {/* No plan-level Activate button by design */}
               </div>
             </li>
           ))}
