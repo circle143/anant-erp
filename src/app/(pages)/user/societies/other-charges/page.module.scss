@@ -1,0 +1,78 @@
+.container {
+  padding: 2rem;
+}
+
+.chargesTable {
+  margin: 1.5rem 0;
+  overflow-x: auto;
+}
+
+.table {
+  width: 100%;
+  border-collapse: collapse;
+  background-color: #fff;
+  border-radius: 8px;
+  overflow: hidden;
+  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+
+  thead {
+    background-color: #0070f3;
+    color: white;
+
+    tr {
+      th {
+        padding: 1rem;
+        text-align: left;
+        font-weight: 600;
+      }
+    }
+  }
+
+  tbody {
+    tr {
+      border-bottom: 1px solid #eee;
+
+      &:hover {
+        background-color: #f9f9f9;
+      }
+
+      td {
+        padding: 1rem;
+      }
+    }
+  }
+}
+
+.paginationControls {
+  margin-top: 2rem;
+  display: flex;
+  justify-content: space-between;
+  gap: 1rem;
+
+  .navButton {
+    padding: 0.5rem 1rem;
+    border: none;
+    background-color: #0070f3;
+    color: white;
+    border-radius: 4px;
+    cursor: pointer;
+
+    &:disabled {
+      background-color: #ccc;
+      cursor: not-allowed;
+    }
+  }
+}
+
+.loading {
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  height: 400px;
+}
+
+.noData {
+  text-align: center;
+  padding: 2rem;
+  color: #666;
+}
