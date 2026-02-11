@@ -33,3 +33,20 @@ export interface ReceiptIdInput {
 export interface ClearSaleReceiptRequestBody {
 	bankId: string;
 }
+// types.ts - Add these new types
+export interface UpdateSaleReceiptInput {
+    societyRera: string;
+    receiptId: string;
+}
+
+export interface UpdateSaleReceiptRequestBody {
+    receiptNumber: string;
+    totalAmount: number;
+    mode: string;
+    bankName?: string;
+    transactionNumber?: string;
+    gstRate?: number;
+    ServiceTax?: number;
+    SwatchBharatCess?: number;
+    KrishiKalyanCess?: number;
+}

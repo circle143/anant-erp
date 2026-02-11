@@ -96,6 +96,8 @@ import {
     AddSaleReceiptRequestBody,
     ClearSaleReceiptRequestBody,
     ReceiptIdInput,
+    UpdateSaleReceiptRequestBody,
+    UpdateSaleReceiptInput,
 } from "@/utils/routes/receipt/types";
 
 const apiUrl = process.env.NEXT_PUBLIC_API_URL as string;
@@ -1650,6 +1652,40 @@ export const addSaleReceipt = async (
     } catch (error: any) {
         console.error(
             "Error adding sale receipt:",
+            error.response?.data || error.message
+        );
+        return { error: true, message: error.message };
+    }
+};
+// Add this to your redux/action/org-admin.ts or wherever your actions are
+
+export const updateSaleReceipt = async (
+    societyRera: string,
+    receiptId: string,
+    data: {
+        receiptNumber: string;
+        totalAmount: number;
+        mode: string;
+        bankName?: string;
+        transactionNumber?: string;
+        gstRate?: number;
+        ServiceTax?: number;      // PascalCase to match backend
+        SwatchBharatCess?: number; // PascalCase to match backend
+        KrishiKalyanCess?: number; // PascalCase to match backend
+    }
+) => {
+    try {
+        const token = await getIdToken();
+        const input: UpdateSaleReceiptInput = { societyRera, receiptId };
+        const reqBody: UpdateSaleReceiptRequestBody = data;
+        const url = receipt.updateSaleReceipt.getEndpoint(input);
+        const response = await axios.patch(createURL(url), reqBody, {
+            headers: { Authorization: `Bearer ${token}` },
+        });
+        return response.data;
+    } catch (error: any) {
+        console.error(
+            "Error updating sale receipt:",
             error.response?.data || error.message
         );
         return { error: true, message: error.message };

@@ -18,7 +18,7 @@ export const sidebarOrgAdminItems = [
     //     eventKey: "Create Socity",
     //     icon: "bx bx-building-house", // Society icon
     //     text: "Create Society",
-    //     paths: ["/org-admin/new-society"],
+    //     paths: ["/org-admin/new-society"], 
     // },
     {
         eventKey: "Societies",
@@ -65,6 +65,12 @@ export const sidebarOrgAdminItems = [
 ];
 
 export const sidebarUserItems = [
+    {
+        eventKey: "Societies",
+        icon: "bx bx-buildings", // Societies list
+        text: "Societies",
+        paths: ["/org-admin/society", "/org-admin/society/flat"],
+    },
     {
         eventKey: "Sale",
         icon: "bx bx-shopping-bag", // User sale icon

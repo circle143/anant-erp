@@ -1,3 +1,4 @@
+// components/ReceiptModal/page.tsx
 "use client";
 import React, { useState, useEffect } from "react";
 import Box from "@mui/material/Box";
@@ -17,13 +18,39 @@ import Loader from "../Loader/Loader";
 import ReceiptDocModal from "@/components/ReceiptDocModal/page";
 import LedgerModal from "../LedgerModal/page";
 import CreateReceiptForm from "@/components/Receipts/CreateReceiptForm";
+import EditReceiptForm from "@/components/Receipts/EditReceiptForm";
+
+interface Receipt {
+    id: string;
+    receiptNumber: string;
+    totalAmount: number | string;  // Accept both
+    amount: number | string;       // Accept both
+    mode: string;
+    dateIssued: string;
+    bankName?: string;
+    transactionNumber?: string;
+    cgst?: number | string;           // Changed
+    sgst?: number | string;           // Changed
+    serviceTax?: number | string;     // Changed
+    swatchBharatCess?: number | string; // Changed
+    krishiKalyanCess?: number | string; // Changed
+    failed: boolean;
+    cleared?: {
+        bank: {
+            name: string;
+            accountNumber: string;
+        };
+    };
+}
+
 const ReceiptContent = ({
     id,
     rera,
     towerId,
     handleClose,
     fetchData,
-     onCreateReceipt,
+    onCreateReceipt,
+    onEditReceipt,
 }: {
     id: string;
     rera: string;
@@ -31,11 +58,10 @@ const ReceiptContent = ({
     handleClose: () => void;
     fetchData: () => void;
     onCreateReceipt: () => void;
+    onEditReceipt: (receipt: Receipt) => void;
 }) => {
     const [clearModalOpen, setClearModalOpen] = useState(false);
-    const [selectedReceiptId, setSelectedReceiptId] = useState<string | null>(
-        null
-    );
+    const [selectedReceiptId, setSelectedReceiptId] = useState<string | null>(null);
     const [selectedBankId, setSelectedBankId] = useState<string>("");
     const [loading, setLoading] = useState(false);
     const [pageLoading, setPageLoading] = useState(true);
@@ -49,13 +75,11 @@ const ReceiptContent = ({
     );
 
     const matchingUnit = units.find((unit) => unit.saleDetail?.id === id);
-
     const receipts = matchingUnit?.saleDetail?.receipts || [];
     const router = useRouter();
 
     useEffect(() => {
-        console.log("matchingUnit", matchingUnit);
-        setPageLoading(false); // simulate async page preparation if needed
+        setPageLoading(false);
     }, []);
 
     const fetchAllBanks = async (
@@ -86,6 +110,7 @@ const ReceiptContent = ({
         const fetchedBanks = await fetchAllBanks();
         setBanks(fetchedBanks);
     };
+
     const handleMarkAsFailed = async (receiptId: string) => {
         setLoading(true);
         try {
@@ -125,95 +150,64 @@ const ReceiptContent = ({
         setLoading(false);
     };
 
-    if (pageLoading || loading) {
-        return (
-            <Loader/>
-        );
-    }
+    // Check if receipt can be edited
+    const canEditReceipt = (receipt: Receipt) => {
+        return !receipt.cleared && !receipt.failed;
+    };
 
+    if (pageLoading || loading) {
+        return <Loader />;
+    }
 
     return (
         <div className={styles.container}>
             <h1>Receipts</h1>
             <div className={styles.buttonContainer}>
-                {/* <button
-                    className={styles.createButton}
-                    onClick={() =>
-                        router.push(
-                            towerId
-                                ? `/org-admin/society/towers/flats/create-receipt?rera=${rera}&saleId=${id}&towerId=${towerId}`
-                                : `/org-admin/society/flats/create-receipt?rera=${rera}&saleId=${id}`
-                        )
-                    }
-                >
-                    Create Receipt
-                </button> */}
-                <button
-                    className={styles.createButton}
-                     onClick={onCreateReceipt}
-                >
+                <button className={styles.createButton} onClick={onCreateReceipt}>
                     Create Receipt
                 </button>
-
 
                 <LedgerModal
                     receiptData={{
                         receipt: matchingUnit?.saleDetail?.receipts || [],
-                        saleNumber: matchingUnit?.saleDetail?.saleNumber || 'N/A',
+                        saleNumber: matchingUnit?.saleDetail?.saleNumber || "N/A",
                         customerId: matchingUnit?.saleDetail?.companyCustomer
                             ? matchingUnit.saleDetail.companyCustomer.id
                             : matchingUnit?.saleDetail?.owners
-                                ?.map((o) => o.id)
-                                .filter(Boolean)
-                                .join(", ") || "N/A",
+                                  ?.map((o) => o.id)
+                                  .filter(Boolean)
+                                  .join(", ") || "N/A",
                         name: matchingUnit?.saleDetail?.companyCustomer
                             ? matchingUnit.saleDetail.companyCustomer.name
                             : matchingUnit?.saleDetail?.owners
-                                ?.map((o) =>
-                                    [o.firstName, o.middleName, o.lastName]
-                                        .filter(Boolean)
-                                        .join(" ")
-                                )
-                                .join(", ") || "N/A",
-
+                                  ?.map((o) =>
+                                      [o.firstName, o.middleName, o.lastName]
+                                          .filter(Boolean)
+                                          .join(" ")
+                                  )
+                                  .join(", ") || "N/A",
                         phone: matchingUnit?.saleDetail?.companyCustomer
                             ? "N/A"
                             : matchingUnit?.saleDetail?.owners
-                                ?.map((o) => o.phoneNumber)
-                                .filter(Boolean)
-                                .join(", ") || "N/A",
-                        // date: new Date(receipt.dateIssued).toLocaleDateString(),
+                                  ?.map((o) => o.phoneNumber)
+                                  .filter(Boolean)
+                                  .join(", ") || "N/A",
                         amount: Number(matchingUnit?.saleDetail?.totalPrice),
-                        amountRemaining: Number(
-                            matchingUnit?.saleDetail?.remaining
-                        ),
+                        amountRemaining: Number(matchingUnit?.saleDetail?.remaining),
                         bookingDate: matchingUnit?.saleDetail?.createdAt
                             ? new Date(
-                                matchingUnit.saleDetail.createdAt
-                            ).toLocaleDateString()
+                                  matchingUnit.saleDetail.createdAt
+                              ).toLocaleDateString()
                             : "Not Available",
-
                         superArea: Number(matchingUnit?.salableArea) || 0,
                         floor:
                             matchingUnit?.floorNumber !== undefined &&
-                                matchingUnit?.floorNumber !== null
+                            matchingUnit?.floorNumber !== null
                                 ? String(matchingUnit.floorNumber)
                                 : "N/A",
-                        tower: matchingUnit?.name
-                            ? matchingUnit.name.charAt(0)
-                            : "N/A",
+                        tower: matchingUnit?.name ? matchingUnit.name.charAt(0) : "N/A",
                         project: "N/A",
                         plotNo: matchingUnit?.name || "N/A",
-                        // bankName: receipt.bankName || "N/A",
-                        // instrumentDate: new Date(
-                        //     receipt.dateIssued
-                        // ).toLocaleDateString(),
-                        // status: receipt.failed
-                        //     ? "Failed"
-                        //     : receipt.cleared
-                        //     ? "Paid"
-                        //     : "Pending",
-                        // mode: receipt.mode,
                     }}
                 />
             </div>
@@ -233,15 +227,11 @@ const ReceiptContent = ({
                             </p>
                             <p>
                                 <strong>Date Issued:</strong>{" "}
-                                {new Date(
-                                    receipt.dateIssued
-                                ).toLocaleDateString()}
+                                {new Date(receipt.dateIssued).toLocaleDateString()}
                             </p>
                             <p>
                                 <strong>Amount:</strong>{" "}
-                                {formatIndianCurrencyWithDecimals(
-                                    receipt.amount
-                                )}
+                                {formatIndianCurrencyWithDecimals(receipt.amount)}
                             </p>
                             <p>
                                 <strong>Mode:</strong> {receipt.mode}
@@ -251,19 +241,18 @@ const ReceiptContent = ({
                                 {receipt.transactionNumber || "N/A"}
                             </p>
                             <p>
-                                <strong>Bank Name:</strong>{" "}
-                                {receipt.bankName || "N/A"}
+                                <strong>Bank Name:</strong> {receipt.bankName || "N/A"}
                             </p>
                             {receipt.cgst && (
                                 <>
-                                   <p>
-                                <strong>CGST:</strong>{" "}
-                                {formatIndianCurrencyWithDecimals(receipt.cgst)}
-                            </p>
-                            <p>
-                                <strong>SGST:</strong>{" "}
-                                {formatIndianCurrencyWithDecimals(receipt.sgst)}
-                            </p>
+                                    <p>
+                                        <strong>CGST:</strong>{" "}
+                                        {formatIndianCurrencyWithDecimals(receipt.cgst)}
+                                    </p>
+                                    <p>
+                                        <strong>SGST:</strong>{" "}
+                                        {formatIndianCurrencyWithDecimals(receipt.sgst)}
+                                    </p>
                                 </>
                             )}
                             {receipt.serviceTax && (
@@ -274,36 +263,33 @@ const ReceiptContent = ({
                                     </p>
                                     <p>
                                         <strong>Swatch Bharat Cess:</strong>{" "}
-                                        {formatIndianCurrencyWithDecimals(receipt.swatchBharatCess)}
+                                        {formatIndianCurrencyWithDecimals(
+                                            receipt.swatchBharatCess
+                                        )}
                                     </p>
                                     <p>
                                         <strong>Krishi Kalyan Cess:</strong>{" "}
-                                        {formatIndianCurrencyWithDecimals(receipt.krishiKalyanCess)}
+                                        {formatIndianCurrencyWithDecimals(
+                                            receipt.krishiKalyanCess
+                                        )}
                                     </p>
-
-
                                 </>
                             )}
                             <p>
                                 <strong>Total Amount:</strong>{" "}
-                                {formatIndianCurrencyWithDecimals(
-                                    receipt.totalAmount
-                                )}
+                                {formatIndianCurrencyWithDecimals(receipt.totalAmount)}
                             </p>
+
                             {receipt.failed && (
                                 <>
                                     <strong>Status:</strong>
-                                    <p className={styles.failed}>
-                                        Receipt Marked as Failed
-                                    </p>
+                                    <p className={styles.failed}>Receipt Marked as Failed</p>
                                 </>
                             )}
                             {!receipt.cleared && !receipt.failed && (
                                 <>
                                     <strong>Status:</strong>
-                                    <p className={styles.pending}>
-                                        Receipt Pending
-                                    </p>
+                                    <p className={styles.pending}>Receipt Pending</p>
                                 </>
                             )}
 
@@ -330,42 +316,31 @@ const ReceiptContent = ({
                                     <ReceiptDocModal
                                         receiptData={{
                                             receiptNo: receipt.receiptNumber,
-                                            rera:rera,
-                                            saleNumber: matchingUnit?.saleDetail?.saleNumber || 'N/A',
-                                            customerId: matchingUnit?.saleDetail
-                                                ?.companyCustomer
-                                                ? matchingUnit.saleDetail
-                                                    .companyCustomer.id
+                                            rera: rera,
+                                            saleNumber:
+                                                matchingUnit?.saleDetail?.saleNumber || "N/A",
+                                            customerId: matchingUnit?.saleDetail?.companyCustomer
+                                                ? matchingUnit.saleDetail.companyCustomer.id
                                                 : matchingUnit?.saleDetail?.owners
-                                                    ?.map((o) => o.id)
-                                                    .filter(Boolean)
-                                                    .join(", ") || "N/A",
-                                            name: matchingUnit?.saleDetail
-                                                ?.companyCustomer
-                                                ? matchingUnit.saleDetail
-                                                    .companyCustomer.name
+                                                      ?.map((o) => o.id)
+                                                      .filter(Boolean)
+                                                      .join(", ") || "N/A",
+                                            name: matchingUnit?.saleDetail?.companyCustomer
+                                                ? matchingUnit.saleDetail.companyCustomer.name
                                                 : matchingUnit?.saleDetail?.owners
-                                                    ?.map((o) =>
-                                                        [
-                                                            o.firstName,
-                                                            o.middleName,
-                                                            o.lastName,
-                                                        ]
-                                                            .filter(Boolean)
-                                                            .join(" ")
-                                                    )
-                                                    .join(", ") || "N/A",
-
+                                                      ?.map((o) =>
+                                                          [o.firstName, o.middleName, o.lastName]
+                                                              .filter(Boolean)
+                                                              .join(" ")
+                                                      )
+                                                      .join(", ") || "N/A",
                                             address: "N/A",
-                                            phone: matchingUnit?.saleDetail
-                                                ?.companyCustomer
+                                            phone: matchingUnit?.saleDetail?.companyCustomer
                                                 ? "N/A"
                                                 : matchingUnit?.saleDetail?.owners
-                                                    ?.map(
-                                                        (o) => o.phoneNumber
-                                                    )
-                                                    .filter(Boolean)
-                                                    .join(", ") || "N/A",
+                                                      ?.map((o) => o.phoneNumber)
+                                                      .filter(Boolean)
+                                                      .join(", ") || "N/A",
                                             date: new Date(
                                                 receipt.dateIssued
                                             ).toLocaleDateString(),
@@ -373,18 +348,11 @@ const ReceiptContent = ({
                                             cgst: Number(receipt.cgst),
                                             sgst: Number(receipt.sgst),
                                             total: Number(receipt.totalAmount),
-                                            superArea:
-                                                Number(
-                                                    matchingUnit?.salableArea
-                                                ) || 0,
+                                            superArea: Number(matchingUnit?.salableArea) || 0,
                                             floor:
-                                                matchingUnit?.floorNumber !==
-                                                    undefined &&
-                                                    matchingUnit?.floorNumber !==
-                                                    null
-                                                    ? String(
-                                                        matchingUnit.floorNumber
-                                                    )
+                                                matchingUnit?.floorNumber !== undefined &&
+                                                matchingUnit?.floorNumber !== null
+                                                    ? String(matchingUnit.floorNumber)
                                                     : "N/A",
                                             tower: matchingUnit?.name
                                                 ? matchingUnit.name.charAt(0)
@@ -398,50 +366,59 @@ const ReceiptContent = ({
                                             status: receipt.failed
                                                 ? "Failed"
                                                 : receipt.cleared
-                                                    ? "Paid"
-                                                    : "Pending",
+                                                ? "Paid"
+                                                : "Pending",
                                             mode: receipt.mode,
                                             krishiKalyanCess: receipt.krishiKalyanCess,
                                             serviceTax: receipt.serviceTax,
                                             swatchBharatCess: receipt.swatchBharatCess,
-
                                         }}
                                     />
                                 </div>
-                                {!receipt.cleared &&
-                                    receipt.failed === false && (
-                                        <>
-                                            <button
-                                                className={styles.clearButton}
-                                                onClick={() =>
-                                                    handleClearClick(receipt.id)
-                                                }
-                                            >
-                                                Clear Receipt
-                                            </button>
-                                            <button
-                                                onClick={() =>
-                                                    handleMarkAsFailed(
-                                                        receipt.id
-                                                    )
-                                                }
-                                                className={styles.failedButton}
-                                                disabled={loading}
-                                            >
-                                                Mark as Failed
-                                            </button>
-                                        </>
-                                    )}
+
+                          {/* Edit button - only show if receipt can be edited */}
+{canEditReceipt(receipt) && (
+    <button
+        className={styles.editButton}
+        onClick={() => onEditReceipt({
+            ...receipt,
+            totalAmount: Number(receipt.totalAmount),
+            amount: Number(receipt.amount),
+            cgst: receipt.cgst ? Number(receipt.cgst) : undefined,
+            sgst: receipt.sgst ? Number(receipt.sgst) : undefined,
+            serviceTax: receipt.serviceTax ? Number(receipt.serviceTax) : undefined,
+            swatchBharatCess: receipt.swatchBharatCess ? Number(receipt.swatchBharatCess) : undefined,
+            krishiKalyanCess: receipt.krishiKalyanCess ? Number(receipt.krishiKalyanCess) : undefined,
+        })}
+    >
+        Edit
+    </button>
+)}
+
+                                {!receipt.cleared && receipt.failed === false && (
+                                    <>
+                                        <button
+                                            className={styles.clearButton}
+                                            onClick={() => handleClearClick(receipt.id)}
+                                        >
+                                            Clear Receipt
+                                        </button>
+                                        <button
+                                            onClick={() => handleMarkAsFailed(receipt.id)}
+                                            className={styles.failedButton}
+                                            disabled={loading}
+                                        >
+                                            Mark as Failed
+                                        </button>
+                                    </>
+                                )}
                             </div>
                         </div>
                     ))}
                 </div>
             )}
 
-            <Modal
-                open={clearModalOpen}
-                onClose={() => setClearModalOpen(false)}
-            >
+            <Modal open={clearModalOpen} onClose={() => setClearModalOpen(false)}>
                 <Box className={styles.modal2}>
                     <h3>Select Bank to Clear Receipt</h3>
                     <select
@@ -479,67 +456,100 @@ const ReceiptContent = ({
 };
 
 interface ReceiptModalProps {
-  id: string;
-  rera: string;
-  towerId?: string;
-  fetchData: () => void;
-  open: boolean;
-  onClose: () => void;
-  createReceiptOpen: boolean;
-  onCreateReceiptOpen: () => void;
-  onCreateReceiptClose: () => void;
+    id: string;
+    rera: string;
+    towerId?: string;
+    fetchData: () => void;
+    open: boolean;
+    onClose: () => void;
+    createReceiptOpen: boolean;
+    onCreateReceiptOpen: () => void;
+    onCreateReceiptClose: () => void;
 }
 
-
 const ReceiptModal: React.FC<ReceiptModalProps> = ({
-  id,
-  rera,
-  towerId,
-  fetchData,
-  open, // ✅ controlled by parent
-  onClose,
-  createReceiptOpen,
-  onCreateReceiptOpen,
-  onCreateReceiptClose,
+    id,
+    rera,
+    towerId,
+    fetchData,
+    open,
+    onClose,
+    createReceiptOpen,
+    onCreateReceiptOpen,
+    onCreateReceiptClose,
 }) => {
-  return (
-    <>
-      <Modal open={open} onClose={onClose}>
-        <Box className={styles.modal}>
-          <ReceiptContent
-            id={id}
-            rera={rera}
-            towerId={towerId}
-            handleClose={onClose}
-            fetchData={fetchData}
-            onCreateReceipt={onCreateReceiptOpen}
-          />
-        </Box>
-      </Modal>
+    // Edit modal state
+    const [editReceiptOpen, setEditReceiptOpen] = useState(false);
+    const [selectedReceipt, setSelectedReceipt] = useState<Receipt | null>(null);
 
-      <Modal open={createReceiptOpen} onClose={onCreateReceiptClose}>
-        <Box className={styles.modal}>
-          <button
-            onClick={onCreateReceiptClose}
-            className={styles.closeButton}
-          >
-            ✕
-          </button>
-          <CreateReceiptForm
-            rera={rera}
-            saleId={id}
-            towerId={towerId}
-            onSuccess={() => {
-              onCreateReceiptClose();
-              fetchData(); // still works!
-            }}
-          />
-        </Box>
-      </Modal>
-    </>
-  );
+    const handleEditReceipt = (receipt: Receipt) => {
+        setSelectedReceipt(receipt);
+        setEditReceiptOpen(true);
+    };
+
+    const handleEditReceiptClose = () => {
+        setEditReceiptOpen(false);
+        setSelectedReceipt(null);
+    };
+
+    const handleEditSuccess = () => {
+        handleEditReceiptClose();
+        fetchData(); // Refresh data, receipt modal stays open
+    };
+
+    return (
+        <>
+            {/* Main Receipt Modal */}
+            <Modal open={open} onClose={onClose}>
+                <Box className={styles.modal}>
+                    <ReceiptContent
+                        id={id}
+                        rera={rera}
+                        towerId={towerId}
+                        handleClose={onClose}
+                        fetchData={fetchData}
+                        onCreateReceipt={onCreateReceiptOpen}
+                        onEditReceipt={handleEditReceipt}
+                    />
+                </Box>
+            </Modal>
+
+            {/* Create Receipt Modal */}
+            <Modal open={createReceiptOpen} onClose={onCreateReceiptClose}>
+                <Box className={styles.modal}>
+                    <button onClick={onCreateReceiptClose} className={styles.closeButton}>
+                        ✕
+                    </button>
+                    <CreateReceiptForm
+                        rera={rera}
+                        saleId={id}
+                        towerId={towerId}
+                        onSuccess={() => {
+                            onCreateReceiptClose();
+                            fetchData();
+                        }}
+                    />
+                </Box>
+            </Modal>
+
+            {/* Edit Receipt Modal */}
+            <Modal open={editReceiptOpen} onClose={handleEditReceiptClose}>
+                <Box className={styles.modal}>
+                    <button onClick={handleEditReceiptClose} className={styles.closeButton}>
+                        ✕
+                    </button>
+                    {selectedReceipt && (
+                        <EditReceiptForm
+                            rera={rera}
+                            receipt={selectedReceipt}
+                            onSuccess={handleEditSuccess}
+                            onCancel={handleEditReceiptClose}
+                        />
+                    )}
+                </Box>
+            </Modal>
+        </>
+    );
 };
-
-
 
 export default ReceiptModal;

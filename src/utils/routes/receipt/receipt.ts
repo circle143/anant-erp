@@ -3,6 +3,8 @@ import {
 	AddSaleReceiptRequestBody,
 	ReceiptIdInput,
 	ClearSaleReceiptRequestBody,
+	UpdateSaleReceiptInput,
+    UpdateSaleReceiptRequestBody,
 } from "./types";
 
 function getBasePath(societyReraNumber: string) {
@@ -19,6 +21,15 @@ export const receipt = {
 		},
 		requestMethod: "POST",
 	},
+	updateSaleReceipt: {
+        getEndpoint: (input: UpdateSaleReceiptInput) => {
+            return getBasePath(input.societyRera) + `/${input.receiptId}`;
+        },
+        getReqBody: (input: UpdateSaleReceiptRequestBody) => {
+            return input;
+        },
+        requestMethod: "PATCH",
+    },
 	clearSaleReceipt: {
 		getEndpoint: (input: ReceiptIdInput) => {
 			return getBasePath(input.societyRera) + `/${input.receiptId}/clear`;
