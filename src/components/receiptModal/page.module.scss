@@ -47,9 +47,10 @@
 
 .grid {
     display: grid;
-    grid-template-columns: repeat(auto-fit, minmax(350px, 1fr));
+    grid-template-columns: repeat(2, minmax(350px, 1fr));
     gap: 1.5rem;
-}
+  }
+  
 
 .card {
     background-color: #fff;
@@ -269,12 +270,10 @@
     p {
         margin: 0.3rem 0;
         font-size: 0.95rem;
-
         strong {
             color: #166534; // darker green for emphasis
         }
     }
-
     div {
         margin-left: 1rem;
     }
